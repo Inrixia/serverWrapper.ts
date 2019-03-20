@@ -1,0 +1,10 @@
+# General (Windows)
+Thumbs.db
+desktop.ini
+
+# Dependency directories
+node_modules/
+
+# Testserver Files
+TestServer/world/
+TestServer/logs/

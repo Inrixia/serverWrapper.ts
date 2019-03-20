@@ -1,0 +1,44 @@
+{
+	"serverName": "VanillaTestServer",
+	"jar": "forge-1.12.2-14.23.5.2814-universal.jar",
+	"minRamAllocation": "12G",
+	"maxRamAllocation": "12G",
+	"rootBackupDir": "R:/LiveArchives/",
+	"backupInterval": 0.5,
+	"management_channel_id": 530926312035057674,
+	"statsPollrate": 5000,
+	"serverStartVars": [
+		"-server", 
+		"-XX:+UseG1GC", 
+		"-Dsun.rmi.dgc.server.gcInterval=2147483646", 
+		"-XX:+UnlockExperimentalVMOptions", 
+		"-XX:G1NewSizePercent=25", 
+		"-XX:G1ReservePercent=20", 
+		"-XX:MaxGCPauseMillis=100", 
+		"-XX:G1HeapRegionSize=128M", 
+		"-XX:ParallelGCThreads=8"
+	],
+	"serverPostfixVars": [
+		"nogui", 
+		"-dfml.queryresult=confirm"
+	],
+	"modulesDir": "Z:\\wrapperModules\\",
+	"modules": {
+		"stats": {
+			"file": "stats.js",
+			"enabled": true
+		},
+		"discord": {
+			"file": "discord.js",
+			"enabled": false
+		},
+		"backup": {
+			"file": "backup.js",
+			"enabled": false
+		},
+		"command": {
+			"file": "command.js",
+			"enabled": false
+		}
+	}
+}
