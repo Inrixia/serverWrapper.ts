@@ -25,6 +25,10 @@
     "-Xms2G",
     "-Xmx2G",
     "-jar",
+    "forge-1.12.2-14.23.5.2814-universal.jar",
+    "-Xms2G",
+    "-Xmx2G",
+    "-jar",
     "forge-1.12.2-14.23.5.2814-universal.jar"
   ],
   "serverPostfixVars": [
@@ -35,7 +39,7 @@
   "modules": {
     "stats": {
       "file": "stats.js",
-      "enabled": false,
+      "enabled": true,
       "color": "\u001b[33m"
     },
     "discord": {

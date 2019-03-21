@@ -43,7 +43,6 @@ const discord_token = fs.readFileSync('./config/Chikachi/DiscordIntegration.json
 // Fetch discord_token to use and display it at launch
 console.log('Using Discord Token: '+discord_token)
 
-const discord = new Discord.Client();
 var channel = null; // This will be assigned the management channel when the server starts
 
 discord.login(discord_token);

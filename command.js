@@ -35,11 +35,18 @@ function debug(string) {
 }
 
 function processCommand(string) {
-	if (commandMatch(string, '~reloadmodules')) process.send({function: 'reloadModules'});
-	if (commandMatch(string, '~listmodules')) process.send({function: 'listModules'});
-	if (commandMatch(string, '~enablemodule')) process.send({ function: 'enableModule', args: getCommandArgs(string) })
-	if (commandMatch(string, '~disablemodule') && getCommandArgs(string)[1] != 'command') process.send({ function: 'disableModule', args: getCommandArgs(string) })
-	if (commandMatch(string, '~reloadmodule')) process.send({ function: 'reloadModule', args: getCommandArgs(string) })
+	if (commandMatch(string, '~restartAllModules')) process.send({function: 'restartAllModules'});
+	else if (commandMatch(string, '~unloadAllModules')) process.send({function: 'unloadAllModules'});
+	else if (commandMatch(string, '~reloadModules')) process.send({function: 'reloadModules'});
+	else if (commandMatch(string, '~reloadModules')) process.send({function: 'reloadModules'});
+	else if (commandMatch(string, '~listModules')) process.send({function: 'listModules'});
+	else if (commandMatch(string, '~enableModule')) process.send({ function: 'enableModule', args: getCommandArgs(string) })
+	else if (commandMatch(string, '~disableModule') && getCommandArgs(string)[1] != 'command') process.send({ function: 'disableModule', args: getCommandArgs(string) })
+	else if (commandMatch(string, '~reloadModule')) process.send({ function: 'reloadModule', args: getCommandArgs(string) })
+	else if (commandMatch(string, '~killModule')) process.send({function: 'killModule', args: getCommandArgs(string) });
+	else if (commandMatch(string, '~startModule')) process.send({function: 'startModule', args: getCommandArgs(string) });
+	else if (commandMatch(string, '~restartModule')) process.send({function: 'restartModule', args: getCommandArgs(string) });
+	else if (commandMatch(string, '~loadModuleFunctions')) process.send({function: 'loadModuleFunctions', args: getCommandArgs(string) });
 }
 
 function getCommandArgs(string) {
@@ -48,5 +55,5 @@ function getCommandArgs(string) {
 
 function commandMatch(string, command) {
 	var commandLength = command.length;
-	if (string.toLowerCase().slice(0, commandLength) == command) return true;
+	if (string.toLowerCase().slice(0, commandLength) == command.toLowerCase()) return true;
 }
