@@ -7,9 +7,6 @@ process.on('message', message => {
 		case 'init':
 			serverSettings = message.serverSettings;
 			break;
-		case 'consoleInput':
-			processCommand(message.string);
-			break;
 		case 'kill':
 			process.exit();
 			break;
@@ -32,21 +29,4 @@ module.exports.wrapperFunctionHandle = function wrapperFunctionHandle(objx) { //
 
 function debug(string) {
 	process.send({function: 'wrapperStdout', string: `\n\u001b[41mDEBUG>\u001b[0m  ${string}\n`});
-}
-
-function processCommand(string) {
-	if (commandMatch(string, '~reloadmodules')) process.send({function: 'reloadModules'});
-	if (commandMatch(string, '~listmodules')) process.send({function: 'listModules'});
-	if (commandMatch(string, '~enablemodule')) process.send({ function: 'enableModule', args: getCommandArgs(string) })
-	if (commandMatch(string, '~disablemodule') && getCommandArgs(string)[1] != 'command') process.send({ function: 'disableModule', args: getCommandArgs(string) })
-	if (commandMatch(string, '~reloadmodule')) process.send({ function: 'reloadModule', args: getCommandArgs(string) })
-}
-
-function getCommandArgs(string) {
-	return string.split(" ");
-}
-
-function commandMatch(string, command) {
-	var commandLength = command.length;
-	if (string.toLowerCase().slice(0, commandLength) == command) return true;
 }

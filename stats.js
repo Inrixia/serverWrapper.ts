@@ -14,6 +14,11 @@ process.on('message', message => {
 			serverSettings = message.serverSettings;
 			serverStats.serverName = serverSettings.serverName;
 			if (!message.serverSettings.modules.backup.enabled) serverStats.timeToBackup = "Backups Disabled";
+			if (message.serverpid != null) {
+				serverStats.pid = message.serverpid;
+				serverStats.status = "Running"
+				startStatsInterval();
+			}
 			sendStatsUpdate();
 			break;
 		case 'pushSettings':
@@ -35,8 +40,31 @@ process.on('message', message => {
 		case 'clearStatsInterval':
 			clearInterval(statsInterval);
 			break;
+		case 'kill':
+			process.exit();
+			break;
 	}
 });
+
+module.exports.kill = function kill(objx) {
+	objx.thisProcess.send({function: 'kill', serverSettings: objx.serverSettings})
+}
+
+module.exports.init = function init(objx) { // function called on serverWrapper.js for stats.js init
+	var serverpid = null;
+	if (objx.server) serverpid = objx.server.pid;
+	objx.thisProcess.send({function: 'init', serverSettings: objx.serverSettings, serverpid: serverpid});
+}
+
+module.exports.wrapperFunctionHandle = function wrapperFunctionHandle(objx) { // function called on serverWrapper.js to handle commands from stats.js
+	if (objx.message.function == 'debug') process.stdout.write(`\n\u001b[41mDEBUG>\u001b[0m  ${objx.message.string}\n`);
+	if (objx.message.function == 'wrapperStdout') process.stdout.write(objx.message.string);
+	if (objx.message.function == 'serverStdout') objx.server.stdin.write(objx.message.string);
+}
+
+function debug(string) {
+	process.send({function: 'wrapperStdout', string: `\n\u001b[41mDEBUG>\u001b[0m  ${string}\n`});
+}
 
 function startStatsInterval() { // Start sending frequent stats updates
 	statsInterval = setInterval(function(){sendStatsUpdate()}, serverSettings.statsPollrate)
@@ -64,15 +92,3 @@ function getPidUsage() { // Get info for a running server from its PID
 		// }
 	})
 }
-
-module.exports.init = function init(thisModule, serverSettings) { // function called on serverWrapper.js for stats.js init
-	thisModule.send({function: 'init', serverSettings: serverSettings});
-}
-
-module.exports.wrapperFunctionHandle = function wrapperFunctionHandle(message) { // function called on serverWrapper.js to handle commands from stats.js
-	if (message.function == 'debug') process.stdout.write(`\n\u001b[41mDEBUG>\u001b[0m  ${message.string}\n`);
-	if (message.function == 'wrapperStdout') process.stdout.write(message.string);
-}
-
-module.exports.processExit = function processExit(){}
-module.exports.processError = function processError(){}

@@ -21,7 +21,11 @@
     "-XX:G1MixedGCLiveThresholdPercent=35",
     "-XX:+ParallelRefProcEnabled",
     "-XX:ParallelGCThreads=8",
-    "-XX:ConcGCThreads=8"
+    "-XX:ConcGCThreads=8",
+    "-Xms2G",
+    "-Xmx2G",
+    "-jar",
+    "forge-1.12.2-14.23.5.2814-universal.jar"
   ],
   "serverPostfixVars": [
     "nogui",
