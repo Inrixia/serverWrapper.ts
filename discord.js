@@ -28,10 +28,10 @@ process.on('message', message => {
 			serverStdout(message.string);
 			break;
 		case 'consoleStdout':
-			discordData += `[BOX] > ${message.string}\n`;
+			if (management_channel) management_channel.send(`[BOX] > ${message.string}\n`, { split: true })
 			break;
 		case 'discordStdin':
-			management_channel.send(message.string+"\n", { split: true })
+			if (management_channel) management_channel.send(message.string+"\n", { split: true })
 			break;
 		case 'pushSettings':
 			serverSettings = message.serverSettings;
