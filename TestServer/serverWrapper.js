@@ -18,8 +18,9 @@ var server = null;
 var serverSettingsFile = './serverSettings.json'
 var serverSettings = require(serverSettingsFile);
 var loadedModules = {};
-serverSettings.serverStartVars.push("-Xms"+serverSettings.minRamAllocation, "-Xmx"+serverSettings.maxRamAllocation, "-jar", serverSettings.jar)
-var serverStartVars = serverSettings.serverStartVars.concat(serverSettings.serverPostfixVars);
+var serverStartVars = Object.assign([], serverSettings.serverStartVars);
+serverStartVars.push("-Xms"+serverSettings.minRamAllocation, "-Xmx"+serverSettings.maxRamAllocation, "-jar", serverSettings.jar)
+serverStartVars = serverStartVars.concat(serverSettings.serverPostfixVars);
 serverSettings.server_dir = __dirname;
 var consoleTimeout = true;
 
@@ -39,12 +40,12 @@ class wrapperModule {
 		this.process = null;
 		this.running = false;
 		this.crashCount = 0;
-		if (this.enabled) this.functions = require(serverSettings.modulesDir+serverSettings.modules[this.name].file);
+		if (this.enabled && this.import) this.functions = require(serverSettings.modulesDir+serverSettings.modules[this.name].file);
 		if (this.name == 'stats' && !this.enabled) process.stdout.write(`${String.fromCharCode(27)}]0;${serverSettings.serverName}  |  Stats Module Disabled${String.fromCharCode(7)}`);
 	}
 
 	start() {
-		if (!this.functions) this.functions = require(serverSettings.modulesDir+serverSettings.modules[this.name].file);
+		if (!this.functions && this.import) this.functions = require(serverSettings.modulesDir+serverSettings.modules[this.name].file);
 		if (!this.process) {
 			if (!loadedModules[this.name]) loadedModules[this.name] = this;
 			this.process = children.fork(serverSettings.modulesDir+serverSettings.modules[this.name].file); // Spawn the modules childprocess
@@ -78,46 +79,61 @@ class wrapperModule {
 			})
 			if (this.name == 'command') { // Command handling for wrapperHost specific functions that can only be run within serverWrapper
 				this.process.on('message', message => {
+					var logInfoArray = [];
 					if (message.function == 'restartAllModules') restartAllModules();
 					else if (message.function == 'unloadAllModules') unloadAllModules();
 					else if (message.function == 'reloadModules') reloadModules();
 					else if (message.function == 'listModules') listModules();
-					else if (message.function == 'loadSettings') {
+					else if (message.args && loadedModules[message.args[1]]) {
+						if (message.function == 'enableModule') logInfoArray = loadedModules[message.args[1]].enable(message.args[2]);
+						else if (message.function == 'disableModule') logInfoArray = loadedModules[message.args[1]].disable(message.args[2]);
+						else if (message.function == 'killModule') logInfoArray = [loadedModules[message.args[1]].kill()];
+						else if (message.function == 'startModule') logInfoArray = [loadedModules[message.args[1]].start()];
+						else if (message.function == 'restartModule') logInfoArray = loadedModules[message.args[1]].restart();
+						else if (message.function == 'reloadModule') logInfoArray = loadedModules[message.args[1]].reload();
+						else if (message.function == 'loadModuleFunctions') loadedModules[message.args[1]].loadFunctions();
+					} else if (message.function == 'loadSettings') {
 						serverSettings = loadSettings();
 						wrapperModule.broadcast({function: 'pushSettings', serverSettings: serverSettings });
 					} else if (message.function == 'saveSettings') {
 						serverSettings = message.serverSettings;
 						wrapperModule.broadcast({function: 'pushSettings', serverSettings: serverSettings });
 						saveSettings();
-					} else if (message.args && loadedModules[message.args[1]]) {
-						if (message.function == 'enableModule') loadedModules[message.args[1]].enable(message.args[2]);
-						else if (message.function == 'disableModule') loadedModules[message.args[1]].disable(message.args[2]);
-						else if (message.function == 'killModule') loadedModules[message.args[1]].kill();
-						else if (message.function == 'startModule') loadedModules[message.args[1]].start();
-						else if (message.function == 'restartModule') loadedModules[message.args[1]].restart();
-						else if (message.function == 'reloadModule') loadedModules[message.args[1]].reload();
-						else if (message.function == 'loadModuleFunctions') loadedModules[message.args[1]].loadFunctions();
 					}
+					if (logInfoArray) wrapperModule.sendLog({logInfoArray: logInfoArray, logTo: (message.logTo) ? message.logTo : {console: true} })
 				});
 			}
-			process.stdout.write(`\u001b[36;1mStarted Module\u001b[0m: ${this.color}${this.name}\u001b[0m\n`);
+			return [{
+				function: 'start',
+				vars: {
+					color: this.color,
+					name: this.name
+				}
+			}];
 			this.running = true;
 		}
 	}
 
 	restart() {
-		this.kill();
-		this.start();
+		return (this.kill()).concat(this.start())
 	}
 
 	reload() {
-		this.kill();
-		this.functions = require(serverSettings.modulesDir+serverSettings.modules[this.name].file);
-		if (this.name == 'command') this.start();
+		var logInfoArray = this.kill();
+		if (this.import) this.functions = require(serverSettings.modulesDir+serverSettings.modules[this.name].file);
+		if (this.name == 'command') logInfoArray.concat(this.start());
+		return logInfoArray;
 	}
 
 	loadFunctions() {
-		this.functions = require(serverSettings.modulesDir+serverSettings.modules[this.name].file);
+		if (this.import) this.functions = require(serverSettings.modulesDir+serverSettings.modules[this.name].file);
+		return [{
+			function: 'loadFunctions',
+			vars: {
+				color: this.color,
+				name: this.name
+			}
+		}];
 	}
 
 	kill(){
@@ -126,26 +142,49 @@ class wrapperModule {
 			this.running = false;
 			if (this.name == 'stats') process.stdout.write(`${String.fromCharCode(27)}]0;${serverSettings.serverName}  |  Stats Module Disabled${String.fromCharCode(7)}`);
 			this.process = null;
-			process.stdout.write(`\u001b[36;1mKilled Module\u001b[0m: ${this.color}${this.name}\u001b[0m\n`);
+			return [{
+				function: 'kill',
+				vars: {
+					color: this.color,
+					name: this.name
+				}
+			}];
 		}
+		return [];
 	}
 
 	enable(save) {
 		serverSettings.modules[this.name].enabled = true;
 		if (save) saveSettings();
-		process.stdout.write(`\u001b[36;1mEnabled Module\u001b[0m: ${this.color}${this.name}\u001b[0m\n`);
+		return [{
+			function: 'enable',
+			vars: {
+				color: this.color,
+				name: this.name
+			}
+		}];
 	}
 
 	disable(save) {
 		serverSettings.modules[this.name].enabled = false;
 		if (save) saveSettings();
-		process.stdout.write(`\u001b[36;1mDisabled Module\u001b[0m: ${this.color}${this.name}\u001b[0m\n`);
+		return [{
+			function: 'disable',
+			vars: {
+				color: this.color,
+				name: this.name
+			}
+		}];
 	}
 
 	static broadcast(message) {
 		Object.keys(loadedModules).forEach(function(moduleName) {
 			if (loadedModules[moduleName] && loadedModules[moduleName].process) loadedModules[moduleName].process.send(message);
 		})
+	}
+
+	static sendLog(logObj) {
+		if (loadedModules['log'] && loadedModules['log'].process) loadedModules['log'].process.send({function: 'log', logObj: logObj})
 	}
 
 	get enabled() { return serverSettings.modules[this.name].enabled }

@@ -32,9 +32,11 @@ function checkCommandAuth(allowedCommands, message) {
 	for (command in allowedCommands) {
 		if (!allowedCommands[command].expired && (allowedCommands[command].expiresAt === false || new Date(allowedCommands[command].expiresAt) > new Date())) { // If permission has not expired
 			if (command == "*") return true;
+			else if (command == "!*" && message.string.slice(0, 1) == "!") return true;
+			else if (command == "~*" && message.string.slice(0, 1) == "~") return true;
 			if (message.string.slice(0, command.length) == command) return true; // If the command beginning matches return true
 		} else {
-			authErr = 'Allowed use of this command has expired.'
+			if (allowedCommands[command].expired && (message.string.slice(0, command.length) == command)) authErr = 'Allowed use of this command has expired.';
 			if (!allowedCommands[command].expired) {
 				allowedCommands[command].expired = true;
 				saveSettings();
@@ -72,6 +74,7 @@ function checkDiscordAuth(message) {
 		module: 'discord',
 		message: { function: 'discordStdin', string: authErr }
 	});
+	authErr = null;
 	return false;
 }
 
@@ -85,58 +88,98 @@ function processDiscordMessage(message) {
 	}
 }
 
-function processCommand(message, startIndex) {
-	var string = message.string.replace(/\s\s+/g, ' '); // Compact multiple spaces/tabs down to one
-	if (commandMatch(string, startIndex, '~restartAllModules')) process.send({function: 'restartAllModules'});
-	else if (commandMatch(string, startIndex, '~unloadAllModules')) process.send({function: 'unloadAllModules'});
-	else if (commandMatch(string, startIndex, '~reloadModules')) process.send({function: 'reloadModules'});
-	else if (commandMatch(string, startIndex, '~reloadModules')) process.send({function: 'reloadModules'});
-	else if (commandMatch(string, startIndex, '~listModules')) process.send({function: 'listModules'});
-	else if (commandMatch(string, startIndex, '~enableModule')) process.send({ function: 'enableModule', args: getCommandArgs(string) })
-	else if (commandMatch(string, startIndex, '~disableModule') && getCommandArgs(string)[1] != 'command') process.send({ function: 'disableModule', args: getCommandArgs(string) })
-	else if (commandMatch(string, startIndex, '~reloadModule')) process.send({ function: 'reloadModule', args: getCommandArgs(string) })
-	else if (commandMatch(string, startIndex, '~killModule')) process.send({function: 'killModule', args: getCommandArgs(string) });
-	else if (commandMatch(string, startIndex, '~startModule')) process.send({function: 'startModule', args: getCommandArgs(string) });
-	else if (commandMatch(string, startIndex, '~restartModule')) process.send({function: 'restartModule', args: getCommandArgs(string) });
-	else if (commandMatch(string, startIndex, '~loadModuleFunctions')) process.send({function: 'loadModuleFunctions', args: getCommandArgs(string) });
-	else if (commandMatch(string, startIndex, '~loadSettings')) process.send({function: 'loadSettings' });
-	else if (commandMatch(string, startIndex, '~saveSettings')) process.send({function: 'saveSettings' });
-	else if (commandMatch(string, startIndex, '~cw_add')) commandWhitelistAdd(message, getCommandArgs(string));
-	else if (commandMatch(string, startIndex, '~cw_remove')) commandWhitelistRemove(message, getCommandArgs(string));
-	else if (commandMatch(string, startIndex, '~cw_removeall')) commandWhitelistRemove(message, getCommandArgs(string));
+function processCommand(command, startIndex) {
+	var string = command.string.replace(/\s\s+/g, ' '); // Compact multiple spaces/tabs down to one
+	var logInfoArray = [];
+	var message = {
+		function: null,
+		args: getCommandArgs(string),
+		logTo: {
+			console: true,
+			discord: (command.author != undefined)
+		}
+	};
+	if (commandMatch(string, startIndex, '~restartAllModules')) message.function = 'restartAllModules';
+	else if (commandMatch(string, startIndex, '~unloadAllModules')) message.function = 'unloadAllModules';
+	else if (commandMatch(string, startIndex, '~reloadModules')) message.function = 'reloadModules';
+	else if (commandMatch(string, startIndex, '~listModules')) message.function = 'listModules';
+	else if (commandMatch(string, startIndex, '~enableModule')) message.function = 'enableModule';
+	else if (commandMatch(string, startIndex, '~disableModule') && getCommandArgs(string)[1] != 'command') message.function = 'disableModule';
+	else if (commandMatch(string, startIndex, '~reloadModule')) message.function = 'reloadModule';
+	else if (commandMatch(string, startIndex, '~killModule')) message.function = 'killModule';
+	else if (commandMatch(string, startIndex, '~startModule')) message.function = 'startModule';
+	else if (commandMatch(string, startIndex, '~restartModule')) message.function = 'restartModule';
+	else if (commandMatch(string, startIndex, '~loadModuleFunctions')) message.function = 'loadModuleFunctions';
+	else if (commandMatch(string, startIndex, '~loadSettings')) message.function = 'loadSettings';
+	else if (commandMatch(string, startIndex, '~saveSettings')) saveSettings();
+	else if (commandMatch(string, startIndex, '~cw_add')) logInfoArray = commandWhitelistAdd({command: command, args: message.args});
+	else if (commandMatch(string, startIndex, '~cw_remove')) logInfoArray = commandWhitelistRemove({command: command, args: message.args});
+	else if (commandMatch(string, startIndex, '~cw_removeall')) logInfoArray = commandWhitelistRemove({command: command, args: message.args});
+
+	if (logInfoArray) process.send({
+		function: 'unicast',
+		module: 'log',
+		message: { function: 'log', logObj: { logInfoArray: logInfoArray, logTo: message.logTo } }
+	});
+	if (message.function) process.send(message);
 }
 
-function commandWhitelistAdd(message, args) {
+function commandWhitelistAdd(obj) {
 	// ~commandwhitelist add !list @Inrix 1 hour
 	// ~commandwhitelist remove !list @Inrix 1 hour
-	if (message.mentions.users.first.id) {
-		var whitelisted_object = moduleSettings.whitelisted_discord_users[message.mentions.users.first.id];
-		whitelisted_object.Username = message.mentions.users.first.username;
-	} else if (message.mentions.roles.first.id) {
-		var whitelisted_object = moduleSettings.whitelisted_discord_roles[message.mentions.roles.first.id];
-		whitelisted_object.Name = message.mentions.roles.first.name;
+	if (obj.command.mentions.users.first.id) {
+		var whitelisted_object = moduleSettings.whitelisted_discord_users[obj.command.mentions.users.first.id];
+		whitelisted_object.Username = obj.command.mentions.users.first.username;
+	} else if (obj.command.mentions.roles.first.id) {
+		var whitelisted_object = moduleSettings.whitelisted_discord_roles[obj.command.mentions.roles.first.id];
+		whitelisted_object.Name = obj.command.mentions.roles.first.name;
 	}
 	if (!whitelisted_object.allowAllCommands) whitelisted_object.allowAllCommands = false;
 
 	if (!whitelisted_object.allowedCommands) whitelisted_object.allowedCommands = {}
-	whitelisted_object.allowedCommands[args[1]] = {
+	var expiresin = obj.args[3] ? new moment().add(obj.args[3], obj.args[4]) : false;
+	whitelisted_object.allowedCommands[obj.args[1]] = {
 		"assignedAt": new Date(),
 		"assignedBy": {
-			"Username": message.author.username,
-			"discord_id": message.author.id
+			"Username": obj.command.author.username,
+			"discord_id": obj.command.author.id
 		},
-		"expiresAt": args[3] ? new moment().add(args[3], args[4]) : false, // If the user specifies a expiery time set it, otherwise use infinite
+		"expiresAt": expiresin, // If the user specifies a expiery time set it, otherwise use infinite
 		"expired": false
 	}
 	saveSettings();
+	return [{
+		function: 'cw_add',
+		vars: {
+			args: obj.args,
+			expiresin: expiresin.fromNow(),
+			whitelisted_object: whitelisted_object
+		}
+	}]
 }
 
-function commandWhitelistRemove(message, args) {
-	if (message.mentions.users.first.id) var whitelisted_object = moduleSettings.whitelisted_discord_users[message.mentions.users.first.id];
-	else if (message.mentions.roles.first.id) var whitelisted_object = moduleSettings.whitelisted_discord_roles[message.mentions.roles.first.id];
+function commandWhitelistRemove(obj) {
+	if (obj.command.mentions.users.first.id) var whitelisted_object = moduleSettings.whitelisted_discord_users[obj.command.mentions.users.first.id];
+	else if (obj.command.mentions.roles.first.id) var whitelisted_object = moduleSettings.whitelisted_discord_roles[obj.command.mentions.roles.first.id];
 
-	if (args[0] == "~cw_removeall") delete whitelisted_object;
-	else delete whitelisted_object.allowedCommands[args[1]];
+	if (obj.args[0] == "~cw_removeall") {
+		delete whitelisted_object;
+		return [{
+			function: 'cw_removeall',
+			vars: {
+				whitelisted_object: whitelisted_object
+			}
+		}]
+	} else {
+		return [{
+			function: 'cw_remove',
+			vars: {
+				args: obj.args,
+				whitelisted_object: whitelisted_object
+			}
+		}]
+		delete whitelisted_object.allowedCommands[obj.args[1]];
+	}
 	saveSettings();
 }
 

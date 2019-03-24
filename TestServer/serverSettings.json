@@ -17,47 +17,7 @@
     "-XX:G1MixedGCLiveThresholdPercent=35",
     "-XX:+ParallelRefProcEnabled",
     "-XX:ParallelGCThreads=8",
-    "-XX:ConcGCThreads=8",
-    "-Xms2G",
-    "-Xmx2G",
-    "-jar",
-    "forge-1.12.2-14.23.5.2814-universal.jar",
-    "-Xms2G",
-    "-Xmx2G",
-    "-jar",
-    "forge-1.12.2-14.23.5.2814-universal.jar",
-    "-Xms2G",
-    "-Xmx2G",
-    "-jar",
-    "forge-1.12.2-14.23.5.2814-universal.jar",
-    "-Xms2G",
-    "-Xmx2G",
-    "-jar",
-    "forge-1.12.2-14.23.5.2814-universal.jar",
-    "-Xms2G",
-    "-Xmx2G",
-    "-jar",
-    "forge-1.12.2-14.23.5.2814-universal.jar",
-    "-Xms2G",
-    "-Xmx2G",
-    "-jar",
-    "forge-1.12.2-14.23.5.2814-universal.jar",
-    "-Xms2G",
-    "-Xmx2G",
-    "-jar",
-    "forge-1.12.2-14.23.5.2814-universal.jar",
-    "-Xms2G",
-    "-Xmx2G",
-    "-jar",
-    "forge-1.12.2-14.23.5.2814-universal.jar",
-    "-Xms2G",
-    "-Xmx2G",
-    "-jar",
-    "forge-1.12.2-14.23.5.2814-universal.jar",
-    "-Xms2G",
-    "-Xmx2G",
-    "-jar",
-    "forge-1.12.2-14.23.5.2814-universal.jar"
+    "-XX:ConcGCThreads=8"
   ],
   "serverPostfixVars": [
     "nogui",
@@ -70,6 +30,7 @@
       "file": "stats.js",
       "enabled": false,
       "color": "\u001b[33m",
+      "import": false,
       "settings": {
         "pollRate": 5000
       }
@@ -78,6 +39,7 @@
       "file": "discord.js",
       "enabled": true,
       "color": "\u001b[34;1m",
+      "import": false,
       "settings": {
         "messageFlushRate": 100,
         "discord_token": "NDg3ODExOTkwNTMwNTU1OTA0.D3edOA.TaaXqJQeiJUZzrQFwqV7b3Ov3Y0",
@@ -88,21 +50,30 @@
       "file": "backup.js",
       "enabled": false,
       "color": "\u001b[31;1m",
+      "import": false,
       "settings": {
         "rootBackupDir": "R:/LiveArchives/",
         "backupInterval": 0.5
       }
     },
+    "log": {
+      "file": "log.js",
+      "enabled": true,
+      "color": "\u001b[37m",
+      "import": false,
+      "settings": {}
+    },
     "command": {
       "file": "command.js",
       "enabled": true,
       "color": "\u001b[32;1m",
+      "import": false,
       "settings": {
         "whitelisted_discord_roles": {},
         "whitelisted_discord_users": {
           "155530711326130176": {
             "Username": "Sir Inrix | <3",
-            "allowAllCommands": true,
+            "allowAllCommands": false,
             "allowedCommands": {
               "~cw_add": {
                 "assignedAt": "2019-03-24T05:58:04.891Z",
@@ -115,6 +86,24 @@
               },
               "~cw_remove": {
                 "assignedAt": "2019-03-24T05:58:19.998Z",
+                "assignedBy": {
+                  "Username": "Sir Inrix | <3",
+                  "discord_id": "155530711326130176"
+                },
+                "expiresAt": false,
+                "expired": false
+              },
+              "!list": {
+                "assignedAt": "2019-03-24T10:38:46.780Z",
+                "assignedBy": {
+                  "Username": "Sir Inrix | <3",
+                  "discord_id": "155530711326130176"
+                },
+                "expiresAt": "2019-03-24T11:38:46.780Z",
+                "expired": false
+              },
+              "~reloadmodule": {
+                "assignedAt": "2019-03-24T08:17:00.521Z",
                 "assignedBy": {
                   "Username": "Sir Inrix | <3",
                   "discord_id": "155530711326130176"
