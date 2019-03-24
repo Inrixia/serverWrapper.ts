@@ -4,6 +4,7 @@ const pidusage = require('pidusage');
 
 // Set defaults
 var serverSettings = {}
+var moduleSettings = {}
 var serverStats = { serverName: '', status: 'Init', pid: '', mem: '', cpu: '', uptime: '', timeToBackup: '' }; // Default stats
 var statsInterval = null;
 
@@ -13,19 +14,14 @@ process.on('message', message => {
 		case 'init':
 			serverSettings = message.serverSettings;
 			serverStats.serverName = serverSettings.serverName;
+			moduleSettings = serverSettings.modules['stats'].settings;
 			if (!message.serverSettings.modules.backup.enabled) serverStats.timeToBackup = "Backups Disabled";
-			if (message.serverpid != null) {
-				serverStats.pid = message.serverpid;
+			if (message.server != null) {
+				serverStats.pid = message.server.pid;
 				serverStats.status = "Running"
 				startStatsInterval();
 			}
 			sendStatsUpdate();
-			break;
-		case 'pushSettings':
-			serverSettings = message.serverSettings;
-			break;
-		case 'fetchStats':
-			process.send({function: '', serverStats: serverStats});
 			break;
 		case 'pushStats':
 			serverStats.status = message.serverStats.status;
@@ -43,31 +39,14 @@ process.on('message', message => {
 		case 'kill':
 			process.exit();
 			break;
+		case 'pushSettings':
+			serverSettings = message.serverSettings;
+			break;
 	}
 });
 
-module.exports.kill = function kill(objx) {
-	objx.thisProcess.send({function: 'kill', serverSettings: objx.serverSettings})
-}
-
-module.exports.init = function init(objx) { // function called on serverWrapper.js for stats.js init
-	var serverpid = null;
-	if (objx.server) serverpid = objx.server.pid;
-	objx.thisProcess.send({function: 'init', serverSettings: objx.serverSettings, serverpid: serverpid});
-}
-
-module.exports.wrapperFunctionHandle = function wrapperFunctionHandle(objx) { // function called on serverWrapper.js to handle commands from stats.js
-	if (objx.message.function == 'debug') process.stdout.write(`\n\u001b[41mDEBUG>\u001b[0m  ${objx.message.string}\n`);
-	if (objx.message.function == 'wrapperStdout') process.stdout.write(objx.message.string);
-	if (objx.message.function == 'serverStdout') objx.server.stdin.write(objx.message.string);
-}
-
-function debug(string) {
-	process.send({function: 'wrapperStdout', string: `\n\u001b[41mDEBUG>\u001b[0m  ${string}\n`});
-}
-
 function startStatsInterval() { // Start sending frequent stats updates
-	statsInterval = setInterval(function(){sendStatsUpdate()}, serverSettings.statsPollrate)
+	statsInterval = setInterval(function(){sendStatsUpdate()}, moduleSettings.statsPollRate)
 }
 
 function sendStatsUpdate() {
@@ -91,4 +70,17 @@ function getPidUsage() { // Get info for a running server from its PID
 		//   timestamp: 864000000  // ms since epoch
 		// }
 	})
+}
+
+
+function debug(stringOut) {
+	try {
+		if (typeof stringOut === 'string') process.stdout.write(`\n\u001b[41mDEBUG>\u001b[0m ${stringOut}\n\n`)
+		else {
+			process.stdout.write(`\n\u001b[41mDEBUG>\u001b[0m`);
+			console.log(stringOut);
+		}
+	} catch (e) {
+		process.stdout.write(`\n\u001b[41mDEBUG>\u001b[0m ${stringOut}\n\n`);
+	}
 }

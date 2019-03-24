@@ -3,10 +3,6 @@
   "jar": "forge-1.12.2-14.23.5.2814-universal.jar",
   "minRamAllocation": "2G",
   "maxRamAllocation": "2G",
-  "rootBackupDir": "R:/LiveArchives/",
-  "backupInterval": 0.5,
-  "management_channel_id": 475502976656736260,
-  "statsPollrate": 5000,
   "serverStartVars": [
     "-server",
     "-XX:+UseG1GC",
@@ -29,6 +25,42 @@
     "-Xms2G",
     "-Xmx2G",
     "-jar",
+    "forge-1.12.2-14.23.5.2814-universal.jar",
+    "-Xms2G",
+    "-Xmx2G",
+    "-jar",
+    "forge-1.12.2-14.23.5.2814-universal.jar",
+    "-Xms2G",
+    "-Xmx2G",
+    "-jar",
+    "forge-1.12.2-14.23.5.2814-universal.jar",
+    "-Xms2G",
+    "-Xmx2G",
+    "-jar",
+    "forge-1.12.2-14.23.5.2814-universal.jar",
+    "-Xms2G",
+    "-Xmx2G",
+    "-jar",
+    "forge-1.12.2-14.23.5.2814-universal.jar",
+    "-Xms2G",
+    "-Xmx2G",
+    "-jar",
+    "forge-1.12.2-14.23.5.2814-universal.jar",
+    "-Xms2G",
+    "-Xmx2G",
+    "-jar",
+    "forge-1.12.2-14.23.5.2814-universal.jar",
+    "-Xms2G",
+    "-Xmx2G",
+    "-jar",
+    "forge-1.12.2-14.23.5.2814-universal.jar",
+    "-Xms2G",
+    "-Xmx2G",
+    "-jar",
+    "forge-1.12.2-14.23.5.2814-universal.jar",
+    "-Xms2G",
+    "-Xmx2G",
+    "-jar",
     "forge-1.12.2-14.23.5.2814-universal.jar"
   ],
   "serverPostfixVars": [
@@ -36,26 +68,58 @@
     "-dfml.queryresult=confirm"
   ],
   "modulesDir": "Z:\\wrapperModules\\",
+  "server_dir": "Z:\\wrapperModules\\TestServer",
   "modules": {
     "stats": {
       "file": "stats.js",
-      "enabled": true,
-      "color": "\u001b[33m"
+      "enabled": false,
+      "color": "\u001b[33m",
+      "settings": {
+        "pollRate": 5000
+      }
     },
     "discord": {
       "file": "discord.js",
-      "enabled": false,
-      "color": "\u001b[34;1m"
+      "enabled": true,
+      "color": "\u001b[34;1m",
+      "settings": {
+        "messageFlushRate": 100,
+        "discord_token": "NDg3ODExOTkwNTMwNTU1OTA0.D3edOA.TaaXqJQeiJUZzrQFwqV7b3Ov3Y0",
+        "management_channel_id": "475502976656736257"
+      }
     },
     "backup": {
       "file": "backup.js",
       "enabled": false,
-      "color": "\u001b[31;1m"
+      "color": "\u001b[31;1m",
+      "settings": {
+        "rootBackupDir": "R:/LiveArchives/",
+        "backupInterval": 0.5
+      }
     },
     "command": {
       "file": "command.js",
       "enabled": true,
-      "color": "\u001b[32;1m"
+      "color": "\u001b[32;1m",
+      "settings": {
+        "whitelisted_discord_roles": {},
+        "whitelisted_discord_users": {
+          "155530711326130176": {
+            "Username": "Sir Inrix | <3",
+            "allowedCommands": {
+              "!list": {
+                "assignedAt": "2019-03-23T16:23:53.774Z",
+                "assignedBy": {
+                  "Username": "Sir Inrix | <3",
+                  "discord_id": "155530711326130176"
+                },
+                "expires": "2019-03-23T16:24:53.774Z",
+                "expired": true
+              }
+            }
+          }
+        }
+      }
     }
   }
 }

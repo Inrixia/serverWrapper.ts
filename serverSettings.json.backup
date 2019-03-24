@@ -29,34 +29,6 @@
     "-Xms2G",
     "-Xmx2G",
     "-jar",
-    "forge-1.12.2-14.23.5.2814-universal.jar",
-    "-Xms2G",
-    "-Xmx2G",
-    "-jar",
-    "forge-1.12.2-14.23.5.2814-universal.jar",
-    "-Xms2G",
-    "-Xmx2G",
-    "-jar",
-    "forge-1.12.2-14.23.5.2814-universal.jar",
-    "-Xms2G",
-    "-Xmx2G",
-    "-jar",
-    "forge-1.12.2-14.23.5.2814-universal.jar",
-    "-Xms2G",
-    "-Xmx2G",
-    "-jar",
-    "forge-1.12.2-14.23.5.2814-universal.jar",
-    "-Xms2G",
-    "-Xmx2G",
-    "-jar",
-    "forge-1.12.2-14.23.5.2814-universal.jar",
-    "-Xms2G",
-    "-Xmx2G",
-    "-jar",
-    "forge-1.12.2-14.23.5.2814-universal.jar",
-    "-Xms2G",
-    "-Xmx2G",
-    "-jar",
     "forge-1.12.2-14.23.5.2814-universal.jar"
   ],
   "serverPostfixVars": [
@@ -76,11 +48,11 @@
     },
     "discord": {
       "file": "discord.js",
-      "enabled": true,
+      "enabled": false,
       "color": "\u001b[34;1m",
       "settings": {
         "messageFlushRate": 100,
-        "discord_token": "NDg3ODExOTkwNTMwNTU1OTA0.D3edOA.TaaXqJQeiJUZzrQFwqV7b3Ov3Y0",
+        "discord_token": "",
         "management_channel_id": "475502976656736257"
       }
     },
@@ -98,29 +70,50 @@
       "enabled": true,
       "color": "\u001b[32;1m",
       "settings": {
-        "whitelisted_discord_roles": {},
+        "whitelsted_discord_roles": {
+          "344286675691896832": {
+            "Rolename": "Mods",
+            "allowedCommands": {
+              "!list": {
+                "assigned": "",
+                "assignedBy": {
+                  "Username": "Inrix",
+                  "discord_id": "155530711326130176"
+                },
+                "expires": "",
+                "ignorePastCommand": false
+              },
+              "!tp": {
+                "assigned": "",
+                "expires": "",
+                "ignorePastCommand": false
+              },
+              "~restartmodule": {
+                "assigned": "",
+                "expires": "",
+                "ignorePastCommand": false
+              }
+            }
+          }
+        },
         "whitelisted_discord_users": {
           "155530711326130176": {
-            "Username": "Sir Inrix | <3",
-            "allowAllCommands": true,
+            "Username": "Inrix",
             "allowedCommands": {
-              "~cw_add": {
-                "assignedAt": "2019-03-24T05:58:04.891Z",
-                "assignedBy": {
-                  "Username": "Sir Inrix | <3",
-                  "discord_id": "155530711326130176"
-                },
-                "expiresAt": false,
-                "expired": false
+              "!list": {
+                "assigned": "",
+                "expires": "",
+                "ignorePastCommand": false
               },
-              "~cw_remove": {
-                "assignedAt": "2019-03-24T05:58:19.998Z",
-                "assignedBy": {
-                  "Username": "Sir Inrix | <3",
-                  "discord_id": "155530711326130176"
-                },
-                "expiresAt": false,
-                "expired": false
+              "!tp": {
+                "assigned": "",
+                "expires": "",
+                "ignorePastCommand": false
+              },
+              "~restartmodule": {
+                "assigned": "",
+                "expires": "",
+                "ignorePastCommand": false
               }
             }
           }
