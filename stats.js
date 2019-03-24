@@ -3,8 +3,8 @@ const pidusage = require('pidusage');
 
 
 // Set defaults
-var serverSettings = {}
-var moduleSettings = {}
+var sS = {} // serverSettings
+var mS = {} // moduleSettings
 var serverStats = { serverName: '', status: 'Init', pid: '', mem: '', cpu: '', uptime: '', timeToBackup: '' }; // Default stats
 var statsInterval = null;
 
@@ -12,10 +12,10 @@ var statsInterval = null;
 process.on('message', message => {
 	switch (message.function) {
 		case 'init':
-			serverSettings = message.serverSettings;
-			serverStats.serverName = serverSettings.serverName;
-			moduleSettings = serverSettings.modules['stats'].settings;
-			if (!message.serverSettings.modules.backup.enabled) serverStats.timeToBackup = "Backups Disabled";
+			sS = message.sS;
+			serverStats.serverName = sS.serverName;
+			mS = sS.modules['stats'].settings;
+			if (!message.sS.modules.backup.enabled) serverStats.timeToBackup = "Backups Disabled";
 			if (message.server != null) {
 				serverStats.pid = message.server.pid;
 				serverStats.status = "Running"
@@ -24,7 +24,7 @@ process.on('message', message => {
 			sendStatsUpdate();
 			break;
 		case 'pushStats':
-			serverStats.status = message.serverStats.status;
+			Object.assign(serverStats, message.serverStats);
 			sendStatsUpdate();
 			break;
 		case 'startStatsInterval':
@@ -40,19 +40,21 @@ process.on('message', message => {
 			process.exit();
 			break;
 		case 'pushSettings':
-			serverSettings = message.serverSettings;
+			sS = message.sS;
+			mS = sS.modules['stats'].settings;
 			break;
 	}
 });
 
 function startStatsInterval() { // Start sending frequent stats updates
-	statsInterval = setInterval(function(){sendStatsUpdate()}, moduleSettings.statsPollRate)
+	statsInterval = setInterval(function(){
+		process.send({ function: 'broadcast', message: { function: 'fetchStats' } });
+	}, mS.pollRate)
 }
 
 function sendStatsUpdate() {
 	if (serverStats.pid != '') getPidUsage();
-	var updateString = `${String.fromCharCode(27)}]0;${serverStats.serverName} - ${serverStats.status}  |  PID: ${serverStats.pid}  |  Mem: ${Math.round(serverStats.mem/1024/1024)}MB  |  CPU: ${Math.round(serverStats.cpu/8)}%  |  Uptime: ${Math.round(serverStats.uptime/1000/60)} Min  |  Time To Next Backup: ${serverStats.timeToBackup}${String.fromCharCode(7)}`;
-	process.send({function: 'wrapperStdout', string: updateString});
+	process.stdout.write(`${String.fromCharCode(27)}]0;${serverStats.serverName} - ${serverStats.status}  |  PID: ${serverStats.pid}  |  Mem: ${Math.round(serverStats.mem/1024/1024)}MB  |  CPU: ${Math.round(serverStats.cpu/8)}%  |  Uptime: ${Math.round(serverStats.uptime/1000/60)} Min  |${serverStats.timeSinceLastBackup ? `  Last Backup: ${serverStats.timeSinceLastBackup}, Took: ${serverStats.lastBackupDuration}  |`: ''}  Next Backup: ${serverStats.timeToNextBackup}${String.fromCharCode(7)}`);
 };
 
 function getPidUsage() { // Get info for a running server from its PID
@@ -75,12 +77,12 @@ function getPidUsage() { // Get info for a running server from its PID
 
 function debug(stringOut) {
 	try {
-		if (typeof stringOut === 'string') process.stdout.write(`\n\u001b[41mDEBUG>\u001b[0m ${stringOut}\n\n`)
+		if (typeof stringOut === 'string') process.stdout.write(`\n\u001b[41mDEBUG>${sS.c['reset']} ${stringOut}\n\n`)
 		else {
-			process.stdout.write(`\n\u001b[41mDEBUG>\u001b[0m`);
+			process.stdout.write(`\n\u001b[41mDEBUG>${sS.c['reset']}`);
 			console.log(stringOut);
 		}
 	} catch (e) {
-		process.stdout.write(`\n\u001b[41mDEBUG>\u001b[0m ${stringOut}\n\n`);
+		process.stdout.write(`\n\u001b[41mDEBUG>${sS.c['reset']} ${stringOut}\n\n`);
 	}
 }

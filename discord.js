@@ -1,10 +1,11 @@
+// Import core packages
 const properties = require('properties');
 const discordjs = require("discord.js");
 
 // Set defaults
 const discord = new discordjs.Client();
-var serverSettings = {};
-var moduleSettings = {};
+var sS = {} // serverSettings
+var mS = {} // moduleSettings
 var server = null;
 var discord_token = null;
 var management_channel = null; // This will be assigned the management channel when the server starts
@@ -16,8 +17,8 @@ var color = "";
 process.on('message', message => {
 	switch (message.function) {
 		case 'init':
-			serverSettings = message.serverSettings;
-			moduleSettings = serverSettings.modules['discord'].settings;
+			sS = message.sS;
+			mS = sS.modules['discord'].settings;
 			color = message.color;
 			openDiscord();
 			break;
@@ -34,20 +35,21 @@ process.on('message', message => {
 			if (management_channel) management_channel.send(message.string+"\n", { split: true })
 			break;
 		case 'pushSettings':
-			serverSettings = message.serverSettings;
+			sS = message.sS;
+			mS = sS.modules['discord'].settings;
 			break;
 	}
 });
 
 function openDiscord() {
 	// Fetch discord_token to use and display it at launch
-	console.log(`Using Discord Token: ${color}${moduleSettings.discord_token}\u001b[0m`);
-	discord.login(moduleSettings.discord_token);
+	console.log(`Using Discord Token: ${color}${mS.discord_token}${sS.c['reset']}`);
+	discord.login(mS.discord_token);
 }
 
 // On discord client login
 discord.on('ready', () => {
-	management_channel = discord.guilds.get('155507830076604416').channels.get(moduleSettings.management_channel_id);
+	management_channel = discord.guilds.get('155507830076604416').channels.get(mS.management_channel_id);
 	properties.parse('./server.properties', {path: true}, function(err, properties) {
 		if (err) console.log(err)
 		else discord.user.setActivity(properties.motd.replace(/§./g, '').replace(/\n.*/g, '').replace('// Von Spookelton - ', '').replace(' \\\\', ''), { type: 'WATCHING' })
@@ -56,7 +58,7 @@ discord.on('ready', () => {
 
 // On receive message from discord server
 discord.on('message', message => {
-	if (message.channel.id == moduleSettings.management_channel_id && message.author.id != discord.user.id) {
+	if (message.channel.id == mS.management_channel_id && message.author.id != discord.user.id) {
 		process.send({
 			function: 'broadcast',
 			message: {
@@ -100,18 +102,18 @@ function serverStdout(string) {
 				management_channel.send(discordData, { split: true })
 				discordData = "";
 			}
-		}, moduleSettings.discordMessageFlushRate)
+		}, mS.discordMessageFlushRate)
 	}
 }
 
 function debug(stringOut) {
 	try {
-		if (typeof stringOut === 'string') process.stdout.write(`\n\u001b[41mDEBUG>\u001b[0m ${stringOut}\n\n`)
+		if (typeof stringOut === 'string') process.stdout.write(`\n\u001b[41mDEBUG>${sS.c['reset']} ${stringOut}\n\n`)
 		else {
-			process.stdout.write(`\n\u001b[41mDEBUG>\u001b[0m`);
+			process.stdout.write(`\n\u001b[41mDEBUG>${sS.c['reset']}`);
 			console.log(stringOut);
 		}
 	} catch (e) {
-		process.stdout.write(`\n\u001b[41mDEBUG>\u001b[0m ${stringOut}\n\n`);
+		process.stdout.write(`\n\u001b[41mDEBUG>${sS.c['reset']} ${stringOut}\n\n`);
 	}
 }

@@ -1,15 +1,16 @@
+// Import core packages
 const moment = require("moment");
 
 // Set defaults
-var serverSettings = {};
-var moduleSettings = {};
+var sS = {} // serverSettings
+var mS = {} // moduleSettings
 
 // Module command handling
 process.on('message', message => {
 	switch (message.function) {
 		case 'init':
-			serverSettings = message.serverSettings;
-			moduleSettings = serverSettings.modules['command'].settings;
+			sS = message.sS;
+			mS = sS.modules['log'].settings;
 			break;
 		case 'kill':
 			process.exit();
@@ -17,37 +18,53 @@ process.on('message', message => {
 		case 'log':
 			logOut(message.logObj);
 			break;
+		case 'pushSettings':
+			sS = message.sS;
+			mS = sS.modules['log'].settings;
+			break;
 	}
 });
 
 const logFunctions = {
 	loadFunctions: function(vars) {
 		return {
-			console: `\u001b[36;1mLoaded\u001b[0m ${vars.color}${vars.name}\u001b[0m's Functions\n`,
+			console: `${sS.c['brightCyan']}Loaded${sS.c['reset']} ${vars.color}${vars.name}${sS.c['reset']}'s Functions\n`,
 			discord: ``
 		}
 	},
 	kill: function(vars) {
 		return {
-			console: `\u001b[36;1mKilled Module\u001b[0m: ${vars.color}${vars.name}\u001b[0m\n`,
+			console: `${sS.c['brightCyan']}Killed Module${sS.c['reset']}: ${vars.color}${vars.name}${sS.c['reset']}\n`,
+			discord: ``
+		}
+	},
+	kill_notRunning: function(vars) {
+		return {
+			console: `${sS.c['brightCyan']}Module${sS.c['reset']} ${vars.color}${vars.name}${sS.c['reset']} is not running...\n`,
 			discord: ``
 		}
 	},
 	start: function(vars) {
 		return {
-			console: `\u001b[36;1mStarted Module\u001b[0m: ${vars.color}${vars.name}\u001b[0m\n`,
+			console: `${sS.c['brightCyan']}Started Module${sS.c['reset']}: ${vars.color}${vars.name}${sS.c['reset']}\n`,
+			discord: ``
+		}
+	},
+	start_alreadyRunning: function(vars) {
+		return {
+			console: `${sS.c['brightCyan']}Module${sS.c['reset']} ${vars.color}${vars.name}${sS.c['reset']} already running...\n`,
 			discord: ``
 		}
 	},
 	enable: function(vars) {
 		return {
-			console: `\u001b[36;1mEnabled Module\u001b[0m: ${vars.color}${vars.name}\u001b[0m\n`,
+			console: `${sS.c['brightCyan']}Enabled Module${sS.c['reset']}: ${vars.color}${vars.name}${sS.c['reset']}\n`,
 			discord: ``
 		}
 	},
 	disable: function(vars) {
 		return {
-			console: `\u001b[36;1mDisabled Module\u001b[0m: ${vars.color}${vars.name}\u001b[0m\n`,
+			console: `${sS.c['brightCyan']}Disabled Module${sS.c['reset']}: ${vars.color}${vars.name}${sS.c['reset']}\n`,
 			discord: ``
 		}
 	},
@@ -65,6 +82,18 @@ const logFunctions = {
 		return {
 			discord: `Added command **${vars.args[1]}** to **${(vars.whitelisted_object.Username) ? vars.whitelisted_object.Username : vars.whitelisted_object.Name}** ${(vars.args[3]) ? `Expires ${vars.expiresin}` : ''}`
 		}
+	},
+	nextBackup: function(vars) {
+		return {
+			discord: `Next Backup ${vars.timeToNextBackup.fromNow()}`,
+			console: `Next Backup ${vars.timeToNextBackup.fromNow()}\n`
+		}
+	},
+	last: function(vars) {
+		return {
+			discord: `Last Backup ${vars.lastBackupStartTime.fromNow()}`,
+			console: `Last Backup ${vars.lastBackupStartTime.fromNow()}\n`
+		}
 	}
 }
 
@@ -72,13 +101,17 @@ const logFunctions = {
 function logOut(logObj) {
 	for (logInfo in logObj.logInfoArray) {
 		logInfo = logObj.logInfoArray[logInfo]
-		var logStrings = logFunctions[logInfo.function](logInfo.vars);
-		if (logObj.logTo.console && logStrings.console) process.stdout.write(logStrings.console);
-		if (logObj.logTo.discord && logStrings.discord) process.send({
-			function: 'unicast',
-			module: 'discord',
-			message: { function: 'discordStdin', string: logStrings.discord }
-		});
+		if (!logInfo || !logInfo.function) debug(`Invalid logInfo passed!! ${logInfoArray}`)
+		else if (!logFunctions[logInfo.function]) debug(`Missing logging function for ${logInfo.function}!!`)
+		else {
+			var logStrings = logFunctions[logInfo.function](logInfo.vars);
+			if (logObj.logTo.console && logStrings.console) process.stdout.write(logStrings.console);
+			if (logObj.logTo.discord && logStrings.discord) process.send({
+				function: 'unicast',
+				module: 'discord',
+				message: { function: 'discordStdin', string: logStrings.discord }
+			});
+		}
 	}
 }
 
@@ -88,12 +121,12 @@ function logOut(logObj) {
 
 function debug(stringOut) {
 	try {
-		if (typeof stringOut === 'string') process.stdout.write(`\n\u001b[41mDEBUG>\u001b[0m ${stringOut}\n\n`)
+		if (typeof stringOut === 'string') process.stdout.write(`\n\u001b[41mDEBUG>${sS.c['reset']} ${stringOut}\n\n`)
 		else {
-			process.stdout.write(`\n\u001b[41mDEBUG>\u001b[0m`);
+			process.stdout.write(`\n\u001b[41mDEBUG>${sS.c['reset']}`);
 			console.log(stringOut);
 		}
 	} catch (e) {
-		process.stdout.write(`\n\u001b[41mDEBUG>\u001b[0m ${stringOut}\n\n`);
+		process.stdout.write(`\n\u001b[41mDEBUG>${sS.c['reset']} ${stringOut}\n\n`);
 	}
 }

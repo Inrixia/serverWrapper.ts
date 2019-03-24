@@ -7,4 +7,5 @@ node_modules/
 
 # Testserver Files
 TestServer/world/
+TestServer/Cookies/
 TestServer/logs/
