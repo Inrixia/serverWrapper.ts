@@ -24,12 +24,12 @@ serverStartVars = serverStartVars.concat(sS.serverPostfixVars);
 sS.server_dir = __dirname;
 var consoleTimeout = true;
 
-if (fs.existsSync('./config/Chikachi/DiscordIntegration.json') && sS.modules['discord'].settings.discord_token == "") {
+if (((sS.modules['discord']||{}).settings||{}).discord_token == "" && fs.existsSync('./config/Chikachi/DiscordIntegration.json')) {
 	sS.modules['discord'].settings.discord_token = fs.readFileSync('./config/Chikachi/DiscordIntegration.json', 'utf8').slice(31, 90);
 }
-if (sS.modules['discord'].settings.discord_token == "") {
+if (((sS.modules['discord']||{}).settings||{}).discord_token == "") {
 		sS.modules['discord'].enabled = false;
-		process.stdout.write(`${sS.c['brightRed']}Disabled Module${sS.c['reset']}: ${sS.modules['discord'].color}discord.js${sS.c['reset']}, No Token Found!\n`);
+		process.stdout.write(`${sS.c['brightRed'].c}Disabled Module${sS.c['reset'].c}: ${sS.modules['discord'].color.c}discord.js${sS.c['reset'].c}, No Token Found!\n`);
 }
 /*
 / Module class definition
@@ -52,7 +52,7 @@ class wrapperModule {
 
 			this.process.addListener('close', function(data){
 				Object.keys(loadedModules).forEach(function(moduleName) {
-					thisModule = loadedModules[moduleName];
+					var thisModule = loadedModules[moduleName];
 					if (thisModule.process && !thisModule.process.channel) {
 						thisModule.crashCount += 1;
 						delete thisModule.process;
@@ -60,10 +60,10 @@ class wrapperModule {
 							thisModule.crashCount -= 1;
 						}, 10000)
 						if (thisModule.crashCount < 3) {
-							process.stdout.write(`${sS.c['red']}Module Crashed: ${thisModule.color}${thisModule.name}${sS.c['reset']} Restarting!\n`);
+							process.stdout.write(`${sS.c['red'].c}Module Crashed: ${thisModule.color.c}${thisModule.name}${sS.c['reset'].c} Restarting!\n`);
 							thisModule.start();
 						} else {
-							process.stdout.write(`${sS.c['red']}Module Crashed Repeatidly: ${thisModule.color}${thisModule.name}${sS.c['reset']} Disabling!\n`);
+							process.stdout.write(`${sS.c['red'].c}Module Crashed Repeatidly: ${thisModule.color.c}${thisModule.name}${sS.c['reset'].c} Disabling!\n`);
 						}
 					}
 				})
@@ -72,17 +72,17 @@ class wrapperModule {
 			this.process.on('message', message => {
 				if (this.process)	{
 					if (message.function == 'broadcast') wrapperModule.broadcast(message.message);
-					if (message.function == 'unicast' && loadedModules[message.module] && loadedModules[message.module].process) loadedModules[message.module].process.send(message.message)
+					if (message.function == 'unicast' && (loadedModules[message.module]||{}).process) loadedModules[message.module].process.send(message.message)
 					if (message.function == 'serverStdin' && server) server.stdin.write(message.string);
 				}
 			})
 			if (this.name == 'command') { // Command handling for wrapperHost specific functions that can only be run within serverWrapper
 				this.process.on('message', message => {
-					var logInfoArray = [];
+					var logInfoArray = null;
 					if (message.function == 'restartAllModules') logInfoArray = restartAllModules();
 					else if (message.function == 'unloadAllModules') logInfoArray = unloadAllModules();
 					else if (message.function == 'reloadModules') logInfoArray = reloadModules();
-					else if (message.function == 'listModules') listModules();
+					else if (message.function == 'listModules') logInfoArray = listModules();
 					else if (message.args && loadedModules[message.args[1]]) {
 						if (message.function == 'enableModule') logInfoArray = loadedModules[message.args[1]].enable(message.args[2]);
 						else if (message.function == 'disableModule') logInfoArray = loadedModules[message.args[1]].disable(message.args[2]);
@@ -99,11 +99,11 @@ class wrapperModule {
 						wrapperModule.broadcast({function: 'pushSettings', sS: sS });
 						saveSettings();
 					}
-					if (logInfoArray != [] && logInfoArray) wrapperModule.sendLog({logInfoArray: logInfoArray, logTo: (message.logTo) ? message.logTo : {console: true} })
+					if (logInfoArray) wrapperModule.sendLog({logInfoArray: logInfoArray, logTo: (message.logTo) ? message.logTo : {console: true} })
 				});
 			}
 			return [{
-				function: 'start',
+				function: 'startModule',
 				vars: {
 					color: this.color,
 					name: this.name
@@ -111,7 +111,7 @@ class wrapperModule {
 			}];
 		}
 		return [{
-			function: 'start_alreadyRunning',
+			function: 'startModule_alreadyRunning',
 			vars: {
 				color: this.color,
 				name: this.name
@@ -133,7 +133,7 @@ class wrapperModule {
 	loadFunctions() {
 		if (this.import) this.functions = require(sS.modulesDir+sS.modules[this.name].file);
 		return [{
-			function: 'loadFunctions',
+			function: 'loadModuleFunctions',
 			vars: {
 				color: this.color,
 				name: this.name
@@ -147,7 +147,7 @@ class wrapperModule {
 			if (this.name == 'stats') process.stdout.write(`${String.fromCharCode(27)}]0;${sS.serverName}  |  Stats Module Disabled${String.fromCharCode(7)}`);
 			this.process = null;
 			return [{
-				function: 'kill',
+				function: 'killModule',
 				vars: {
 					color: this.color,
 					name: this.name
@@ -155,7 +155,7 @@ class wrapperModule {
 			}];
 		}
 		return [{
-			function: 'kill_notRunning',
+			function: 'killModule_notRunning',
 			vars: {
 				color: this.color,
 				name: this.name
@@ -167,7 +167,7 @@ class wrapperModule {
 		sS.modules[this.name].enabled = true;
 		if (save) saveSettings();
 		return [{
-			function: 'enable',
+			function: 'enableModule',
 			vars: {
 				color: this.color,
 				name: this.name
@@ -179,7 +179,7 @@ class wrapperModule {
 		sS.modules[this.name].enabled = false;
 		if (save) saveSettings();
 		return [{
-			function: 'disable',
+			function: 'disableModule',
 			vars: {
 				color: this.color,
 				name: this.name
@@ -189,21 +189,32 @@ class wrapperModule {
 
 	static broadcast(message) {
 		Object.keys(loadedModules).forEach(function(moduleName) {
-			if (loadedModules[moduleName] && loadedModules[moduleName].process) loadedModules[moduleName].process.send(message);
+			if ((loadedModules[moduleName]||{}).process) loadedModules[moduleName].process.send(message);
 		})
 	}
 
 	static sendLog(logObj) {
-		if (loadedModules['log'] && loadedModules['log'].process) loadedModules['log'].process.send({function: 'log', logObj: logObj})
+		if ((loadedModules['log']||{}).process) loadedModules['log'].process.send({function: 'log', logObj: logObj})
 	}
 
 	get enabled() { return sS.modules[this.name].enabled }
-	set enabled(enable) { sS.modules[this.name].enabled = enable; }
+	set enabled(enable) {
+		sS.modules[this.name].enabled = enable;
+		wrapperModule.broadcast({function: 'pushSettings', sS: sS });
+	}
+
+	get description() { return sS.modules[this.name].description }
+	set description(descriptionString) {
+		sS.modules[this.name].description = descriptionString;
+		wrapperModule.broadcast({function: 'pushSettings', sS: sS });
+	}
 
 	get color() { return sS.c[sS.modules[this.name].color] };
 	set color(moduleColor) {
-		if (moduleColor in sS.c) sS.modules[this.name].color = moduleColor;
-		else debug(`"${this.name}.color = ${moduleColor}" Invalid Colour.`)	;
+		if (moduleColor in sS.c) {
+			sS.modules[this.name].color = moduleColor;
+			wrapperModule.broadcast({function: 'pushSettings', sS: sS });
+		} else debug(`"${this.name}.color = ${moduleColor}" Invalid Colour.`);
 	}
 }
 
@@ -233,11 +244,11 @@ function unloadAllModules() {
 		})
 	);
 	loadedModules = {};
-	if (sS.modules['command'] && sS.modules['command'].enabled) {
+	if ((sS.modules['command']||{}).enabled) {
 		loadedModules['command'] = new wrapperModule('command');
 		loadedModules['command'].start();
 	}
-	if (sS.modules['log'] && sS.modules['log'].enabled) {
+	if ((sS.modules['log']||{}).enabled) {
 		loadedModules['log'] = new wrapperModule('log');
 		loadedModules['log'].start();
 	}
@@ -249,7 +260,7 @@ function startEnabledModules() {
 		Object.keys(loadedModules).forEach(function(moduleName) {
 			if (loadedModules[moduleName].enabled) loadedModules[moduleName].start();
 		})
-		listModules();
+		wrapperModule.sendLog({logInfoArray: listModules(), logTo: { console: true } });
 		resolve();
 	})
 }
@@ -270,18 +281,14 @@ function restartAllModules() {
 }
 
 function listModules() {
-	var enabledModules = "";
-	var disabledModules = "";
-	var seperator = ", "
-	Object.keys(loadedModules).forEach(function(moduleName){
-		thisModule = loadedModules[moduleName];
-		if (thisModule.enabled) enabledModules += `${thisModule.color}${moduleName} ${sS.c['reset']}[${thisModule.process ? `${sS.c['green']}R${sS.c['reset']}` : `${sS.c['red']}S${sS.c['reset']}`}]${sS.c['reset']} | `
-		else disabledModules += `${thisModule.color}${moduleName} ${sS.c['reset']}[${thisModule.process ? `${sS.c['green']}R${sS.c['reset']}` : `${sS.c['red']}S${sS.c['reset']}`}]${sS.c['reset']} | `
-	})
-	if (enabledModules.length > 0) enabledModules = enabledModules.slice(0, enabledModules.length-seperator.length);
-	if (disabledModules.length > 0) disabledModules = disabledModules.slice(0, disabledModules.length-seperator.length);
-	process.stdout.write(`\n${sS.c['brightCyan']}Enabled wrapper modules${sS.c['reset']}: ${enabledModules}\n`);
-	process.stdout.write(`${sS.c['brightCyan']}Disabled wrapper modules${sS.c['reset']}: ${disabledModules}\n\n`);
+	return [{
+		function: 'listModules',
+		vars: {
+			loadedModules: loadedModules,
+			seperator: " | ",
+			executionStartTime: new Date()
+		}
+	}];
 }
 
 /*
@@ -314,11 +321,11 @@ function startServer() {
 		process.stdout.write(string); // Write line to wrapper console
 		if (string.indexOf("players online") > -1) { // "list" command has completed, server is now online
 			consoleTimeout = false;
-			if (loadedModules['stats'] && loadedModules['stats'].process) loadedModules['stats'].process.send({ function: 'pushStats', serverStats: {status: "Running"} });  // If stats is enabled update the server status to enabled
+			if ((loadedModules['stats']||{}).process) loadedModules['stats'].process.send({ function: 'pushStats', serverStats: {status: "Running"} });  // If stats is enabled update the server status to enabled
 		}
 	})
 
-	if (loadedModules['stats'] && loadedModules['stats'].process) { // If stats is enabled push a update
+	if ((loadedModules['stats']||{}).process) { // If stats is enabled push a update
 		loadedModules['stats'].process.send({
 			function: 'startStatsInterval',
 			sS: sS,
@@ -331,7 +338,7 @@ function startServer() {
 
 	// Server shutdown handling
 	server.on('exit', function (code) {
-		if (loadedModules['stats'] && loadedModules['stats'].process) loadedModules['stats'].process.send({ function: 'pushStats', serverStats: {status: "Closed"} });  // If stats is enabled update the server status to enabled
+		if ((loadedModules['stats']||{}).process) loadedModules['stats'].process.send({ function: 'pushStats', serverStats: {status: "Closed"} });  // If stats is enabled update the server status to enabled
 	    console.log(`Server closed with exit code: ${code}\nRestarting wrapper...`);
 	    process.exit();
 			//restartWrapper();
@@ -370,12 +377,12 @@ function restartWrapper() {
 
 function debug(stringOut) {
 	try {
-		if (typeof stringOut === 'string') process.stdout.write(`\n\u001b[41mDEBUG>${sS.c['reset']} ${stringOut}\n\n`)
+		if (typeof stringOut === 'string') process.stdout.write(`\n\u001b[41mDEBUG>${sS.c['reset'].c} ${stringOut}\n\n`)
 		else {
-			process.stdout.write(`\n\u001b[41mDEBUG>${sS.c['reset']}`);
+			process.stdout.write(`\n\u001b[41mDEBUG>${sS.c['reset'].c}`);
 			console.log(stringOut);
 		}
 	} catch (e) {
-		process.stdout.write(`\n\u001b[41mDEBUG>${sS.c['reset']} ${stringOut}\n\n`);
+		process.stdout.write(`\n\u001b[41mDEBUG>${sS.c['reset'].c} ${stringOut}\n\n`);
 	}
 }

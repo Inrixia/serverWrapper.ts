@@ -26,30 +26,32 @@
   "modulesDir": "Z:\\wrapperModules\\",
   "server_dir": "Z:\\wrapperModules\\TestServer",
   "c": {
-    "reset": "\u001b[0m",
-    "black": "\u001b[30m",
-    "red": "\u001b[31m",
-    "green": "\u001b[32m",
-    "yellow": "\u001b[33m",
-    "blue": "\u001b[34m",
-    "magenta": "\u001b[35m",
-    "cyan": "\u001b[36m",
-    "white": "\u001b[37m",
-    "brightBlack": "\u001b[30;1m",
-    "brightRed": "\u001b[31;1m",
-    "brightGreen": "\u001b[32;1m",
-    "brightYellow": "\u001b[33;1m",
-    "brightBlue": "\u001b[34;1m",
-    "brightMagenta": "\u001b[35;1m",
-    "brightCyan": "\u001b[36;1m",
-    "brightWhite": "\u001b[0m"
+    "reset": {"c": "\u001b[0m", "h": ""},
+    "black": {"c": "\u001b[30m", "h": "000000"},
+    "red": {"c": "\u001b[31m", "h": "800000" },
+    "green": {"c": "\u001b[32m", "h": "008000"},
+    "yellow": {"c": "\u001b[33m", "h": "808000"},
+    "blue": {"c": "\u001b[34m", "h": "000080"},
+    "magenta": {"c": "\u001b[35m", "h": "800080"},
+    "cyan": {"c": "\u001b[36m", "h": "008080"},
+    "white": {"c": "\u001b[37m", "h": "c0c0c0"},
+    "brightBlack": {"c": "\u001b[30;1m", "h": "808080"},
+    "brightRed": {"c": "\u001b[31;1m", "h": "ff0000"},
+    "brightGreen": {"c": "\u001b[32;1m", "h": "00ff00"},
+    "brightYellow": {"c": "\u001b[33;1m", "h": "ffff00"},
+    "brightBlue": {"c": "\u001b[34;1m", "h": "0000ff"},
+    "brightMagenta": {"c": "\u001b[35;1m", "h": "ff00ff"},
+    "brightCyan": {"c": "\u001b[36;1m", "h": "00ffff"},
+    "brightWhite": {"c": "\u001b[0m", "h": "ffffff"},
+    "discordBlue": { "c": "", "h": "7289da" }
   },
   "modules": {
     "stats": {
       "file": "stats.js",
       "enabled": true,
-      "color": "yellow",
+      "color": "brightYellow",
       "import": false,
+      "description": "Displays server stats on console window.",
       "settings": {
         "pollRate": 2000
       }
@@ -58,7 +60,9 @@
       "file": "discord.js",
       "enabled": true,
       "color": "brightBlue",
+      "discordColor": "discordBlue",
       "import": false,
+      "description": "Handles all things discord.",
       "settings": {
         "messageFlushRate": 100,
         "discord_token": "NDg3ODExOTkwNTMwNTU1OTA0.D3edOA.TaaXqJQeiJUZzrQFwqV7b3Ov3Y0",
@@ -70,6 +74,7 @@
       "enabled": true,
       "color": "brightRed",
       "import": false,
+      "description": "Runs server backups.",
       "settings": {
         "rootBackupDir": "R:/LiveArchives/",
         "overrideBackupDir": "",
@@ -82,6 +87,7 @@
       "enabled": true,
       "color": "white",
       "import": false,
+      "description": "Handles all command output, hey your using this now!",
       "settings": {}
     },
     "command": {
@@ -89,6 +95,7 @@
       "enabled": true,
       "color": "brightGreen",
       "import": false,
+      "description": "Handles all wrapper/server commands and their permissions.",
       "settings": {
         "whitelisted_discord_roles": {},
         "whitelisted_discord_users": {
@@ -121,10 +128,19 @@
                   "discord_id": "155530711326130176"
                 },
                 "expiresAt": "2019-03-24T11:38:46.780Z",
-                "expired": false
+                "expired": true
               },
               "~reloadmodule": {
                 "assignedAt": "2019-03-24T08:17:00.521Z",
+                "assignedBy": {
+                  "Username": "Sir Inrix | <3",
+                  "discord_id": "155530711326130176"
+                },
+                "expiresAt": false,
+                "expired": false
+              },
+              "*": {
+                "assignedAt": "2019-03-25T06:49:08.684Z",
                 "assignedBy": {
                   "Username": "Sir Inrix | <3",
                   "discord_id": "155530711326130176"

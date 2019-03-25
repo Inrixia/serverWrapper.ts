@@ -77,12 +77,12 @@ function getPidUsage() { // Get info for a running server from its PID
 
 function debug(stringOut) {
 	try {
-		if (typeof stringOut === 'string') process.stdout.write(`\n\u001b[41mDEBUG>${sS.c['reset']} ${stringOut}\n\n`)
+		if (typeof stringOut === 'string') process.stdout.write(`\n\u001b[41mDEBUG>${sS.c['reset'].c} ${stringOut}\n\n`)
 		else {
-			process.stdout.write(`\n\u001b[41mDEBUG>${sS.c['reset']}`);
+			process.stdout.write(`\n\u001b[41mDEBUG>${sS.c['reset'].c}`);
 			console.log(stringOut);
 		}
 	} catch (e) {
-		process.stdout.write(`\n\u001b[41mDEBUG>${sS.c['reset']} ${stringOut}\n\n`);
+		process.stdout.write(`\n\u001b[41mDEBUG>${sS.c['reset'].c} ${stringOut}\n\n`);
 	}
 }

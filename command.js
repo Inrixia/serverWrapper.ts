@@ -6,6 +6,7 @@ var sS = {} // serverSettings
 var mS = {} // moduleSettings
 var server = null;
 var authErr = null;
+var commands = {};
 
 // Module command handling
 process.on('message', message => {
@@ -21,7 +22,7 @@ process.on('message', message => {
 			processDiscordMessage(message.message)
 			break;
 		case 'consoleStdout':
-			processCommand(message, 0);
+			processCommand(message);
 			break;
 		case 'pushSettings':
 			sS = message.sS;
@@ -74,7 +75,7 @@ function checkDiscordAuth(message) {
 	process.send({
 		function: 'unicast',
 		module: 'discord',
-		message: { function: 'discordStdin', string: authErr }
+		message: { function: 'discordStdin', string: authErr+"\n" }
 	});
 	authErr = null;
 	return false;
@@ -85,138 +86,150 @@ function processDiscordMessage(message) {
 	// "Admin" role id: 278046497789181954
 	if ((message.string[0] == '~' || message.string[0] == '!') && checkDiscordAuth(message)) { // User is allowed to run this command
 		process.stdout.write(`[${message.author.username}]: ${message.string.trim()}\n`);
-		if (message.string[0] == '~') processCommand(message, 0) // Message is a wrapperCommand
+		if (message.string[0] == '~' || message.string[0] == '?') processCommand(message) // Message is a wrapperCommand or helpCommand
 		else if (message.string[0] == '!') process.send({ function: 'serverStdin', string: message.string.slice(1,message.length).trim()+'\n' }) // Message is a serverCommand
 	}
 }
 
-function processCommand(command, startIndex) {
-	var string = command.string.replace(/\s\s+/g, ' '); // Compact multiple spaces/tabs down to one
-	var logInfoArray = [];
-	var message = {
-		function: null,
-		args: getCommandArgs(string),
-		logTo: {
-			console: true,
-			discord: (command.author != undefined)
+class command {
+	constructor(obj) {
+		this.name = obj.name;
+		this.description = obj.description;
+		this.exeFunc = obj.exeFunc;
+		commands[this.name] = this;
+	}
+
+	execute(message) {
+		if (message.string[0] == '~') {
+			var logInfoArray = this.exeFunc(message);
+			if (logInfoArray) process.send({
+				function: 'unicast',
+				module: 'log',
+				message: { function: 'log', logObj: { logInfoArray: logInfoArray, logTo: message.logTo } }
+			});
+		} else if (message.string[0] == '?') this.help(command);
+	}
+
+	help(message) {
+	}
+
+	static toWrapper() {
+		return function(message) {
+			message.function = this.name;
+			process.send(message)
 		}
+	}
+}
+
+function processCommand(message) {
+	message.string = message.string.replace(/\s\s+/g, ' '); // Compact multiple spaces/tabs down to one
+	message.logTo = {
+		console: true,
+		discord: (message.author) ? { channel: message.channel.id } : null
 	};
-	if (commandMatch(string, startIndex, '~restartAllModules')) message.function = 'restartAllModules';
-	else if (commandMatch(string, startIndex, '~unloadAllModules')) message.function = 'unloadAllModules';
-	else if (commandMatch(string, startIndex, '~reloadModules')) message.function = 'reloadModules';
-	else if (commandMatch(string, startIndex, '~listModules')) message.function = 'listModules';
-	else if (commandMatch(string, startIndex, '~enableModule')) message.function = 'enableModule';
-	else if (commandMatch(string, startIndex, '~disableModule') && getCommandArgs(string)[1] != 'command') message.function = 'disableModule';
-	else if (commandMatch(string, startIndex, '~reloadModule')) message.function = 'reloadModule';
-	else if (commandMatch(string, startIndex, '~killModule')) message.function = 'killModule';
-	else if (commandMatch(string, startIndex, '~startModule')) message.function = 'startModule';
-	else if (commandMatch(string, startIndex, '~restartModule')) message.function = 'restartModule';
-	else if (commandMatch(string, startIndex, '~loadModuleFunctions')) message.function = 'loadModuleFunctions';
-	else if (commandMatch(string, startIndex, '~loadSettings')) message.function = 'loadSettings';
-	else if (commandMatch(string, startIndex, '~saveSettings')) saveSettings();
-	else if (commandMatch(string, startIndex, '~cw_add')) logInfoArray = commandWhitelistAdd({command: command, args: message.args});
-	else if (commandMatch(string, startIndex, '~cw_remove')) logInfoArray = commandWhitelistRemove({command: command, args: message.args});
-	else if (commandMatch(string, startIndex, '~cw_removeall')) logInfoArray = commandWhitelistRemove({command: command, args: message.args});
-	else if (commandMatch(string, startIndex, '~backup')) process.send({ function: 'unicast', module: 'backup', message: { function: 'runBackup' } });
-	else if (commandMatch(string, startIndex, '~backupinterval_start')) process.send({ function: 'unicast', module: 'backup', message: { function: 'startBackupInterval' } });
-	else if (commandMatch(string, startIndex, '~backupinterval_stop')) process.send({ function: 'unicast', module: 'backup', message: { function: 'clearBackupInterval' } });
-	else if (commandMatch(string, startIndex, '~backupinterval_set')) process.send({
-		function: 'unicast',
-		module: 'backup',
-		message: {
-			function: 'setBackupInterval',
-			backupIntervalInHours: message.args[1],
-			save: message.args[2]
-		}
+	message.args = getCommandArgs(message.string);
+	Object.keys(commands).forEach(function(commandName) {
+		if (commandMatch(message.string.slice(1, message.string.length), commandName)) commands[commandName].execute(message);
 	});
-	else if (commandMatch(string, startIndex, '~backupdir_set')) process.send({
-		function: 'unicast',
-		module: 'backup',
-		message: {
-			function: 'setBackupDir',
-			backupDir: message.args[1],
-			save: message.args[2]
-		}
-	});
-	else if (commandMatch(string, startIndex, '~nextBackup')) process.send({ function: 'unicast', module: 'nextBackup', message: { function: 'nextBackup', logTo: message.logTo } });
-	else if (commandMatch(string, startIndex, '~lastBackup')) process.send({ function: 'unicast', module: 'lastBackup', message: { function: 'lastBackup', logTo: message.logTo } });
-
-	if (logInfoArray) process.send({
-		function: 'unicast',
-		module: 'log',
-		message: { function: 'log', logObj: { logInfoArray: logInfoArray, logTo: message.logTo } }
-	});
-	if (message.function) process.send(message);
-}
-
-function commandWhitelistAdd(obj) {
-	// ~commandwhitelist add !list @Inrix 1 hour
-	// ~commandwhitelist remove !list @Inrix 1 hour
-	if (obj.command.mentions.users.first.id) {
-		var whitelisted_object = mS.whitelisted_discord_users[obj.command.mentions.users.first.id];
-		whitelisted_object.Username = obj.command.mentions.users.first.username;
-	} else if (obj.command.mentions.roles.first.id) {
-		var whitelisted_object = mS.whitelisted_discord_roles[obj.command.mentions.roles.first.id];
-		whitelisted_object.Name = obj.command.mentions.roles.first.name;
-	}
-	if (!whitelisted_object.allowAllCommands) whitelisted_object.allowAllCommands = false;
-
-	if (!whitelisted_object.allowedCommands) whitelisted_object.allowedCommands = {}
-	var expiresin = obj.args[3] ? new moment().add(obj.args[3], obj.args[4]) : false;
-	whitelisted_object.allowedCommands[obj.args[1]] = {
-		"assignedAt": new Date(),
-		"assignedBy": {
-			"Username": obj.command.author.username,
-			"discord_id": obj.command.author.id
-		},
-		"expiresAt": expiresin, // If the user specifies a expiery time set it, otherwise use infinite
-		"expired": false
-	}
-	saveSettings();
-	return [{
-		function: 'cw_add',
-		vars: {
-			args: obj.args,
-			expiresin: expiresin.fromNow(),
-			whitelisted_object: whitelisted_object
-		}
-	}]
-}
-
-function commandWhitelistRemove(obj) {
-	if (obj.command.mentions.users.first.id) var whitelisted_object = mS.whitelisted_discord_users[obj.command.mentions.users.first.id];
-	else if (obj.command.mentions.roles.first.id) var whitelisted_object = mS.whitelisted_discord_roles[obj.command.mentions.roles.first.id];
-
-	if (obj.args[0] == "~cw_removeall") {
-		delete whitelisted_object;
-		return [{
-			function: 'cw_removeall',
-			vars: {
-				whitelisted_object: whitelisted_object
-			}
-		}]
-	} else {
-		return [{
-			function: 'cw_remove',
-			vars: {
-				args: obj.args,
-				whitelisted_object: whitelisted_object
-			}
-		}]
-		delete whitelisted_object.allowedCommands[obj.args[1]];
-	}
-	saveSettings();
 }
 
 function getCommandArgs(string) {
 	return string.split(" ");
 }
 
-function commandMatch(string, startIndex, command) {
-	if (string.toLowerCase() == command.toLowerCase()) return true; // If its a identical match pass it
-	command = command+' '; // Otherwise add a space to avoid continuous commands and check for dynamic commands
-	var commandLength = command.length;
-	if (string.toLowerCase().slice(startIndex, commandLength) == command.toLowerCase()) return true;
+function commandMatch(string, commandString) {
+	if (string.toLowerCase() == commandString.toLowerCase()) return true; // If its a identical match pass it
+	commandString = commandString+' '; // Otherwise add a space to avoid continuous commands and check for dynamic commands
+	if (string.toLowerCase().slice(0, commandString.length) == commandString.toLowerCase()) return true;
+	return false;
+}
+
+new command({ name: 'restartAllModules', exeFunc: command.toWrapper() });
+new command({ name: 'unloadAllModules', exeFunc: command.toWrapper() });
+new command({ name: 'reloadModules', exeFunc: command.toWrapper() });
+new command({ name: 'listModules', exeFunc: command.toWrapper() });
+new command({ name: 'enableModule', exeFunc: command.toWrapper() });
+new command({ name: 'disableModule', exeFunc: command.toWrapper() });
+new command({ name: 'reloadModule', exeFunc: command.toWrapper() });
+new command({ name: 'killModule', exeFunc: command.toWrapper() });
+new command({ name: 'startModule', exeFunc: command.toWrapper() });
+new command({ name: 'restartModule', exeFunc: command.toWrapper() });
+new command({ name: 'loadModuleFunctions', exeFunc: command.toWrapper() });
+new command({ name: 'loadSettings', exeFunc: command.toWrapper() });
+new command({ name: 'saveSettings', exeFunc: function(){saveSettings()} });
+new command({ name: 'cw_add', exeFunc: commandWhitelistAdd() });
+new command({ name: 'cw_remove', exeFunc: commandWhitelistAdd() });
+new command({ name: 'cw_removeall', exeFunc: commandWhitelistAdd() });
+new command({ name: 'backup', exeFunc: function(message){ process.send({ function: 'unicast', module: 'backup', message: {function: 'runBackup'} }) } });
+new command({ name: 'backupinterval_start', exeFunc: function(message){ process.send({ function: 'unicast', module: 'backup', message: {function: 'startBackupInterval'} }) } });
+new command({ name: 'backupinterval_stop', exeFunc: function(message){ process.send({ function: 'unicast', module: 'backup', message: {function: 'clearBackupInterval'} }) } });
+new command({ name: 'backupinterval_stop',  exeFunc: function(message){ process.send({ function: 'unicast', module: 'backup', message: {function: 'nextBackup', logTo: message.logTo} }) } });
+new command({ name: 'backupinterval_set', exeFunc: function(message){ process.send({ function: 'unicast', module: 'backup', message: {function: 'setBackupInterval', backupIntervalInHours: message.args[1], save: message.args[2]} }) } });
+new command({ name: 'backupdir_set', exeFunc: function(message){ process.send({ function: 'unicast', module: 'backup', message: {function: 'setBackupDir', backupDir: message.args[1],save: message.args[2]} }) } });
+new command({ name: 'nextBackup', exeFunc: function(message){ process.send({ function: 'unicast', module: 'backup', message: {function: 'nextBackup', logTo: message.logTo} }) } });
+new command({ name: 'lastBackup', exeFunc: function(message){ process.send({ function: 'unicast', module: 'backup', message: {function: 'lastBackup', logTo: message.logTo} }) } });
+
+function commandWhitelistAdd() {
+	return function(message) {
+		// ~commandwhitelist add !list @Inrix 1 hour
+		// ~commandwhitelist remove !list @Inrix 1 hour
+		if (message.command.mentions.users[0].id) {
+			var whitelisted_object = mS.whitelisted_discord_users[message.command.mentions.users[0].id];
+			whitelisted_object.Username = message.command.mentions.users[0].username;
+		} else if (message.command.mentions.roles[0].id) {
+			var whitelisted_object = mS.whitelisted_discord_roles[message.command.mentions.roles[0].id];
+			whitelisted_object.Name = message.command.mentions.roles[0].name;
+		}
+		if (!whitelisted_object.allowAllCommands) whitelisted_object.allowAllCommands = false;
+
+		if (!whitelisted_object.allowedCommands) whitelisted_object.allowedCommands = {}
+		var expiresin = message.args[3] ? new moment().add(message.args[3], message.args[4]) : false;
+		whitelisted_object.allowedCommands[message.args[1]] = {
+			"assignedAt": new Date(),
+			"assignedBy": {
+				"Username": message.command.author.username,
+				"discord_id": message.command.author.id
+			},
+			"expiresAt": expiresin, // If the user specifies a expiery time set it, otherwise use infinite
+			"expired": false
+		}
+		saveSettings();
+		return [{
+			function: 'cw_add',
+			vars: {
+				args: message.args,
+				expiresin: expiresin ? expiresin.fromNow() : false,
+				whitelisted_object: whitelisted_object
+			}
+		}]
+	}
+}
+
+function commandWhitelistRemove() {
+	return function(message) {
+		if (message.command.mentions.users[0].id) var whitelisted_object = mS.whitelisted_discord_users[message.command.mentions.users[0].id];
+		else if (message.command.mentions.roles[0].id) var whitelisted_object = mS.whitelisted_discord_roles[message.command.mentions.roles[0].id];
+
+		if (message.args[0] == "~cw_removeall") {
+			delete whitelisted_object;
+			return [{
+				function: 'cw_removeall',
+				vars: {
+					whitelisted_object: whitelisted_object
+				}
+			}]
+		} else {
+			return [{
+				function: 'cw_remove',
+				vars: {
+					args: message.args,
+					whitelisted_object: whitelisted_object
+				}
+			}]
+			delete whitelisted_object.allowedCommands[message.args[1]];
+		}
+		saveSettings();
+	}
 }
 
 /*
@@ -225,13 +238,13 @@ function commandMatch(string, startIndex, command) {
 
 function debug(stringOut) {
 	try {
-		if (typeof stringOut === 'string') process.stdout.write(`\n\u001b[41mDEBUG>${sS.c['reset']} ${stringOut}\n\n`)
+		if (typeof stringOut === 'string') process.stdout.write(`\n\u001b[41mDEBUG>${sS.c['reset'].c} ${stringOut}\n\n`)
 		else {
-			process.stdout.write(`\n\u001b[41mDEBUG>${sS.c['reset']}`);
+			process.stdout.write(`\n\u001b[41mDEBUG>${sS.c['reset'].c}`);
 			console.log(stringOut);
 		}
 	} catch (e) {
-		process.stdout.write(`\n\u001b[41mDEBUG>${sS.c['reset']} ${stringOut}\n\n`);
+		process.stdout.write(`\n\u001b[41mDEBUG>${sS.c['reset'].c} ${stringOut}\n\n`);
 	}
 }
 

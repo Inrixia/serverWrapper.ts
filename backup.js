@@ -100,12 +100,14 @@ function pushStats() {
 }
 
 function startBackupInterval() {
-	backupInterval = setInterval(function(){runBackup()}, mS.backupIntervalInHours*60*60*1000);
+	backupInterval = setInterval(function(){
+		runBackup();
+		timeToNextBackup = moment().add(mS.backupIntervalInHours, 'hours');
+	}, mS.backupIntervalInHours*60*60*1000);
 }
 
 function runBackup() {
 	lastBackupStartTime = moment();
-	timeToNextBackup = moment().add(mS.backupIntervalInHours, 'hours');
 	process.send({ function: 'serverStdin', string: 'save-off\n' });
 	process.stdout.write('Starting Backup - World Saving Disabled\n');
 	process.send({ function: 'serverStdin', string: `/title @a actionbar ["",{"text":"~","color":"light_purple"},{"text":" Starting Backup","color":"white"},{"text":" ~","color":"light_purple"}]\n` })
@@ -125,7 +127,7 @@ function runBackup() {
 			h: lastBackupDuration.hours()
 		}
 		lastBackupDurationString = `${(t.m>0) ? `${t.m}min, ` : ''}${(t.s>0) ? `${t.s}sec, ` : ''}${(t.ms>0) ? `${t.ms}ms` : ''}`;
-		process.send({ function: 'serverStdin', string: 'save-off\n' });
+		process.send({ function: 'serverStdin', string: 'save-on\n' });
 		process.stdout.write(`Backup Completed in ${lastBackupDurationString} - World Saving Enabled\n`);
 		process.send({ function: 'serverStdin', string: `/title @a actionbar ["",{"text":"~","color":"light_purple"},{"text":" Finished Backup","color":"white"},{"text":" -","color":"light_purple"},{"text":" Took","color":"white"},{"text":" ${lastBackupDurationString}","color":"green"},{"text":" ~","color":"light_purple"}]\n` })
 		pushStats();
@@ -139,13 +141,13 @@ function runBackup() {
 
 function debug(stringOut) {
 	try {
-		if (typeof stringOut === 'string') process.stdout.write(`\n\u001b[41mDEBUG>${sS.c['reset']} ${stringOut}\n\n`)
+		if (typeof stringOut === 'string') process.stdout.write(`\n\u001b[41mDEBUG>${sS.c['reset'].c.c} ${stringOut}\n\n`)
 		else {
-			process.stdout.write(`\n\u001b[41mDEBUG>${sS.c['reset']}`);
+			process.stdout.write(`\n\u001b[41mDEBUG>${sS.c['reset'].c}`);
 			console.log(stringOut);
 		}
 	} catch (e) {
-		process.stdout.write(`\n\u001b[41mDEBUG>${sS.c['reset']} ${stringOut}\n\n`);
+		process.stdout.write(`\n\u001b[41mDEBUG>${sS.c['reset'].c} ${stringOut}\n\n`);
 	}
 }
 

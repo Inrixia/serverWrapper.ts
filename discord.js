@@ -11,7 +11,6 @@ var discord_token = null;
 var management_channel = null; // This will be assigned the management channel when the server starts
 var discordData = "";
 var previousMessage = "";
-var color = "";
 
 // Module command handling
 process.on('message', message => {
@@ -19,7 +18,6 @@ process.on('message', message => {
 		case 'init':
 			sS = message.sS;
 			mS = sS.modules['discord'].settings;
-			color = message.color;
 			openDiscord();
 			break;
 		case 'kill':
@@ -32,7 +30,12 @@ process.on('message', message => {
 			if (management_channel) management_channel.send(`[BOX] > ${message.string}\n`, { split: true })
 			break;
 		case 'discordStdin':
-			if (management_channel) management_channel.send(message.string+"\n", { split: true })
+			var channel = management_channel;
+			if (message.channel) channel = discord.guilds.get('155507830076604416').channels.get(message.channel)
+			else if (message.userID) channel = discord.users.get(message.userID);
+
+			if (channel && message.embed) channel.send({embed: message.embed});
+			else if (channel && message.string) channel.send(message.string, { split: true });
 			break;
 		case 'pushSettings':
 			sS = message.sS;
@@ -43,7 +46,7 @@ process.on('message', message => {
 
 function openDiscord() {
 	// Fetch discord_token to use and display it at launch
-	console.log(`Using Discord Token: ${color}${mS.discord_token}${sS.c['reset']}`);
+	console.log(`Using Discord Token: ${sS.c[sS.modules['discord'].color].c}${mS.discord_token}${sS.c['reset'].c}`);
 	discord.login(mS.discord_token);
 }
 
@@ -58,38 +61,63 @@ discord.on('ready', () => {
 
 // On receive message from discord server
 discord.on('message', message => {
-	if (message.channel.id == mS.management_channel_id && message.author.id != discord.user.id) {
-		process.send({
-			function: 'broadcast',
-			message: {
-				function: 'discordMessage',
-				message: {
-					author: {
-						id: message.author.id,
-						username: message.author.username
-					},
-					member: {
-						roles: message.member.roles.array()
-					},
-					string: message.toString().trim(),
-					mentions: {
-						users: {
-							first: {
-								id: message.mentions.users.first() ? message.mentions.users.first().id : null,
-								username: message.mentions.users.first() ? message.mentions.users.first().username : null,
-							}
-						},
-						roles: {
-							first: {
-								id: message.mentions.roles.first() ? message.mentions.roles.first().id : null,
-								name: message.mentions.roles.first() ? message.mentions.roles.first().name: null
-							}
-						}
-					}
-				}
-			}
-		});
+	var discordMessage = {
+		channel : {
+			id: ((message.channel||{}).id||null),
+			name: ((message.channel||{}).name||null),
+			calculatedPosition: ((message.channel||{}).calculatedPosition||null),
+			type: ((message.channel||{}).type||null)
+		},
+		user: {
+			id: ((discord.user||{}).id||null),
+			username: ((discord.user||{}).username||null),
+			avatar: ((discord.user||{}).avatar||null),
+			avatarURL: ((discord.user||{}).avatarURL||null)
+		},
+		author: {
+			id: ((message.author||{}).id||null),
+			username: ((message.author||{}).username||null),
+			avatarURL: ((message.author||{}).avatarURL||null)
+		},
+		member: {
+			roles: (((message.member||{}).roles||new discordjs.Collection()).array()||null)
+		},
+		mentions: {
+			users: (((message.mentions||{}).users||new discordjs.Collection()).map(function(mentionedUser) {
+				return {
+					id: ((mentionedUser||{}).id||null),
+					username: ((mentionedUser||{}).username||null),
+					avatar: ((mentionedUser||{}).avatar||null),
+					avatarURL: ((mentionedUser||{}).avatarURL||null)
+				};
+			})||null),
+			roles: (((message.mentions||{}).roles||new discordjs.Collection()).map(function(mentionedRole) {
+				return {
+					id: ((mentionedRole||{}).id||null),
+					name: ((mentionedRole||{}).name||null),
+					color: ((mentionedRole||{}).color||null)
+				};
+			})||null),
+			channels: (((message.mentions||{}).channels||new discordjs.Collection()).map(function(mentionedChannel) {
+				return {
+					id: ((mentionedChannel||{}).id||null),
+					name: ((mentionedChannel||{}).name||null),
+					calculatedPosition: ((mentionedChannel||{}).calculatedPosition||null),
+					type: ((mentionedChannel||{}).type||null)
+				};
+			})||null),
+			everyone: (((message.mentions||{}).everyone||new discordjs.Collection()).array()||null)
+		}
 	}
+	if (message.isMemberMentioned(discord.user)) discordMessage.string = message.toString().trim().slice(message.toString().trim().indexOf(' ')+1, message.toString().trim().length)
+	else if (message.channel.id == mS.management_channel_id && message.author.id != discord.user.id) discordMessage.string = message.toString().trim();
+	if (discordMessage.string) process.send({
+		function: 'broadcast',
+		message: {
+			function: 'discordMessage',
+			message: discordMessage
+		}
+	});
 })
 
 function serverStdout(string) {
@@ -108,12 +136,12 @@ function serverStdout(string) {
 
 function debug(stringOut) {
 	try {
-		if (typeof stringOut === 'string') process.stdout.write(`\n\u001b[41mDEBUG>${sS.c['reset']} ${stringOut}\n\n`)
+		if (typeof stringOut === 'string') process.stdout.write(`\n\u001b[41mDEBUG>${sS.c['reset'].c} ${stringOut}\n\n`)
 		else {
-			process.stdout.write(`\n\u001b[41mDEBUG>${sS.c['reset']}`);
+			process.stdout.write(`\n\u001b[41mDEBUG>${sS.c['reset'].c}`);
 			console.log(stringOut);
 		}
 	} catch (e) {
-		process.stdout.write(`\n\u001b[41mDEBUG>${sS.c['reset']} ${stringOut}\n\n`);
+		process.stdout.write(`\n\u001b[41mDEBUG>${sS.c['reset'].c} ${stringOut}\n\n`);
 	}
 }
