@@ -85,7 +85,7 @@ function processDiscordMessage(message) {
 	// "Mod" role id: 344286675691896832
 	// "Admin" role id: 278046497789181954
 	if ((message.string[0] == '~' || message.string[0] == '!') && checkDiscordAuth(message)) { // User is allowed to run this command
-		process.stdout.write(`[${message.author.username}]: ${message.string.trim()}\n`);
+		process.stdout.write(`[${sS.c['brightCyan'].c}${message.author.username}${sS.c['reset'].c}]: ${message.string.trim()}\n`);
 		if (message.string[0] == '~' || message.string[0] == '?') processCommand(message) // Message is a wrapperCommand or helpCommand
 		else if (message.string[0] == '!') process.send({ function: 'serverStdin', string: message.string.slice(1,message.length).trim()+'\n' }) // Message is a serverCommand
 	}
@@ -122,15 +122,37 @@ class command {
 }
 
 function processCommand(message) {
+	let executionStartTime = new Date();
 	message.string = message.string.replace(/\s\s+/g, ' '); // Compact multiple spaces/tabs down to one
 	message.logTo = {
 		console: true,
 		discord: (message.author) ? { channel: message.channel.id } : null
 	};
 	message.args = getCommandArgs(message.string);
-	Object.keys(commands).forEach(function(commandName) {
-		if (commandMatch(message.string.slice(1, message.string.length), commandName)) commands[commandName].execute(message);
-	});
+	if(!Object.keys(commands).some(function (commandName) {
+		if (commandMatch(message.string.slice(1, message.string.length), commandName)) {
+			commands[commandName].execute(message);
+			return true;
+		}
+		return false;
+	})) process.send({
+		function: 'unicast',
+		module: 'log',
+		message: {
+			function: 'log',
+			logObj: {
+				logInfoArray: [{
+					function: 'commandNotFound',
+					vars: {
+						message: message,
+						executionStartTime: executionStartTime,
+						executionEndTime: new Date()
+					}
+				}],
+				logTo: message.logTo
+			}
+		}
+	})
 }
 
 function getCommandArgs(string) {
@@ -163,7 +185,6 @@ new command({ name: 'cw_removeall', exeFunc: commandWhitelistAdd() });
 new command({ name: 'backup', exeFunc: function(message){ process.send({ function: 'unicast', module: 'backup', message: {function: 'runBackup'} }) } });
 new command({ name: 'backupinterval_start', exeFunc: function(message){ process.send({ function: 'unicast', module: 'backup', message: {function: 'startBackupInterval'} }) } });
 new command({ name: 'backupinterval_stop', exeFunc: function(message){ process.send({ function: 'unicast', module: 'backup', message: {function: 'clearBackupInterval'} }) } });
-new command({ name: 'backupinterval_stop',  exeFunc: function(message){ process.send({ function: 'unicast', module: 'backup', message: {function: 'nextBackup', logTo: message.logTo} }) } });
 new command({ name: 'backupinterval_set', exeFunc: function(message){ process.send({ function: 'unicast', module: 'backup', message: {function: 'setBackupInterval', backupIntervalInHours: message.args[1], save: message.args[2]} }) } });
 new command({ name: 'backupdir_set', exeFunc: function(message){ process.send({ function: 'unicast', module: 'backup', message: {function: 'setBackupDir', backupDir: message.args[1],save: message.args[2]} }) } });
 new command({ name: 'nextBackup', exeFunc: function(message){ process.send({ function: 'unicast', module: 'backup', message: {function: 'nextBackup', logTo: message.logTo} }) } });

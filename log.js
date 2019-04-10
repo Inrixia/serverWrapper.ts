@@ -34,44 +34,138 @@ process.on('message', message => {
 const logFunctions = {
 	loadModuleFunctions: function(vars) {
 		return [{
-			console: `${sS.c['brightCyan'].c}Loaded${sS.c['reset'].c} ${vars.color.c}${vars.name}${sS.c['reset'].c}'s Functions\n`,
-			discord: ``
+			console: `${sS.c['brightCyan'].c}Loaded${sS.c['reset'].c} ${vars.color.c}${vars.name}${sS.c['reset'].c}'s functions\n`,
+			discord : {
+				string: null,
+				embed: {
+					color: parseInt(vars.color.h, 16),
+					title: `Loaded ${vars.name}'s functions'`,
+					description: null,
+					timestamp: new Date(),
+					footer: {
+						text: `Command executed in ${parseDuration(moment(vars.executionStartTime), moment(vars.executionEndTime))}`
+					}
+				}
+			}
 		}]
 	},
 	killModule: function(vars) {
 		return [{
 			console: `${sS.c['brightCyan'].c}Killed Module${sS.c['reset'].c}: ${vars.color.c}${vars.name}${sS.c['reset'].c}\n`,
-			discord: ``
+			discord : {
+				string: null,
+				embed: {
+					color: parseInt(vars.color.h, 16),
+					title: `Killed module: ${vars.name}`,
+					description: null,
+					timestamp: new Date(),
+					footer: {
+						text: `Command executed in ${parseDuration(moment(vars.executionStartTime), moment(vars.executionEndTime))}`
+					}
+				}
+			}
 		}]
 	},
 	killModule_notRunning: function(vars) {
 		return [{
 			console: `${sS.c['brightCyan'].c}Module${sS.c['reset'].c} ${vars.color.c}${vars.name}${sS.c['reset'].c} is not running...\n`,
-			discord: ``
+			discord : {
+				string: null,
+				embed: {
+					color: parseInt(vars.color.h, 16),
+					title: `Module: ${vars.name} is not running...`,
+					description: null,
+					timestamp: new Date(),
+					footer: {
+						text: `Command executed in ${parseDuration(moment(vars.executionStartTime), moment(vars.executionEndTime))}`
+					}
+				}
+			}
+		}]
+	},
+	commandNotFound: function(vars) {
+		return [{
+			console: `${sS.c['brightCyan'].c}The command ${sS.c['reset'].c}"${vars.message.string}" could not be matched to a known command...\n`,
+			discord : {
+				string: null,
+				embed: {
+					color: parseInt(vars.color.h, 16),
+					title: `The command "${vars.message.string}" could not be matched to a known command...`,
+					description: null,
+					timestamp: new Date(),
+					footer: {
+						text: `Command executed in ${parseDuration(moment(vars.executionStartTime), moment(vars.executionEndTime))}`
+					}
+				}
+			}
 		}]
 	},
 	startModule: function(vars) {
 		return [{
-			console: `${sS.c['brightCyan'].c}Started Module${sS.c['reset'].c}: ${vars.color.c}${vars.name}${sS.c['reset'].c}\n`,
-			discord: ``
+			console: `${sS.c['brightCyan'].c}Started module${sS.c['reset'].c}: ${vars.color.c}${vars.name}${sS.c['reset'].c}\n`,
+			discord : {
+				string: null,
+				embed: {
+					color: parseInt(vars.color.h, 16),
+					title: `Started module: ${vars.name}`,
+					description: null,
+					timestamp: new Date(),
+					footer: {
+						text: `Command executed in ${parseDuration(moment(vars.executionStartTime), moment(vars.executionEndTime))}`
+					}
+				}
+			}
 		}]
 	},
 	startModule_alreadyRunning: function(vars) {
 		return [{
-			console: `${sS.c['brightCyan'].c}Module${sS.c['reset'].c} ${vars.color.c}${vars.name}${sS.c['reset'].c} already running...\n`,
-			discord: ``
+			console: `${sS.c['brightCyan'].c}Module${sS.c['reset'].c} ${vars.color.c}${vars.name}${sS.c['reset'].c} is already running...\n`,
+			discord : {
+				string: null,
+				embed: {
+					color: parseInt(vars.color.h, 16),
+					title: `Module ${vars.name} is already running...`,
+					description: null,
+					timestamp: new Date(),
+					footer: {
+						text: `Command executed in ${parseDuration(moment(vars.executionStartTime), moment(vars.executionEndTime))}`
+					}
+				}
+			}
 		}]
 	},
 	enableModule: function(vars) {
 		return [{
-			console: `${sS.c['brightCyan'].c}Enabled Module${sS.c['reset'].c}: ${vars.color.c}${vars.name}${sS.c['reset'].c}\n`,
-			discord: ``
+			console: `${sS.c['brightCyan'].c}Enabled module${sS.c['reset'].c}: ${vars.color.c}${vars.name}${sS.c['reset'].c}\n`,
+			discord : {
+				string: null,
+				embed: {
+					color: parseInt(vars.color.h, 16),
+					title: `Enabled module: ${vars.name}`,
+					description: null,
+					timestamp: new Date(),
+					footer: {
+						text: `Command executed in ${parseDuration(moment(vars.executionStartTime), moment(vars.executionEndTime))}`
+					}
+				}
+			}
 		}]
 	},
 	disableModule: function(vars) {
 		return [{
-			console: `${sS.c['brightCyan'].c}Disabled Module${sS.c['reset'].c}: ${vars.color.c}${vars.name}${sS.c['reset'].c}\n`,
-			discord: ``
+			console: `${sS.c['brightCyan'].c}Disabled module${sS.c['reset'].c}: ${vars.color.c}${vars.name}${sS.c['reset'].c}\n`,
+			discord : {
+				string: null,
+				embed: {
+					color: parseInt(vars.color.h, 16),
+					title: `Disabled module: ${vars.name}`,
+					description: null,
+					timestamp: new Date(),
+					footer: {
+						text: `Command executed in ${parseDuration(moment(vars.executionStartTime), moment(vars.executionEndTime))}`
+					}
+				}
+			}
 		}]
 	},
 	cw_removeall: function(vars) {
@@ -91,14 +185,39 @@ const logFunctions = {
 	},
 	nextBackup: function(vars) {
 		return [{
-			discord: { string: `Next Backup ${vars.timeToNextBackup.fromNow()}`, embed: null },
-			console: `Next Backup ${vars.timeToNextBackup.fromNow()}\n`
+			discord : {
+				string: null,
+				embed: {
+					color: parseInt(sS.c[sS.modules['backup'].discordColor||sS.modules['backup'].color].h, 16),
+					title: `Next backup in ${moment(vars.timeToNextBackup).fromNow()}`,
+					description: null,
+					timestamp: new Date(),
+					footer: {
+						text: `Command executed in ${parseDuration(moment(vars.executionStartTime), moment(vars.executionEndTime))}`
+					}
+				}
+			},
+			console: `${sS.c[sS.modules['backup'].color].c}Next Backup ${moment(vars.timeToNextBackup).fromNow()}${sS.c['reset'].c}\n`
 		}]
 	},
 	lastBackup: function(vars) {
+		let lastBackup = "";
+		if (!vars.lastBackupStartTime) lastBackup = "No backup has occoured yet...";
+		else lastBackup = `Last backup happened ${moment(vars.lastBackupStartTime).fromNow()}`
 		return [{
-			discord: { string: `Last Backup ${vars.lastBackupStartTime.fromNow()}`, embed: null },
-			console: `Last Backup ${vars.lastBackupStartTime.fromNow()}\n`
+			discord : {
+				string: null,
+				embed: {
+					color: parseInt(sS.c[sS.modules['backup'].discordColor||sS.modules['backup'].color].h, 16),
+					title: lastBackup,
+					description: vars.lastBackupDuration ? `Took: ${vars.lastBackupDuration}` : null,
+					timestamp: new Date(),
+					footer: {
+						text: `Command executed in ${parseDuration(moment(vars.executionStartTime), moment(vars.executionEndTime))}`
+					}
+				}
+			},
+			console: `${sS.c[sS.modules['backup'].color].c}${lastBackup}${sS.c['reset'].c}\n`
 		}]
 	},
 	listModules: function(vars) {
@@ -120,7 +239,7 @@ const logFunctions = {
 				    description: `${thisModule.description}`,
 				    timestamp: new Date(),
 				    footer: {
-				      text: (vars.executionStartTime) ? `${(thisModule.process) ? 'Running' : 'Stopped'} • ${(thisModule.enabled) ? 'Enabled' : 'Disabled'} • Command executed in ${parseDuration(vars.executionStartTime, new moment())}` : ``
+				      text: (vars.executionStartTime) ? `${(thisModule.process) ? 'Running' : 'Stopped'} • ${(thisModule.enabled) ? 'Enabled' : 'Disabled'} • Command executed in ${parseDuration(moment(vars.executionStartTime), moment(vars.executionEndTime))}` : ``
 						}
 					}
 				}

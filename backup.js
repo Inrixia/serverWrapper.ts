@@ -50,6 +50,7 @@ process.on('message', message => {
 			pushStats();
 			break;
 		case 'nextBackup':
+			var executionStartTime = new Date();
 			process.send({
 				function: 'unicast',
 				module: 'log',
@@ -58,7 +59,11 @@ process.on('message', message => {
 					logObj: {
 						logInfoArray: [{
 							function: 'nextBackup',
-							vars: { timeToNextBackup: timeToNextBackup }
+							vars: {
+								timeToNextBackup: timeToNextBackup,
+								executionStartTime: executionStartTime,
+								executionEndTime: new Date()
+							}
 						}],
 						logTo: message.logTo
 					}
@@ -66,6 +71,7 @@ process.on('message', message => {
 			});
 			break;
 		case 'lastBackup':
+			var executionStartTime = new Date();
 			process.send({
 				function: 'unicast',
 				module: 'log',
@@ -74,7 +80,12 @@ process.on('message', message => {
 					logObj: {
 						logInfoArray: [{
 							function: 'lastBackup',
-							vars: { lastBackupStartTime: lastBackupStartTime }
+							vars: {
+								lastBackupStartTime: lastBackupStartTime,
+								lastBackupDuration: lastBackupDurationString,
+								executionStartTime: executionStartTime,
+								executionEndTime: new Date()
+							}
 						}],
 						logTo: message.logTo
 					}

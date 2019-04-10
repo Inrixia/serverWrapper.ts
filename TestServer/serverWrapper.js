@@ -44,6 +44,7 @@ class wrapperModule {
 	}
 
 	start() {
+		let executionStartTime = new Date();
 		if (!this.functions && this.import) this.functions = require(sS.modulesDir+sS.modules[this.name].file);
 		if (!this.process) {
 			if (!loadedModules[this.name]) loadedModules[this.name] = this;
@@ -106,7 +107,9 @@ class wrapperModule {
 				function: 'startModule',
 				vars: {
 					color: this.color,
-					name: this.name
+					name: this.name,
+					executionStartTime: executionStartTime,
+					executionEndTime: new Date()
 				}
 			}];
 		}
@@ -114,7 +117,9 @@ class wrapperModule {
 			function: 'startModule_alreadyRunning',
 			vars: {
 				color: this.color,
-				name: this.name
+				name: this.name,
+				executionStartTime: executionStartTime,
+				executionEndTime: new Date()
 			}
 		}];
 	}
@@ -131,17 +136,21 @@ class wrapperModule {
 	}
 
 	loadFunctions() {
+		let executionStartTime = new Date();
 		if (this.import) this.functions = require(sS.modulesDir+sS.modules[this.name].file);
 		return [{
 			function: 'loadModuleFunctions',
 			vars: {
 				color: this.color,
-				name: this.name
+				name: this.name,
+				executionStartTime: executionStartTime,
+				executionEndTime: new Date()
 			}
 		}];
 	}
 
 	kill(){
+		let executionStartTime = new Date();
 		if (this.process) {
 			this.process.send({function: 'kill'})
 			if (this.name == 'stats') process.stdout.write(`${String.fromCharCode(27)}]0;${sS.serverName}  |  Stats Module Disabled${String.fromCharCode(7)}`);
@@ -150,7 +159,9 @@ class wrapperModule {
 				function: 'killModule',
 				vars: {
 					color: this.color,
-					name: this.name
+					name: this.name,
+					executionStartTime: executionStartTime,
+					executionEndTime: new Date()
 				}
 			}];
 		}
@@ -158,31 +169,39 @@ class wrapperModule {
 			function: 'killModule_notRunning',
 			vars: {
 				color: this.color,
-				name: this.name
+				name: this.name,
+				executionStartTime: executionStartTime,
+				executionEndTime: new Date()
 			}
 		}];
 	}
 
 	enable(save) {
+		let executionStartTime = new Date();
 		sS.modules[this.name].enabled = true;
 		if (save) saveSettings();
 		return [{
 			function: 'enableModule',
 			vars: {
 				color: this.color,
-				name: this.name
+				name: this.name,
+				executionStartTime: executionStartTime,
+				executionEndTime: new Date()
 			}
 		}];
 	}
 
 	disable(save) {
+		let executionStartTime = new Date();
 		sS.modules[this.name].enabled = false;
 		if (save) saveSettings();
 		return [{
 			function: 'disableModule',
 			vars: {
 				color: this.color,
-				name: this.name
+				name: this.name,
+				executionStartTime: executionStartTime,
+				executionEndTime: new Date()
 			}
 		}];
 	}
@@ -286,7 +305,8 @@ function listModules() {
 		vars: {
 			loadedModules: loadedModules,
 			seperator: " | ",
-			executionStartTime: new Date()
+			executionStartTime: new Date(),
+			executionEndTime: new Date()
 		}
 	}];
 }

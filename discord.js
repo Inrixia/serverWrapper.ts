@@ -118,6 +118,24 @@ discord.on('message', message => {
 			message: discordMessage
 		}
 	});
+	/*if (message.toString() == '^') {
+		message.channel.send(`
+		${"```"}javascript
+		parentObject: {
+			childObject: {
+				childTitle: 'Blah'
+			}
+		}${"```"}`, { split: true }).then(responseMessage => {
+			responseMessage.react('⬆');
+			responseMessage.react('⬇');
+
+			var reactFilter = (reaction, user) => reaction.emoji.name === '⬆' || ;
+			responseMessage.awaitReactions(reactFilter, {time: 5000}).then(reactions => {
+				debug((reactions.first().name == '⬆') + 'up')
+				debug((reactions.first().name == '⬇') + 'down')
+			});
+		})
+	}*/
 })
 
 function serverStdout(string) {
