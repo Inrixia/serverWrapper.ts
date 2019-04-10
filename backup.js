@@ -11,11 +11,7 @@ var timeToNextBackup = null;
 var lastBackupDuration = null;
 var lastBackupStartTime = null;
 var lastBackupEndTime = null;
-var serverWorldFolder = "";
 var lastBackupDurationString = null;
-properties.parse('./server.properties', {path: true}, function(err, properties) {
-	serverWorldFolder = properties['level-name'];
-});
 
 // Module command handling
 process.on('message', message => {
@@ -210,7 +206,7 @@ function runBackup() {
 		message: { function: 'pushStats', serverStats: { status: 'Backing Up', timeToBackup: timeToNextBackup.fromNow() } }
 	});
 	var backupDir = mS.overrideBackupDir ? mS.overrideBackupDir : mS.rootBackupDir+sS.serverName;
-	children.spawn('robocopy', [serverWorldFolder, `${backupDir}/${moment().format('MMMMDDYYYY_h-mm-ssA')}/Cookies`, (mS.threads > 1) ? `/MT:${mS.threads}` : '', '/E'], {shell: true, detached: true}).on('close', function (code) {
+	children.spawn('robocopy', [sS.modules['properties'].settings.p['level-name'], `${backupDir}/${moment().format('MMMMDDYYYY_h-mm-ssA')}/Cookies`, (mS.threads > 1) ? `/MT:${mS.threads}` : '', '/E'], {shell: true, detached: true}).on('close', function (code) {
 		lastBackupEndTime = moment();
 		lastBackupDuration = moment.duration(lastBackupEndTime.diff(lastBackupStartTime));
 		var t = {
@@ -248,3 +244,18 @@ function saveSettings(logTo) {
 	sS.modules['backup'].settings = mS;
 	process.send({ function: 'saveSettings', sS: sS, logTo: logTo })
 }
+
+if (!('toJSON' in Error.prototype))
+Object.defineProperty(Error.prototype, 'toJSON', {
+    value: function () {
+        var alt = {};
+
+        Object.getOwnPropertyNames(this).forEach(function (key) {
+            alt[key] = this[key];
+        }, this);
+
+        return alt;
+    },
+    configurable: true,
+    writable: true
+});

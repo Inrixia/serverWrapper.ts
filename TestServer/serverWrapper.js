@@ -75,7 +75,10 @@ class wrapperModule {
 					let logInfoArray = null;
 					if (message.function == 'broadcast') wrapperModule.broadcast(message.message);
 					else if (message.function == 'unicast' && (loadedModules[message.module]||{}).process) loadedModules[message.module].process.send(message.message)
-					else if (message.function == 'serverStdin' && server) server.stdin.write(message.string);
+					else if (message.function == 'serverStdin' && server) {
+						console.log(message.string)
+						server.stdin.write(message.string);
+					}
 					else if (message.function == 'backupSettings') logInfoArray = backupSettings();
 					else if (message.function == 'loadSettings') {
 						var executionStartTime = new Date();

@@ -1,5 +1,6 @@
 // Import core packages
 const moment = require("moment");
+const fs = require("fs")
 
 // Set defaults
 var sS = {} // serverSettings
@@ -23,6 +24,9 @@ process.on('message', message => {
 			break;
 		case 'consoleStdout':
 			processCommand(message);
+			break;
+		case 'serverStdout':
+			processServerMessage(message)
 			break;
 		case 'pushSettings':
 			sS = message.sS;
@@ -91,6 +95,29 @@ function processDiscordMessage(message) {
 	}
 }
 
+function processServerMessage(message) {
+	let commandString = null;
+	let user = null;
+	if (message.string.indexOf('> ~') > -1) {
+		commandString = message.string.slice(message.string.indexOf('> ~')+2, message.string.length)
+		user = message.string.slice(message.string.indexOf('<')+1, message.string.indexOf('> ~'))
+	} else if (message.string.indexOf('> !') > -1) {
+		commandString = message.string.slice(message.string.indexOf('> !')+2, message.string.length)
+		user = message.string.slice(message.string.indexOf('<')+1, message.string.indexOf('> ~'))
+	}
+	else return;
+	fs.readFile('./ops.json', null, function(err, ops) {
+		if (err) debug(err);
+		else {
+			ops = JSON.parse(ops);
+			if (getObj(ops, 'name', user)) {
+				processCommand({ string: commandString, ingame: true, user: user })
+			}
+		}
+	})
+
+}
+
 class command {
 	constructor(obj) {
 		this.name = obj.name;
@@ -126,7 +153,9 @@ function processCommand(message) {
 	message.string = message.string.replace(/\s\s+/g, ' '); // Compact multiple spaces/tabs down to one
 	message.logTo = {
 		console: true,
-		discord: (message.author) ? { channel: message.channel.id } : null
+		discord: (message.author) ? { channel: message.channel.id } : null,
+		ingame: message.ingame,
+		user: message.user
 	};
 	message.args = getCommandArgs(message.string);
 	if(!Object.keys(commands).some(function (commandName) {
@@ -135,7 +164,7 @@ function processCommand(message) {
 			return true;
 		}
 		return false;
-	})) process.send({
+	}) && message.string[0] == '~' || message.string[0] == '!') process.send({
 		function: 'unicast',
 		module: 'log',
 		message: {
@@ -166,6 +195,7 @@ function commandMatch(string, commandString) {
 	return false;
 }
 
+// wrapper commands
 new command({ name: 'restartAllModules', exeFunc: command.toWrapper() });
 new command({ name: 'unloadAllModules', exeFunc: command.toWrapper() });
 new command({ name: 'reloadModules', exeFunc: command.toWrapper() });
@@ -183,6 +213,8 @@ new command({ name: 'saveSettings', exeFunc: function(message){saveSettings(mess
 new command({ name: 'cw_add', exeFunc: commandWhitelistAdd() });
 new command({ name: 'cw_remove', exeFunc: commandWhitelistAdd() });
 new command({ name: 'cw_removeall', exeFunc: commandWhitelistAdd() });
+
+// backup commands
 new command({ name: 'backup', exeFunc: function(message){ process.send({ function: 'unicast', module: 'backup', message: {function: 'runBackup', logTo: message.logTo} }) } });
 new command({ name: 'backupinterval_start', exeFunc: function(message){ process.send({ function: 'unicast', module: 'backup', message: {function: 'startBackupInterval', logTo: message.logTo} }) } });
 new command({ name: 'backupinterval_stop', exeFunc: function(message){ process.send({ function: 'unicast', module: 'backup', message: {function: 'clearBackupInterval', logTo: message.logTo} }) } });
@@ -191,6 +223,14 @@ new command({ name: 'backupinterval_set', exeFunc: function(message){ process.se
 new command({ name: 'backupDir', exeFunc: function(message){ process.send({ function: 'unicast', module: 'backup', message: {function: 'getBackupDir', logTo: message.logTo} }) } });
 new command({ name: 'nextBackup', exeFunc: function(message){ process.send({ function: 'unicast', module: 'backup', message: {function: 'nextBackup', logTo: message.logTo} }) } });
 new command({ name: 'lastBackup', exeFunc: function(message){ process.send({ function: 'unicast', module: 'backup', message: {function: 'lastBackup', logTo: message.logTo} }) } });
+
+// nbt commands
+new command({ name: 'getSpawn', exeFunc: function(message){ process.send({ function: 'unicast', module: 'nbt', message: {function: 'getSpawn', logTo: message.logTo} }) } });
+
+// properties commands
+new command({ name: 'getProperty', exeFunc: function(message){ process.send({ function: 'unicast', module: 'properties', message: {function: 'getProperty', property: message.args[1], logTo: message.logTo} }) } });
+new command({ name: 'getProperties', exeFunc: function(message){ process.send({ function: 'unicast', module: 'properties', message: {function: 'getProperties', logTo: message.logTo} }) } });
+
 
 function commandWhitelistAdd() {
 	return function(message) {
@@ -274,4 +314,23 @@ function debug(stringOut) {
 function saveSettings(logTo) {
 	sS.modules['command'].settings = mS;
 	process.send({ function: 'saveSettings', sS: sS, logTo: logTo })
+}
+
+if (!('toJSON' in Error.prototype))
+Object.defineProperty(Error.prototype, 'toJSON', {
+    value: function () {
+        var alt = {};
+
+        Object.getOwnPropertyNames(this).forEach(function (key) {
+            alt[key] = this[key];
+        }, this);
+
+        return alt;
+    },
+    configurable: true,
+    writable: true
+});
+
+function getObj(parentObject, childObjectProperty, childObjectValue) {
+	return parentObject.find(function(childObject) { return childObject[childObjectProperty] === childObjectValue; })
 }

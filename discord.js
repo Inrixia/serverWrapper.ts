@@ -152,6 +152,11 @@ function serverStdout(string) {
 	}
 }
 
+
+/*
+/ Util Functions
+*/
+
 function debug(stringOut) {
 	try {
 		if (typeof stringOut === 'string') process.stdout.write(`\n\u001b[41mDEBUG>${sS.c['reset'].c} ${stringOut}\n\n`)
@@ -163,3 +168,18 @@ function debug(stringOut) {
 		process.stdout.write(`\n\u001b[41mDEBUG>${sS.c['reset'].c} ${stringOut}\n\n`);
 	}
 }
+
+if (!('toJSON' in Error.prototype))
+Object.defineProperty(Error.prototype, 'toJSON', {
+    value: function () {
+        var alt = {};
+
+        Object.getOwnPropertyNames(this).forEach(function (key) {
+            alt[key] = this[key];
+        }, this);
+
+        return alt;
+    },
+    configurable: true,
+    writable: true
+});

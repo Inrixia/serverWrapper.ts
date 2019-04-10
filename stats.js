@@ -74,6 +74,9 @@ function getPidUsage() { // Get info for a running server from its PID
 	})
 }
 
+/*
+/ Util Functions
+*/
 
 function debug(stringOut) {
 	try {
@@ -86,3 +89,18 @@ function debug(stringOut) {
 		process.stdout.write(`\n\u001b[41mDEBUG>${sS.c['reset'].c} ${stringOut}\n\n`);
 	}
 }
+
+if (!('toJSON' in Error.prototype))
+Object.defineProperty(Error.prototype, 'toJSON', {
+    value: function () {
+        var alt = {};
+
+        Object.getOwnPropertyNames(this).forEach(function (key) {
+            alt[key] = this[key];
+        }, this);
+
+        return alt;
+    },
+    configurable: true,
+    writable: true
+});

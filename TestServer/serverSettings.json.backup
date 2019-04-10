@@ -32,77 +32,110 @@
     },
     "black": {
       "c": "\u001b[30m",
-      "h": "000000"
+      "h": "000000",
+      "m": "black"
     },
     "red": {
       "c": "\u001b[31m",
-      "h": "800000"
+      "h": "800000",
+      "m": "dark_red"
     },
     "green": {
       "c": "\u001b[32m",
-      "h": "008000"
+      "h": "008000",
+      "m": "dark_green"
     },
     "yellow": {
       "c": "\u001b[33m",
-      "h": "808000"
+      "h": "808000",
+      "m": "gold"
     },
     "blue": {
       "c": "\u001b[34m",
-      "h": "000080"
+      "h": "000080",
+      "m": "dark_blue"
     },
     "magenta": {
       "c": "\u001b[35m",
-      "h": "800080"
+      "h": "800080",
+      "m": "dark_purple"
     },
     "cyan": {
       "c": "\u001b[36m",
-      "h": "008080"
+      "h": "008080",
+      "m": "dark_aqua"
     },
     "white": {
       "c": "\u001b[37m",
-      "h": "c0c0c0"
+      "h": "c0c0c0",
+      "m": "white"
     },
     "brightBlack": {
       "c": "\u001b[30;1m",
-      "h": "808080"
+      "h": "808080",
+      "m": ""
     },
     "brightRed": {
       "c": "\u001b[31;1m",
-      "h": "ff0000"
+      "h": "ff0000",
+      "m": "red"
     },
     "brightGreen": {
       "c": "\u001b[32;1m",
-      "h": "00ff00"
+      "h": "00ff00",
+      "m": "green"
     },
     "brightYellow": {
       "c": "\u001b[33;1m",
-      "h": "ffff00"
+      "h": "ffff00",
+      "m": "yellow"
     },
     "brightBlue": {
       "c": "\u001b[34;1m",
-      "h": "0000ff"
+      "h": "0000ff",
+      "m": "blue"
     },
     "brightMagenta": {
       "c": "\u001b[35;1m",
-      "h": "ff00ff"
+      "h": "ff00ff",
+      "m": "light_purple"
     },
     "brightCyan": {
       "c": "\u001b[36;1m",
-      "h": "00ffff"
+      "h": "00ffff",
+      "m": "aqua"
     },
     "brightWhite": {
       "c": "\u001b[0m",
-      "h": "ffffff"
+      "h": "ffffff",
+      "m": ""
     },
     "discordBlue": {
       "c": "",
-      "h": "7289da"
+      "h": "7289da",
+      "m": ""
     }
   },
   "modules": {
+    "nbt": {
+      "file": "nbt.js",
+      "enabled": true,
+      "color": "yellow",
+      "import": false,
+      "description": "Gives the server data files the good touch...",
+      "settings": {}
+    },
+    "log": {
+      "file": "log.js",
+      "enabled": true,
+      "color": "white",
+      "import": false,
+      "description": "Handles all command output, hey you're using this now!",
+      "settings": {}
+    },
     "stats": {
       "file": "stats.js",
-      "enabled": true,
+      "enabled": false,
       "color": "brightYellow",
       "import": false,
       "description": "Displays server stats on console window.",
@@ -130,19 +163,12 @@
       "import": false,
       "description": "Runs server backups.",
       "settings": {
+        "serverWorldFolder": "Cookies",
         "rootBackupDir": "R:/LiveArchives/",
         "overrideBackupDir": "",
-        "backupIntervalInHours": "0.25",
+        "backupIntervalInHours": "1",
         "threads": 1
       }
-    },
-    "log": {
-      "file": "log.js",
-      "enabled": true,
-      "color": "white",
-      "import": false,
-      "description": "Handles all command output, hey your using this now!",
-      "settings": {}
     },
     "command": {
       "file": "command.js",
@@ -204,6 +230,53 @@
               }
             }
           }
+        }
+      }
+    },
+    "properties": {
+      "file": "properties.js",
+      "enabled": true,
+      "color": "cyan",
+      "import": false,
+      "description": "Reads server.properties info",
+      "settings": {
+        "p": {
+          "max-tick-time": 60000,
+          "generator-settings": null,
+          "force-gamemode": false,
+          "allow-nether": true,
+          "gamemode": 0,
+          "broadcast-console-to-ops": true,
+          "enable-query": false,
+          "player-idle-timeout": 0,
+          "difficulty": 1,
+          "spawn-monsters": true,
+          "op-permission-level": 4,
+          "pvp": true,
+          "snooper-enabled": true,
+          "level-type": "DEFAULT",
+          "hardcore": false,
+          "enable-command-block": true,
+          "max-players": 20,
+          "network-compression-threshold": 256,
+          "resource-pack-sha1": null,
+          "max-world-size": 29999984,
+          "server-port": 1289,
+          "server-ip": null,
+          "spawn-npcs": true,
+          "allow-flight": false,
+          "level-name": "Cookies",
+          "view-distance": 10,
+          "resource-pack": null,
+          "spawn-animals": true,
+          "white-list": false,
+          "generate-structures": true,
+          "online-mode": true,
+          "max-build-height": 256,
+          "level-seed": null,
+          "prevent-proxy-connections": false,
+          "motd": "A Minecraft Server",
+          "enable-rcon": false
         }
       }
     }
