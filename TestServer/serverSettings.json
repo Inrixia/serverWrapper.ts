@@ -26,24 +26,78 @@
   "modulesDir": "Z:\\wrapperModules\\",
   "server_dir": "Z:\\wrapperModules\\TestServer",
   "c": {
-    "reset": {"c": "\u001b[0m", "h": ""},
-    "black": {"c": "\u001b[30m", "h": "000000"},
-    "red": {"c": "\u001b[31m", "h": "800000" },
-    "green": {"c": "\u001b[32m", "h": "008000"},
-    "yellow": {"c": "\u001b[33m", "h": "808000"},
-    "blue": {"c": "\u001b[34m", "h": "000080"},
-    "magenta": {"c": "\u001b[35m", "h": "800080"},
-    "cyan": {"c": "\u001b[36m", "h": "008080"},
-    "white": {"c": "\u001b[37m", "h": "c0c0c0"},
-    "brightBlack": {"c": "\u001b[30;1m", "h": "808080"},
-    "brightRed": {"c": "\u001b[31;1m", "h": "ff0000"},
-    "brightGreen": {"c": "\u001b[32;1m", "h": "00ff00"},
-    "brightYellow": {"c": "\u001b[33;1m", "h": "ffff00"},
-    "brightBlue": {"c": "\u001b[34;1m", "h": "0000ff"},
-    "brightMagenta": {"c": "\u001b[35;1m", "h": "ff00ff"},
-    "brightCyan": {"c": "\u001b[36;1m", "h": "00ffff"},
-    "brightWhite": {"c": "\u001b[0m", "h": "ffffff"},
-    "discordBlue": { "c": "", "h": "7289da" }
+    "reset": {
+      "c": "\u001b[0m",
+      "h": ""
+    },
+    "black": {
+      "c": "\u001b[30m",
+      "h": "000000"
+    },
+    "red": {
+      "c": "\u001b[31m",
+      "h": "800000"
+    },
+    "green": {
+      "c": "\u001b[32m",
+      "h": "008000"
+    },
+    "yellow": {
+      "c": "\u001b[33m",
+      "h": "808000"
+    },
+    "blue": {
+      "c": "\u001b[34m",
+      "h": "000080"
+    },
+    "magenta": {
+      "c": "\u001b[35m",
+      "h": "800080"
+    },
+    "cyan": {
+      "c": "\u001b[36m",
+      "h": "008080"
+    },
+    "white": {
+      "c": "\u001b[37m",
+      "h": "c0c0c0"
+    },
+    "brightBlack": {
+      "c": "\u001b[30;1m",
+      "h": "808080"
+    },
+    "brightRed": {
+      "c": "\u001b[31;1m",
+      "h": "ff0000"
+    },
+    "brightGreen": {
+      "c": "\u001b[32;1m",
+      "h": "00ff00"
+    },
+    "brightYellow": {
+      "c": "\u001b[33;1m",
+      "h": "ffff00"
+    },
+    "brightBlue": {
+      "c": "\u001b[34;1m",
+      "h": "0000ff"
+    },
+    "brightMagenta": {
+      "c": "\u001b[35;1m",
+      "h": "ff00ff"
+    },
+    "brightCyan": {
+      "c": "\u001b[36;1m",
+      "h": "00ffff"
+    },
+    "brightWhite": {
+      "c": "\u001b[0m",
+      "h": "ffffff"
+    },
+    "discordBlue": {
+      "c": "",
+      "h": "7289da"
+    }
   },
   "modules": {
     "stats": {
@@ -78,7 +132,7 @@
       "settings": {
         "rootBackupDir": "R:/LiveArchives/",
         "overrideBackupDir": "",
-        "backupIntervalInHours": 0.5,
+        "backupIntervalInHours": "1",
         "threads": 1
       }
     },

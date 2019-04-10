@@ -178,15 +178,17 @@ new command({ name: 'startModule', exeFunc: command.toWrapper() });
 new command({ name: 'restartModule', exeFunc: command.toWrapper() });
 new command({ name: 'loadModuleFunctions', exeFunc: command.toWrapper() });
 new command({ name: 'loadSettings', exeFunc: command.toWrapper() });
-new command({ name: 'saveSettings', exeFunc: function(){saveSettings()} });
+new command({ name: 'backupSettings', exeFunc: command.toWrapper() });
+new command({ name: 'saveSettings', exeFunc: function(message){saveSettings(message.logTo)} });
 new command({ name: 'cw_add', exeFunc: commandWhitelistAdd() });
 new command({ name: 'cw_remove', exeFunc: commandWhitelistAdd() });
 new command({ name: 'cw_removeall', exeFunc: commandWhitelistAdd() });
-new command({ name: 'backup', exeFunc: function(message){ process.send({ function: 'unicast', module: 'backup', message: {function: 'runBackup'} }) } });
-new command({ name: 'backupinterval_start', exeFunc: function(message){ process.send({ function: 'unicast', module: 'backup', message: {function: 'startBackupInterval'} }) } });
-new command({ name: 'backupinterval_stop', exeFunc: function(message){ process.send({ function: 'unicast', module: 'backup', message: {function: 'clearBackupInterval'} }) } });
-new command({ name: 'backupinterval_set', exeFunc: function(message){ process.send({ function: 'unicast', module: 'backup', message: {function: 'setBackupInterval', backupIntervalInHours: message.args[1], save: message.args[2]} }) } });
-new command({ name: 'backupdir_set', exeFunc: function(message){ process.send({ function: 'unicast', module: 'backup', message: {function: 'setBackupDir', backupDir: message.args[1],save: message.args[2]} }) } });
+new command({ name: 'backup', exeFunc: function(message){ process.send({ function: 'unicast', module: 'backup', message: {function: 'runBackup', logTo: message.logTo} }) } });
+new command({ name: 'backupinterval_start', exeFunc: function(message){ process.send({ function: 'unicast', module: 'backup', message: {function: 'startBackupInterval', logTo: message.logTo} }) } });
+new command({ name: 'backupinterval_stop', exeFunc: function(message){ process.send({ function: 'unicast', module: 'backup', message: {function: 'clearBackupInterval', logTo: message.logTo} }) } });
+new command({ name: 'backupinterval_set', exeFunc: function(message){ process.send({ function: 'unicast', module: 'backup', message: {function: 'setBackupInterval', backupIntervalInHours: message.args[1], save: message.args[2], logTo: message.logTo} }) } });
+//new command({ name: 'backupdir_set', exeFunc: function(message){ process.send({ function: 'unicast', module: 'backup', message: {function: 'setBackupDir', backupDir: message.args[1],save: message.args[2], logTo: message.logTo} }) } });
+new command({ name: 'backupDir', exeFunc: function(message){ process.send({ function: 'unicast', module: 'backup', message: {function: 'getBackupDir', logTo: message.logTo} }) } });
 new command({ name: 'nextBackup', exeFunc: function(message){ process.send({ function: 'unicast', module: 'backup', message: {function: 'nextBackup', logTo: message.logTo} }) } });
 new command({ name: 'lastBackup', exeFunc: function(message){ process.send({ function: 'unicast', module: 'backup', message: {function: 'lastBackup', logTo: message.logTo} }) } });
 
@@ -269,7 +271,7 @@ function debug(stringOut) {
 	}
 }
 
-function saveSettings() {
+function saveSettings(logTo) {
 	sS.modules['command'].settings = mS;
-	process.send({ function: 'saveSettings', sS: sS })
+	process.send({ function: 'saveSettings', sS: sS, logTo: logTo })
 }

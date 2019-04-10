@@ -132,7 +132,7 @@
       "settings": {
         "rootBackupDir": "R:/LiveArchives/",
         "overrideBackupDir": "",
-        "backupIntervalInHours": 0.5,
+        "backupIntervalInHours": "0.25",
         "threads": 1
       }
     },

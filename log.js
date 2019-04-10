@@ -32,9 +32,111 @@ process.on('message', message => {
 */
 
 const logFunctions = {
+	error: function(vars) {
+		return [{
+			console: `${vars.niceName ? `${sS.c['brightRed'].c}${vars.niceName}${sS.c['reset'].c} ` : ''}${vars.err.message}\n${vars.err.stack}`,
+			discord: {
+				string: null,
+				embed: {
+					color: parseInt(sS.c['red'].h, 16),
+					title: `${vars.niceName ? `${vars.niceName} ` : ''}${vars.err.message}`,
+					description: vars.err.stack,
+					timestamp: new Date(),
+					footer: {
+						text: `Executed in ${parseDuration(moment(vars.executionStartTime), moment(vars.executionEndTime))}`
+					}
+				}
+			}
+		}]
+	},
+	clearBackupInterval: function(vars) {
+		return [{
+			console: `${sS.c[sS.modules['backup'].discordColor||sS.modules['backup'].color].c}Automatic backup's stopped!${sS.c['reset'].c}`,
+			discord : {
+				string: null,
+				embed: {
+					color: parseInt(sS.c[sS.modules['backup'].discordColor||sS.modules['backup'].color].h, 16),
+					title: `Automatic backup's stopped...`,
+					description: null,
+					timestamp: new Date(),
+					footer: {
+						text: `Executed in ${parseDuration(moment(vars.executionStartTime), moment(vars.executionEndTime))}`
+					}
+				}
+			}
+		}]
+	},
+	startBackupInterval: function(vars) {
+		return [{
+			console: `${sS.c[sS.modules['backup'].discordColor||sS.modules['backup'].color].c}Automatic backup's started!${sS.c['reset'].c} Next backup in ${moment(vars.timeToNextBackup).fromNow()}`,
+			discord : {
+				string: null,
+				embed: {
+					color: parseInt(sS.c[sS.modules['backup'].discordColor||sS.modules['backup'].color].h, 16),
+					title: `Automatic backup's started...`,
+					description: `Next backup in ${moment(vars.timeToNextBackup).fromNow()}`,
+					timestamp: new Date(),
+					footer: {
+						text: `Executed in ${parseDuration(moment(vars.executionStartTime), moment(vars.executionEndTime))}`
+					}
+				}
+			}
+		}]
+	},
+	loadSettings: function(vars) {
+		return [{
+			console: `${sS.c['brightCyan'].c}Loaded settings${sS.c['reset'].c}`,
+			discord : {
+				string: null,
+				embed: {
+					color: parseInt(sS.c['brightCyan'].h, 16),
+					title: `Loaded settings...`,
+					description: null,
+					timestamp: new Date(),
+					footer: {
+						text: `Executed in ${parseDuration(moment(vars.executionStartTime), moment(vars.executionEndTime))}`
+					}
+				}
+			}
+		}]
+	},
+	saveSettings: function(vars) {
+		return [{
+			console: `${sS.c['brightCyan'].c}Saved settings${sS.c['reset'].c}`,
+			discord : {
+				string: null,
+				embed: {
+					color: parseInt(sS.c['brightCyan'].h, 16),
+					title: `Saved settings...`,
+					description: null,
+					timestamp: new Date(),
+					footer: {
+						text: `Executed in ${parseDuration(moment(vars.executionStartTime), moment(vars.executionEndTime))}`
+					}
+				}
+			}
+		}]
+	},
+	backupSettings: function(vars) {
+		return [{
+			console: `${sS.c['brightCyan'].c}Backed up settings${sS.c['reset'].c}`,
+			discord : {
+				string: null,
+				embed: {
+					color: parseInt(sS.c['brightCyan'].h, 16),
+					title: `Backed up settings...`,
+					description: null,
+					timestamp: new Date(),
+					footer: {
+						text: `Executed in ${parseDuration(moment(vars.executionStartTime), moment(vars.executionEndTime))}`
+					}
+				}
+			}
+		}]
+	},
 	loadModuleFunctions: function(vars) {
 		return [{
-			console: `${sS.c['brightCyan'].c}Loaded${sS.c['reset'].c} ${vars.color.c}${vars.name}${sS.c['reset'].c}'s functions\n`,
+			console: `${sS.c['brightCyan'].c}Loaded${sS.c['reset'].c} ${vars.color.c}${vars.name}${sS.c['reset'].c}'s functions`,
 			discord : {
 				string: null,
 				embed: {
@@ -51,7 +153,7 @@ const logFunctions = {
 	},
 	killModule: function(vars) {
 		return [{
-			console: `${sS.c['brightCyan'].c}Killed Module${sS.c['reset'].c}: ${vars.color.c}${vars.name}${sS.c['reset'].c}\n`,
+			console: `${sS.c['brightCyan'].c}Killed Module${sS.c['reset'].c}: ${vars.color.c}${vars.name}${sS.c['reset'].c}`,
 			discord : {
 				string: null,
 				embed: {
@@ -68,7 +170,7 @@ const logFunctions = {
 	},
 	killModule_notRunning: function(vars) {
 		return [{
-			console: `${sS.c['brightCyan'].c}Module${sS.c['reset'].c} ${vars.color.c}${vars.name}${sS.c['reset'].c} is not running...\n`,
+			console: `${sS.c['brightCyan'].c}Module${sS.c['reset'].c} ${vars.color.c}${vars.name}${sS.c['reset'].c} is not running...`,
 			discord : {
 				string: null,
 				embed: {
@@ -85,16 +187,16 @@ const logFunctions = {
 	},
 	commandNotFound: function(vars) {
 		return [{
-			console: `${sS.c['brightCyan'].c}The command ${sS.c['reset'].c}"${vars.message.string}" could not be matched to a known command...\n`,
+			console: `The command "${sS.c['brightRed'].c}${vars.message.string}${sS.c['reset'].c}" could not be matched to a known command...`,
 			discord : {
 				string: null,
 				embed: {
-					color: parseInt(vars.color.h, 16),
+					color: parseInt(sS.c['red'].h, 16),
 					title: `The command "${vars.message.string}" could not be matched to a known command...`,
 					description: null,
 					timestamp: new Date(),
 					footer: {
-						text: `Command executed in ${parseDuration(moment(vars.executionStartTime), moment(vars.executionEndTime))}`
+						text: `Executed in ${parseDuration(moment(vars.executionStartTime), moment(vars.executionEndTime))}`
 					}
 				}
 			}
@@ -102,7 +204,7 @@ const logFunctions = {
 	},
 	startModule: function(vars) {
 		return [{
-			console: `${sS.c['brightCyan'].c}Started module${sS.c['reset'].c}: ${vars.color.c}${vars.name}${sS.c['reset'].c}\n`,
+			console: `${sS.c['brightCyan'].c}Started module${sS.c['reset'].c}: ${vars.color.c}${vars.name}${sS.c['reset'].c}`,
 			discord : {
 				string: null,
 				embed: {
@@ -119,7 +221,7 @@ const logFunctions = {
 	},
 	startModule_alreadyRunning: function(vars) {
 		return [{
-			console: `${sS.c['brightCyan'].c}Module${sS.c['reset'].c} ${vars.color.c}${vars.name}${sS.c['reset'].c} is already running...\n`,
+			console: `${sS.c['brightCyan'].c}Module${sS.c['reset'].c} ${vars.color.c}${vars.name}${sS.c['reset'].c} is already running...`,
 			discord : {
 				string: null,
 				embed: {
@@ -136,7 +238,7 @@ const logFunctions = {
 	},
 	enableModule: function(vars) {
 		return [{
-			console: `${sS.c['brightCyan'].c}Enabled module${sS.c['reset'].c}: ${vars.color.c}${vars.name}${sS.c['reset'].c}\n`,
+			console: `${sS.c['brightCyan'].c}Enabled module${sS.c['reset'].c}: ${vars.color.c}${vars.name}${sS.c['reset'].c}`,
 			discord : {
 				string: null,
 				embed: {
@@ -153,7 +255,7 @@ const logFunctions = {
 	},
 	disableModule: function(vars) {
 		return [{
-			console: `${sS.c['brightCyan'].c}Disabled module${sS.c['reset'].c}: ${vars.color.c}${vars.name}${sS.c['reset'].c}\n`,
+			console: `${sS.c['brightCyan'].c}Disabled module${sS.c['reset'].c}: ${vars.color.c}${vars.name}${sS.c['reset'].c}`,
 			discord : {
 				string: null,
 				embed: {
@@ -189,7 +291,7 @@ const logFunctions = {
 				string: null,
 				embed: {
 					color: parseInt(sS.c[sS.modules['backup'].discordColor||sS.modules['backup'].color].h, 16),
-					title: `Next backup in ${moment(vars.timeToNextBackup).fromNow()}`,
+					title: `${vars.timeToNextBackup ? `Next backup in ${moment(vars.timeToNextBackup).fromNow()}` : 'Backups disabled...'}`,
 					description: null,
 					timestamp: new Date(),
 					footer: {
@@ -197,7 +299,24 @@ const logFunctions = {
 					}
 				}
 			},
-			console: `${sS.c[sS.modules['backup'].color].c}Next Backup ${moment(vars.timeToNextBackup).fromNow()}${sS.c['reset'].c}\n`
+			console: `${ vars.timeToNextBackup ? `${sS.c[sS.modules['backup'].color].c}Next backup in ${moment(vars.timeToNextBackup).fromNow()}` : `${sS.c[sS.modules['backup'].color].c}Backups disabled...`}${sS.c['reset'].c}`
+		}]
+	},
+	backupDir: function(vars) {
+		return [{
+			discord : {
+				string: null,
+				embed: {
+					color: parseInt(sS.c[sS.modules['backup'].discordColor||sS.modules['backup'].color].h, 16),
+					title: `Saving backups in: ${vars.backupDir}`,
+					description: null,
+					timestamp: new Date(),
+					footer: {
+						text: `Command executed in ${parseDuration(moment(vars.executionStartTime), moment(vars.executionEndTime))}`
+					}
+				}
+			},
+			console: `${sS.c[sS.modules['backup'].color].c}Saving backups in: ${vars.backupDir}${sS.c['reset'].c}`
 		}]
 	},
 	lastBackup: function(vars) {
@@ -217,7 +336,7 @@ const logFunctions = {
 					}
 				}
 			},
-			console: `${sS.c[sS.modules['backup'].color].c}${lastBackup}${sS.c['reset'].c}\n`
+			console: `${sS.c[sS.modules['backup'].color].c}${lastBackup}${sS.c['reset'].c}`
 		}]
 	},
 	listModules: function(vars) {
@@ -246,7 +365,7 @@ const logFunctions = {
 			};
 		}).concat([{
 			discord: ``,
-			console: `\n${sS.c['brightCyan'].c}Enabled wrapper modules${sS.c['reset'].c}: ${enabledModules}\n`+`${sS.c['brightCyan'].c}Disabled wrapper modules${sS.c['reset'].c}: ${disabledModules}\n\n`
+			console: `\n${sS.c['brightCyan'].c}Enabled wrapper modules${sS.c['reset'].c}: ${enabledModules}\n`+`${sS.c['brightCyan'].c}Disabled wrapper modules${sS.c['reset'].c}: ${disabledModules}\n`
 		}])
 	}
 }
@@ -272,7 +391,7 @@ function logOut(logObj) {
 		else {
 			var logStrings = logFunctions[logInfo.function](logInfo.vars);
 			logStrings.forEach(function(logString) {
-				if (logObj.logTo.console && logString.console) process.stdout.write(logString.console);
+				if (logObj.logTo.console && logString.console) process.stdout.write(logString.console+'\n');
 				if (logObj.logTo.discord && logString.discord) process.send({
 					function: 'unicast',
 					module: 'discord',

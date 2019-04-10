@@ -23,25 +23,96 @@ process.on('message', message => {
 		case 'init':
 			sS = message.sS;
 			mS = sS.modules['backup'].settings;
-			timeToNextBackup = moment().add(mS.backupIntervalInHours, 'hours');
-			pushStats();
 			startBackupInterval();
 			break;
 		case 'startBackupInterval':
-			startBackupInterval();
+			if (backupInterval) clearInterval(backupInterval);
+			var logInfoArray = startBackupInterval();
+			if (message.logTo) process.send({
+				function: 'unicast',
+				module: 'log',
+				message: {
+					function: 'log',
+					logObj: {
+						logInfoArray: logInfoArray,
+						logTo: message.logTo
+					}
+				}
+			});
 			break;
 		case 'clearBackupInterval':
+			var executionStartTime = new Date();
 			clearInterval(backupInterval);
+			timeToNextBackup = null;
+			pushStats();
+			if (message.logTo) process.send({
+				function: 'unicast',
+				module: 'log',
+				message: {
+					function: 'log',
+					logObj: {
+						logInfoArray: [{
+							function: 'clearBackupInterval',
+							vars: {
+								executionStartTime: executionStartTime,
+								executionEndTime: new Date()
+							}
+						}],
+						logTo: message.logTo
+					}
+				}
+			});
 			break;
 		case 'setBackupInterval':
+			var executionStartTime = new Date();
 			clearInterval(backupInterval);
+			var logInfoArray = [{
+				function: 'clearBackupInterval',
+				vars: {
+					executionStartTime: executionStartTime,
+					executionEndTime: new Date()
+				}
+			}];
 			mS.backupIntervalInHours = message.backupIntervalInHours;
-			startBackupInterval();
-			if (message.save) saveSettings();
+			timeToNextBackup = moment().add(mS.backupIntervalInHours, 'hours');
+			logInfoArray = logInfoArray.concat(startBackupInterval());
+			if (message.logTo) process.send({
+				function: 'unicast',
+				module: 'log',
+				message: {
+					function: 'log',
+					logObj: {
+						logInfoArray: logInfoArray,
+						logTo: message.logTo
+					}
+				}
+			});
+			if (message.save.toLowerCase() == 'true') saveSettings(message.logTo);
 			break;
 		case 'setBackupDir':
 			mS.overrideBackupDir = message.backupDir;
-			if (message.save) saveSettings();
+			if (message.save) saveSettings(message.logTo);
+			break;
+		case 'getBackupDir':
+			var executionStartTime = new Date();
+			if (message.logTo) process.send({
+				function: 'unicast',
+				module: 'log',
+				message: {
+					function: 'log',
+					logObj: {
+						logInfoArray: [{
+							function: 'backupDir',
+							vars: {
+								backupDir: (mS.overrideBackupDir) ? mS.overrideBackupDir : mS.rootBackupDir+sS.serverName,
+								executionStartTime: executionStartTime,
+								executionEndTime: new Date()
+							}
+						}],
+						logTo: message.logTo
+					}
+				}
+			});
 			break;
 		case 'runBackup':
 			runBackup();
@@ -51,7 +122,7 @@ process.on('message', message => {
 			break;
 		case 'nextBackup':
 			var executionStartTime = new Date();
-			process.send({
+			if (message.logTo) process.send({
 				function: 'unicast',
 				module: 'log',
 				message: {
@@ -72,7 +143,7 @@ process.on('message', message => {
 			break;
 		case 'lastBackup':
 			var executionStartTime = new Date();
-			process.send({
+			if (message.logTo) process.send({
 				function: 'unicast',
 				module: 'log',
 				message: {
@@ -106,15 +177,26 @@ function pushStats() {
 	process.send({
 		function: 'unicast',
 		module: 'stats',
-		message: { function: 'pushStats', serverStats: { timeToNextBackup: timeToNextBackup.fromNow(), timeSinceLastBackup: (lastBackupEndTime != null) ? lastBackupEndTime.fromNow() : null, lastBackupDuration: lastBackupDurationString } }
+		message: { function: 'pushStats', serverStats: { timeToNextBackup: timeToNextBackup ? timeToNextBackup.fromNow() : 'Backups disabled', timeSinceLastBackup: (lastBackupEndTime != null) ? lastBackupEndTime.fromNow() : null, lastBackupDuration: lastBackupDurationString } }
 	});
 }
 
 function startBackupInterval() {
+	let executionStartTime = new Date();
+	timeToNextBackup = moment().add(mS.backupIntervalInHours, 'hours');
+	pushStats();
 	backupInterval = setInterval(function(){
 		runBackup();
 		timeToNextBackup = moment().add(mS.backupIntervalInHours, 'hours');
 	}, mS.backupIntervalInHours*60*60*1000);
+	return [{
+		function: 'startBackupInterval',
+		vars: {
+			timeToNextBackup: timeToNextBackup,
+			executionStartTime: executionStartTime,
+			executionEndTime: new Date()
+		}
+	}]
 }
 
 function runBackup() {
@@ -162,7 +244,7 @@ function debug(stringOut) {
 	}
 }
 
-function saveSettings() {
+function saveSettings(logTo) {
 	sS.modules['backup'].settings = mS;
-	process.send({ function: 'saveSettings', sS: sS })
+	process.send({ function: 'saveSettings', sS: sS, logTo: logTo })
 }

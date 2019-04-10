@@ -72,19 +72,26 @@ class wrapperModule {
 
 			this.process.on('message', message => {
 				if (this.process)	{
+					let logInfoArray = null;
 					if (message.function == 'broadcast') wrapperModule.broadcast(message.message);
-					if (message.function == 'unicast' && (loadedModules[message.module]||{}).process) loadedModules[message.module].process.send(message.message)
-					if (message.function == 'serverStdin' && server) server.stdin.write(message.string);
+					else if (message.function == 'unicast' && (loadedModules[message.module]||{}).process) loadedModules[message.module].process.send(message.message)
+					else if (message.function == 'serverStdin' && server) server.stdin.write(message.string);
+					else if (message.function == 'backupSettings') logInfoArray = backupSettings();
+					else if (message.function == 'loadSettings') {
+						var executionStartTime = new Date();
+						logInfoArray = loadSettings();
+					} else if (message.function == 'saveSettings') {
+						sS = message.sS;
+						wrapperModule.broadcast({function: 'pushSettings', sS: sS });
+						logInfoArray = saveSettings();
+					}
+					if (logInfoArray) wrapperModule.sendLog({logInfoArray: logInfoArray, logTo: (message.logTo) ? message.logTo : {console: true} })
 				}
 			})
 			if (this.name == 'command') { // Command handling for wrapperHost specific functions that can only be run within serverWrapper
 				this.process.on('message', message => {
-					var logInfoArray = null;
-					if (message.function == 'restartAllModules') logInfoArray = restartAllModules();
-					else if (message.function == 'unloadAllModules') logInfoArray = unloadAllModules();
-					else if (message.function == 'reloadModules') logInfoArray = reloadModules();
-					else if (message.function == 'listModules') logInfoArray = listModules();
-					else if (message.args && loadedModules[message.args[1]]) {
+					let logInfoArray = null;
+					if (message.args && loadedModules[message.args[1]]) {
 						if (message.function == 'enableModule') logInfoArray = loadedModules[message.args[1]].enable(message.args[2]);
 						else if (message.function == 'disableModule') logInfoArray = loadedModules[message.args[1]].disable(message.args[2]);
 						else if (message.function == 'killModule') logInfoArray = loadedModules[message.args[1]].kill();
@@ -92,14 +99,10 @@ class wrapperModule {
 						else if (message.function == 'restartModule') logInfoArray = loadedModules[message.args[1]].restart();
 						else if (message.function == 'reloadModule') logInfoArray = loadedModules[message.args[1]].reload();
 						else if (message.function == 'loadModuleFunctions') loadedModules[message.args[1]].loadFunctions();
-					} else if (message.function == 'loadSettings') {
-						sS = loadSettings();
-						wrapperModule.broadcast({function: 'pushSettings', sS: sS });
-					} else if (message.function == 'saveSettings') {
-						sS = message.sS;
-						wrapperModule.broadcast({function: 'pushSettings', sS: sS });
-						saveSettings();
-					}
+					} else if (message.function == 'restartAllModules') logInfoArray = restartAllModules();
+					else if (message.function == 'unloadAllModules') logInfoArray = unloadAllModules();
+					else if (message.function == 'reloadModules') logInfoArray = reloadModules();
+					else if (message.function == 'listModules') logInfoArray = listModules();
 					if (logInfoArray) wrapperModule.sendLog({logInfoArray: logInfoArray, logTo: (message.logTo) ? message.logTo : {console: true} })
 				});
 			}
@@ -314,22 +317,75 @@ function listModules() {
 /*
 / Settings functions
 */
-function loadSettings() {
-	return JSON.parse(fs.readFileSync(sSFile, 'utf8'));
+function loadSettings(callback) {
+	let executionStartTime = new Date();
+	try {
+		sS = JSON.parse(fs.readFileSync(sSFile, 'utf8'));
+		wrapperModule.broadcast({function: 'pushSettings', sS: sS });
+	}	catch (err) {
+		return [{
+			function: 'error',
+			vars: {
+				niceName: 'Error loading settings!',
+				err: JSON.parse(JSON.stringify(err)),
+				executionStartTime: executionStartTime,
+				executionEndTime: new Date()
+			}
+		}]
+	}
+	return [{
+		function: 'loadSettings',
+		vars: {
+			executionStartTime: executionStartTime,
+			executionEndTime: new Date()
+		}
+	}]
 }
 
 function saveSettings() {
-	fs.writeFile(sSFile, JSON.stringify(sS, null, 2), 'utf8', function (err) {
-		if (err) debug(err)
-		return true
-	});
+	let executionStartTime = new Date();
+	try { fs.writeFileSync(sSFile, JSON.stringify(sS, null, 2), 'utf8'); }
+	catch (err) {
+		return [{
+			function: 'error',
+			vars: {
+				niceName: 'Error saving settings!',
+				err: JSON.parse(JSON.stringify(err)),
+				executionStartTime: executionStartTime,
+				executionEndTime: new Date()
+			}
+		}]
+	}
+	return [{
+		function: 'saveSettings',
+		vars: {
+			executionStartTime: executionStartTime,
+			executionEndTime: new Date()
+		}
+	}]
 }
 
-function backupSettings() {
-	fs.writeFile(sSFile+'.backup', JSON.stringify(sS, null, 2), 'utf8', function (err) {
-		if (err) debug(err)
-		return true
-	});
+function backupSettings(callback) {
+	let executionStartTime = new Date();
+	try { fs.writeFileSync(sSFile+'.backup', JSON.stringify(sS, null, 2), 'utf8'); }
+	catch (err) {
+		return [{
+			function: 'error',
+			vars: {
+				niceName: 'Error backing up settings!',
+				err: JSON.parse(JSON.stringify(err)),
+				executionStartTime: executionStartTime,
+				executionEndTime: new Date()
+			}
+		}]
+	}
+	return [{
+		function: 'backupSettings',
+		vars: {
+			executionStartTime: executionStartTime,
+			executionEndTime: new Date()
+		}
+	}]
 }
 
 function startServer() {
@@ -406,3 +462,18 @@ function debug(stringOut) {
 		process.stdout.write(`\n\u001b[41mDEBUG>${sS.c['reset'].c} ${stringOut}\n\n`);
 	}
 }
+
+if (!('toJSON' in Error.prototype))
+Object.defineProperty(Error.prototype, 'toJSON', {
+    value: function () {
+        var alt = {};
+
+        Object.getOwnPropertyNames(this).forEach(function (key) {
+            alt[key] = this[key];
+        }, this);
+
+        return alt;
+    },
+    configurable: true,
+    writable: true
+});
