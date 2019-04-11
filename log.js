@@ -58,6 +58,32 @@ const logFunctions = {
 			}
 		}]
 	},
+	tpc: function(vars) {
+		return [{
+			ingame: `tp ${vars.user} ${vars.args[1]*16} 100 ${vars.args[2]*16}\n`
+		}]
+	},
+	tpr: function(vars) {
+		return [{
+			ingame: `tp ${vars.user} ${vars.args[1]*512} 100 ${vars.args[2]*512}\n`
+		}]
+	},
+	qm: function(vars) {
+		return [{
+			ingame: `tellraw ${vars.user} ${JSON.stringify(
+				[{
+				"text": vars.question,
+				"color": "white"
+			}, {
+				"text": " => ",
+				"color": "gold"
+			}, {
+				"text": vars.answer,
+				"color": "aqua"
+			}]
+			)}\n`
+		}]
+	},
 	getSpawn: function(vars) {
 		return [{
 			console: `${sS.c[sS.modules['nbt'].color].c}World spawn is ${sS.c['reset'].c}${vars.worldSpawn.x} ${vars.worldSpawn.y} ${vars.worldSpawn.z}`,
@@ -116,7 +142,7 @@ const logFunctions = {
 				embed: {
 					color: parseInt(sS.c[sS.modules['properties'].discordColor||sS.modules['properties'].color].h, 16),
 					title: `Property`,
-					description: '```json\n'+`${vars.property}: ${vars.propertyValue}\n`+'```',
+					description: '```json\n'+`{\n  "${vars.property}": ${vars.propertyValue}\n}\n`+'```',
 					timestamp: new Date(),
 					footer: {
 						text: `Executed in ${parseDuration(moment(vars.executionStartTime), moment(vars.executionEndTime))}`

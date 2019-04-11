@@ -29,110 +29,110 @@
     "reset": {
       "c": "\u001b[0m",
       "h": "",
-			"m": "white",
-			"mc": "§r"
+      "m": "white",
+      "mc": "§r"
     },
     "black": {
       "c": "\u001b[30m",
       "h": "000000",
       "m": "black",
-			"mc": "§0"
+      "mc": "§0"
     },
     "red": {
       "c": "\u001b[31m",
       "h": "800000",
       "m": "dark_red",
-			"mc": "§4"
+      "mc": "§4"
     },
     "green": {
       "c": "\u001b[32m",
       "h": "008000",
       "m": "dark_green",
-			"mc": "§2"
+      "mc": "§2"
     },
     "yellow": {
       "c": "\u001b[33m",
       "h": "808000",
       "m": "gold",
-			"mc": "§6"
+      "mc": "§6"
     },
     "blue": {
       "c": "\u001b[34m",
       "h": "000080",
       "m": "dark_blue",
-			"mc": "§1"
+      "mc": "§1"
     },
     "magenta": {
       "c": "\u001b[35m",
       "h": "800080",
       "m": "dark_purple",
-			"mc": "§5"
+      "mc": "§5"
     },
     "cyan": {
       "c": "\u001b[36m",
       "h": "008080",
       "m": "dark_aqua",
-			"mc": "§3"
+      "mc": "§3"
     },
     "white": {
       "c": "\u001b[37m",
       "h": "c0c0c0",
       "m": "gray",
-			"mc": "§7"
+      "mc": "§7"
     },
     "brightBlack": {
       "c": "\u001b[30;1m",
       "h": "808080",
       "m": "dark_gray",
-			"mc": "§8"
+      "mc": "§8"
     },
     "brightRed": {
       "c": "\u001b[31;1m",
       "h": "ff0000",
       "m": "red",
-			"mc": "§c"
+      "mc": "§c"
     },
     "brightGreen": {
       "c": "\u001b[32;1m",
       "h": "00ff00",
       "m": "green",
-			"mc": "§a"
+      "mc": "§a"
     },
     "brightYellow": {
       "c": "\u001b[33;1m",
       "h": "ffff00",
       "m": "yellow",
-			"mc": "§e"
+      "mc": "§e"
     },
     "brightBlue": {
       "c": "\u001b[34;1m",
       "h": "0000ff",
       "m": "blue",
-			"mc": "§9"
+      "mc": "§9"
     },
     "brightMagenta": {
       "c": "\u001b[35;1m",
       "h": "ff00ff",
       "m": "light_purple",
-			"mc": "§d"
+      "mc": "§d"
     },
     "brightCyan": {
       "c": "\u001b[36;1m",
       "h": "00ffff",
       "m": "aqua",
-			"mc": "§b"
+      "mc": "§b"
     },
     "brightWhite": {
       "c": "\u001b[0m",
       "h": "ffffff",
       "m": "white",
-			"mc": "§f"
+      "mc": "§f"
     },
     "discordBlue": {
       "c": "",
       "h": "7289da",
       "m": "",
-			"mc": ""
+      "mc": ""
     }
   },
   "modules": {
@@ -142,6 +142,14 @@
       "color": "yellow",
       "import": false,
       "description": "Gives the server data files the good touch...",
+      "settings": {}
+    },
+    "math": {
+      "file": "math.js",
+      "enabled": true,
+      "color": "brightMagenta",
+      "import": false,
+      "description": "Handles advaced math problems.",
       "settings": {}
     },
     "log": {

@@ -216,9 +216,9 @@ new command({ name: 'cw_removeall', exeFunc: commandWhitelistAdd() });
 
 // backup commands
 new command({ name: 'backup', exeFunc: function(message){ process.send({ function: 'unicast', module: 'backup', message: {function: 'runBackup', logTo: message.logTo} }) } });
-new command({ name: 'backupinterval_start', exeFunc: function(message){ process.send({ function: 'unicast', module: 'backup', message: {function: 'startBackupInterval', logTo: message.logTo} }) } });
-new command({ name: 'backupinterval_stop', exeFunc: function(message){ process.send({ function: 'unicast', module: 'backup', message: {function: 'clearBackupInterval', logTo: message.logTo} }) } });
-new command({ name: 'backupinterval_set', exeFunc: function(message){ process.send({ function: 'unicast', module: 'backup', message: {function: 'setBackupInterval', backupIntervalInHours: message.args[1], save: message.args[2], logTo: message.logTo} }) } });
+new command({ name: 'startBackupInterval', exeFunc: function(message){ process.send({ function: 'unicast', module: 'backup', message: {function: 'startBackupInterval', logTo: message.logTo} }) } });
+new command({ name: 'clearBackupInterval', exeFunc: function(message){ process.send({ function: 'unicast', module: 'backup', message: {function: 'clearBackupInterval', logTo: message.logTo} }) } });
+new command({ name: 'setBackupInterval', exeFunc: function(message){ process.send({ function: 'unicast', module: 'backup', message: {function: 'setBackupInterval', backupIntervalInHours: message.args[1], save: message.args[2], logTo: message.logTo} }) } });
 //new command({ name: 'backupdir_set', exeFunc: function(message){ process.send({ function: 'unicast', module: 'backup', message: {function: 'setBackupDir', backupDir: message.args[1],save: message.args[2], logTo: message.logTo} }) } });
 new command({ name: 'backupDir', exeFunc: function(message){ process.send({ function: 'unicast', module: 'backup', message: {function: 'getBackupDir', logTo: message.logTo} }) } });
 new command({ name: 'nextBackup', exeFunc: function(message){ process.send({ function: 'unicast', module: 'backup', message: {function: 'nextBackup', logTo: message.logTo} }) } });
@@ -231,7 +231,63 @@ new command({ name: 'getSpawn', exeFunc: function(message){ process.send({ funct
 new command({ name: 'getProperty', exeFunc: function(message){ process.send({ function: 'unicast', module: 'properties', message: {function: 'getProperty', property: message.args[1], logTo: message.logTo} }) } });
 new command({ name: 'getProperties', exeFunc: function(message){ process.send({ function: 'unicast', module: 'properties', message: {function: 'getProperties', logTo: message.logTo} }) } });
 
-
+// straighthrough commands
+new command({
+	name: 'tpc',
+	exeFunc: function(message) {
+		process.send({
+			function: 'unicast',
+			module: 'log',
+			message: {
+				function: 'log',
+				logObj: {
+					logInfoArray: [{
+						function: 'tpc',
+						vars: {
+							args: message.args
+						}
+					}],
+					logTo: message.logTo
+				}
+			}
+		})
+	}
+})
+new command({
+	name: 'tpr',
+	exeFunc: function(message) {
+		process.send({
+			function: 'unicast',
+			module: 'log',
+			message: {
+				function: 'log',
+				logObj: {
+					logInfoArray: [{
+						function: 'tpr',
+						vars: {
+							args: message.args
+						}
+					}],
+					logTo: message.logTo
+				}
+			}
+		})
+	}
+})
+new command({
+	name: 'qm',
+	exeFunc: function(message) {
+		process.send({
+			function: 'unicast',
+			module: 'math',
+			message: {
+				function: 'qm',
+				question: message.args.slice(1, -1).join(' '),
+				logTo: message.logTo
+			}
+		})
+	}
+})
 function commandWhitelistAdd() {
 	return function(message) {
 		// ~commandwhitelist add !list @Inrix 1 hour

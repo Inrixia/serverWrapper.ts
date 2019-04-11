@@ -28,92 +28,111 @@
   "c": {
     "reset": {
       "c": "\u001b[0m",
-      "h": ""
+      "h": "",
+      "m": "white",
+      "mc": "§r"
     },
     "black": {
       "c": "\u001b[30m",
       "h": "000000",
-      "m": "black"
+      "m": "black",
+      "mc": "§0"
     },
     "red": {
       "c": "\u001b[31m",
       "h": "800000",
-      "m": "dark_red"
+      "m": "dark_red",
+      "mc": "§4"
     },
     "green": {
       "c": "\u001b[32m",
       "h": "008000",
-      "m": "dark_green"
+      "m": "dark_green",
+      "mc": "§2"
     },
     "yellow": {
       "c": "\u001b[33m",
       "h": "808000",
-      "m": "gold"
+      "m": "gold",
+      "mc": "§6"
     },
     "blue": {
       "c": "\u001b[34m",
       "h": "000080",
-      "m": "dark_blue"
+      "m": "dark_blue",
+      "mc": "§1"
     },
     "magenta": {
       "c": "\u001b[35m",
       "h": "800080",
-      "m": "dark_purple"
+      "m": "dark_purple",
+      "mc": "§5"
     },
     "cyan": {
       "c": "\u001b[36m",
       "h": "008080",
-      "m": "dark_aqua"
+      "m": "dark_aqua",
+      "mc": "§3"
     },
     "white": {
       "c": "\u001b[37m",
       "h": "c0c0c0",
-      "m": "white"
+      "m": "gray",
+      "mc": "§7"
     },
     "brightBlack": {
       "c": "\u001b[30;1m",
       "h": "808080",
-      "m": ""
+      "m": "dark_gray",
+      "mc": "§8"
     },
     "brightRed": {
       "c": "\u001b[31;1m",
       "h": "ff0000",
-      "m": "red"
+      "m": "red",
+      "mc": "§c"
     },
     "brightGreen": {
       "c": "\u001b[32;1m",
       "h": "00ff00",
-      "m": "green"
+      "m": "green",
+      "mc": "§a"
     },
     "brightYellow": {
       "c": "\u001b[33;1m",
       "h": "ffff00",
-      "m": "yellow"
+      "m": "yellow",
+      "mc": "§e"
     },
     "brightBlue": {
       "c": "\u001b[34;1m",
       "h": "0000ff",
-      "m": "blue"
+      "m": "blue",
+      "mc": "§9"
     },
     "brightMagenta": {
       "c": "\u001b[35;1m",
       "h": "ff00ff",
-      "m": "light_purple"
+      "m": "light_purple",
+      "mc": "§d"
     },
     "brightCyan": {
       "c": "\u001b[36;1m",
       "h": "00ffff",
-      "m": "aqua"
+      "m": "aqua",
+      "mc": "§b"
     },
     "brightWhite": {
       "c": "\u001b[0m",
       "h": "ffffff",
-      "m": ""
+      "m": "white",
+      "mc": "§f"
     },
     "discordBlue": {
       "c": "",
       "h": "7289da",
-      "m": ""
+      "m": "",
+      "mc": ""
     }
   },
   "modules": {
@@ -123,6 +142,14 @@
       "color": "yellow",
       "import": false,
       "description": "Gives the server data files the good touch...",
+      "settings": {}
+    },
+    "math": {
+      "file": "math.js",
+      "enabled": true,
+      "color": "brightMagenta",
+      "import": false,
+      "description": "Handles advaced math problems.",
       "settings": {}
     },
     "log": {
@@ -135,7 +162,7 @@
     },
     "stats": {
       "file": "stats.js",
-      "enabled": false,
+      "enabled": true,
       "color": "brightYellow",
       "import": false,
       "description": "Displays server stats on console window.",
@@ -275,8 +302,8 @@
           "max-build-height": 256,
           "level-seed": null,
           "prevent-proxy-connections": false,
-          "motd": "A Minecraft Server",
-          "enable-rcon": false
+          "enable-rcon": false,
+          "motd": "A Minecraft Server"
         }
       }
     }
