@@ -210,15 +210,25 @@ new command({ name: 'loadModuleFunctions', exeFunc: command.toWrapper() });
 new command({ name: 'loadSettings', exeFunc: command.toWrapper() });
 new command({ name: 'backupSettings', exeFunc: command.toWrapper() });
 new command({ name: 'saveSettings', exeFunc: function(message){saveSettings(message.logTo)} });
-new command({ name: 'cw_add', exeFunc: commandWhitelistAdd() });
-new command({ name: 'cw_remove', exeFunc: commandWhitelistAdd() });
-new command({ name: 'cw_removeall', exeFunc: commandWhitelistAdd() });
+new command({ name: 'cw_add', exeFunc: function(message){commandWhitelistAdd(message)} });
+new command({ name: 'cw_remove', exeFunc: function(message){commandWhitelistAdd(message)} });
+new command({ name: 'cw_removeall', exeFunc: function(message){commandWhitelistAdd(message)} });
 
 // backup commands
-new command({ name: 'backup', exeFunc: function(message){ process.send({ function: 'unicast', module: 'backup', message: {function: 'runBackup', logTo: message.logTo} }) } });
+new command({
+	name: 'backup',
+	exeFunc: function(message){ process.send({ function: 'unicast', module: 'backup', message: {function: 'runBackup', logTo: message.logTo} }) },
+	help: {
+		grouping: 'backup',
+		discord: {},
+		console: '',
+		ingame: ''
+	}
+});
 new command({ name: 'startBackupInterval', exeFunc: function(message){ process.send({ function: 'unicast', module: 'backup', message: {function: 'startBackupInterval', logTo: message.logTo} }) } });
 new command({ name: 'clearBackupInterval', exeFunc: function(message){ process.send({ function: 'unicast', module: 'backup', message: {function: 'clearBackupInterval', logTo: message.logTo} }) } });
 new command({ name: 'setBackupInterval', exeFunc: function(message){ process.send({ function: 'unicast', module: 'backup', message: {function: 'setBackupInterval', backupIntervalInHours: message.args[1], save: message.args[2], logTo: message.logTo} }) } });
+
 //new command({ name: 'backupdir_set', exeFunc: function(message){ process.send({ function: 'unicast', module: 'backup', message: {function: 'setBackupDir', backupDir: message.args[1],save: message.args[2], logTo: message.logTo} }) } });
 new command({ name: 'backupDir', exeFunc: function(message){ process.send({ function: 'unicast', module: 'backup', message: {function: 'getBackupDir', logTo: message.logTo} }) } });
 new command({ name: 'nextBackup', exeFunc: function(message){ process.send({ function: 'unicast', module: 'backup', message: {function: 'nextBackup', logTo: message.logTo} }) } });

@@ -72,15 +72,15 @@ const logFunctions = {
 		return [{
 			ingame: `tellraw ${vars.user} ${JSON.stringify(
 				[{
-				"text": vars.question,
-				"color": "white"
-			}, {
-				"text": " => ",
-				"color": "gold"
-			}, {
-				"text": vars.answer,
-				"color": "aqua"
-			}]
+					"text": vars.question,
+					"color": "white"
+				}, {
+					"text": " => ",
+					"color": "gold"
+				}, {
+					"text": vars.answer,
+					"color": "aqua"
+				}]
 			)}\n`
 		}]
 	},
