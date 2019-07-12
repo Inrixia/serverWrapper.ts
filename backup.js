@@ -2,6 +2,7 @@
 const moment = require('moment');
 const children = require('child_process');
 const properties = require('properties');
+const fs = require('fs');
 
 // Set defaults
 var sS = {} // serverSettings
@@ -206,21 +207,34 @@ function runBackup() {
 		message: { function: 'pushStats', serverStats: { status: 'Backing Up', timeToBackup: timeToNextBackup.fromNow() } }
 	});
 	var backupDir = mS.overrideBackupDir ? mS.overrideBackupDir : mS.rootBackupDir+sS.serverName;
-	children.spawn('robocopy', [sS.modules['properties'].settings.p['level-name'], `${backupDir}/${moment().format('MMMMDDYYYY_h-mm-ssA')}/Cookies`, (mS.threads > 1) ? `/MT:${mS.threads}` : '', '/E'], {shell: true, detached: true}).on('close', function (code) {
-		lastBackupEndTime = moment();
-		lastBackupDuration = moment.duration(lastBackupEndTime.diff(lastBackupStartTime));
-		var t = {
-			ms: lastBackupDuration.milliseconds(),
-			s: lastBackupDuration.seconds(),
-			m: lastBackupDuration.minutes(),
-			h: lastBackupDuration.hours()
-		}
-		lastBackupDurationString = `${(t.m>0) ? `${t.m}min, ` : ''}${(t.s>0) ? `${t.s}sec, ` : ''}${(t.ms>0) ? `${t.ms}ms` : ''}`;
-		process.send({ function: 'serverStdin', string: 'save-on\n' });
-		process.stdout.write(`Backup Completed in ${lastBackupDurationString} - World Saving Enabled\n`);
-		process.send({ function: 'serverStdin', string: `/title @a actionbar ["",{"text":"~","color":"light_purple"},{"text":" Finished Backup","color":"white"},{"text":" -","color":"light_purple"},{"text":" Took","color":"white"},{"text":" ${lastBackupDurationString}","color":"green"},{"text":" ~","color":"light_purple"}]\n` })
-		pushStats();
-	})
+	//children.spawn('robocopy', [sS.modules['properties'].settings.p['level-name'], `${backupDir}/${moment().format('MMMMDDYYYY_h-mm-ssA')}/Cookies`, (mS.threads > 1) ? `/MT:${mS.threads}` : '', '/E'], {shell: true, detached: true}).on('close', function (code) {
+	children.exec(`ssh administrator@10.0.0.5 "mkdir -p ${backupDir} && mkdir -p /mnt/redlive/PublicFTP/LiveArchives/${sS.serverName}/"`,
+		{}, (err, info) => {
+		children.exec(`rsync-snapshot --src ${sS.server_dir} --shell ssh --dst administrator@10.0.0.5:${backupDir} --setRsyncArg exclude='*.log' --setRsyncArg exclude='*.zip' --setRsyncArg exclude='*.rar' --setRsyncArg exclude='*node_modules*' --maxSnapshots 100000`,
+			{}, (err, info) => {
+			children.exec(`ssh administrator@10.0.0.5 "ls /mnt/redlive/LiveArchives/${sS.serverName}"`, {}, (err, info) => {
+				let latestFolder = info.split(/\r?\n/).slice(-3, -2)[0];
+				//console.log(`ln -s ${backupDir}/${latestFolder}/${sS.serverName}/${sS.modules['properties'].settings.p['level-name']} /mnt/redlive/PublicFTP/LiveArchives/${sS.serverName}/${latestFolder} && ln -s ${backupDir}/latest/${sS.serverName}/${sS.modules['properties'].settings.p['level-name']} /mnt/redlive/PublicFTP/LiveArchives/${sS.serverName}/latest`)
+				children.exec(`ssh administrator@10.0.0.5 "ln -s ${backupDir}/${latestFolder}/${sS.serverName}/${sS.modules['properties'].settings.p['level-name']} /mnt/redlive/PublicFTP/LiveArchives/${sS.serverName}/${latestFolder} && ln -s ${backupDir}/latest/${sS.serverName}/${sS.modules['properties'].settings.p['level-name']} /mnt/redlive/PublicFTP/LiveArchives/${sS.serverName}/latest"`,
+					{}, (err, info) => {
+						console.log(info);
+						lastBackupEndTime = moment();
+						lastBackupDuration = moment.duration(lastBackupEndTime.diff(lastBackupStartTime));
+						var t = {
+							ms: lastBackupDuration.milliseconds(),
+							s: lastBackupDuration.seconds(),
+							m: lastBackupDuration.minutes(),
+							h: lastBackupDuration.hours()
+						}
+						lastBackupDurationString = `${(t.m>0) ? `${t.m}min, ` : ''}${(t.s>0) ? `${t.s}sec, ` : ''}${(t.ms>0) ? `${t.ms}ms` : ''}`;
+						process.send({ function: 'serverStdin', string: 'save-on\n' });
+						process.stdout.write(`Backup Completed in ${lastBackupDurationString} - World Saving Enabled\n`);
+						process.send({ function: 'serverStdin', string: `/title @a actionbar ["",{"text":"~","color":"light_purple"},{"text":" Finished Backup","color":"white"},{"text":" -","color":"light_purple"},{"text":" Took","color":"white"},{"text":" ${lastBackupDurationString}","color":"green"},{"text":" ~","color":"light_purple"}]\n` })
+						pushStats();
+				});
+			})
+		})
+	});
 }
 
 /*

@@ -32,10 +32,17 @@ process.on('message', message => {
 */
 
 const logFunctions = {
+	help: function(vars) {
+		return [{
+			console: vars.console,
+			minecraft: `tellraw ${vars.user} ${JSON.stringify(vars.minecraft)}\n`,
+			discord: vars.discord
+		}]
+	},
 	error: function(vars) {
 		return [{
 			console: `${vars.niceName ? `${sS.c['brightRed'].c}${vars.niceName}${sS.c['reset'].c} ` : ''}${vars.err.message}\n${vars.err.stack}`,
-			ingame: `tellraw ${vars.user} ${JSON.stringify(
+			minecraft: `tellraw ${vars.user} ${JSON.stringify(
 				[{
 					"text": `${vars.niceName||''}\n`,
 					"color": sS.c['brightRed'].m
@@ -60,34 +67,160 @@ const logFunctions = {
 	},
 	tpc: function(vars) {
 		return [{
-			ingame: `tp ${vars.user} ${vars.args[1]*16} 100 ${vars.args[2]*16}\n`
+			minecraft: `tp ${vars.user} ${vars.args[1]*16} 100 ${vars.args[2]*16}\n`
+		}]
+	},
+	tpc_help: function(vars) {
+		return [{
+			console: `${sS.c['white'].c}Teleports player to chunk coordinates. ${sS.c['brightWhite'].c}Example: ~tpc ${sS.c['orange'].c}x ${sS.c['yellow'].c}z${sS.c['reset'].c}`,
+			minecraft: `tellraw ${vars.user} ${JSON.stringify(
+				[{
+					"text": `tpc teleports players to coordinates.`,
+					"color": sS.c['white'].m
+				}, {
+					"text": ' \nExample: ~tpc',
+					"color": sS.c['brightWhite'].m
+				}, {
+					"text": ' 10',
+					"color": sS.c['yellow'].m
+				}, {
+					"text": ' 10,',
+					"color": sS.c['yellow'].m
+				}, {
+					"text": ' teleports player to coordinates',
+					"color": sS.c['brightWhite'].m
+				}, {
+					"text": ' 160',
+					"color": sS.c['yellow'].m
+				}, {
+					"text": ' 100',
+					"color": sS.c['yellow'].m
+				}, {
+					"text": ' 160',
+					"color": sS.c['yellow'].m
+				}]
+			)}\n`,
+			discord : {
+				string: null,
+				embed: {
+					title: "tpc",
+					description: "Teleports player to chunk coordinates.",
+					color: parseInt(sS.c['orange'].h, 16),
+					timestamp: new Date(),
+					fields: [{
+						name: "Description",
+						value: "Takes x and z coordinates given, multiplies them by 16 and teleports the player to that location."
+      				}, {
+						name: "Example",
+						value: "~tpc 10 10\n\nTeleports player to coordinates 160 100 160"
+					}]
+				}
+			}
 		}]
 	},
 	tpr: function(vars) {
 		return [{
-			ingame: `tp ${vars.user} ${vars.args[1]*512} 100 ${vars.args[2]*512}\n`
+			minecraft: `tp ${vars.user} ${vars.args[1]*512} 100 ${vars.args[2]*512}\n`
+		}]
+	},
+	tpr_help: function(vars) {
+		return [{
+			console: `${sS.c['white'].c}Teleports player to region coordinates. ${sS.c['brightWhite'].c}Example: ~tpr ${sS.c['yellow'].c}10 ${sS.c['yellow'].c}10${sS.c['reset'].c}`,
+			minecraft: `tellraw ${vars.user} ${JSON.stringify(
+				[{
+					"text": `tpr teleports players to region coordinates.`,
+					"color": sS.c['white'].m
+				}, {
+					"text": ' \nExample:',
+					"color": sS.c['brightWhite'].m
+				}, {
+					"text": '~tpr',
+					"color": sS.c['brightWhite'].m
+				}, {
+					"text": ' 10',
+					"color": sS.c['yellow'].m
+				}, {
+					"text": ' 10',
+					"color": sS.c['yellow'].m
+				}, {
+					"text": ' Teleports player to coordinates',
+					"color": sS.c['brightWhite'].m
+				}, {
+					"text": ' 5,120',
+					"color": sS.c['yellow'].m
+				}, {
+					"text": ' 100',
+					"color": sS.c['yellow'].m
+				}, {
+					"text": ' 5,120',
+					"color": sS.c['yellow'].m
+				}]
+			)}\n`,
+			discord : {
+				string: null,
+				embed: {
+					title: "tpr",
+					description: "Teleports player to region coordinates.",
+					color: parseInt(sS.c['orange'].h, 16),
+					timestamp: new Date(),
+					fields: [{
+						name: "Description",
+						value: "Takes x and z coordinates given, multiplies them by 512 and teleports the player to that location."
+					}, {
+						name: "Example",
+						value: "~tpr 10 10\n\nTeleports player to coordinates 5,120 100 5,120"
+					}]
+				}
+			}
 		}]
 	},
 	qm: function(vars) {
 		return [{
-			ingame: `tellraw ${vars.user} ${JSON.stringify(
+			minecraft: `tellraw ${vars.user} ${JSON.stringify(
 				[{
-				"text": vars.question,
-				"color": "white"
-			}, {
-				"text": " => ",
-				"color": "gold"
-			}, {
-				"text": vars.answer,
-				"color": "aqua"
-			}]
+					"text": vars.question,
+					"color": "white"
+				}, {
+					"text": " => ",
+					"color": "gold"
+				}, {
+					"text": vars.answer,
+					"color": "aqua"
+				}]
 			)}\n`
+		}]
+	},
+	qm_help: function(vars) {
+		return [{
+			console: `${sS.c['white'].c}will except any math question and unit conversion.${sS.c['reset'].c}`,
+			minecraft: `tellraw ${vars.user} ${JSON.stringify(
+				[{
+					"text": `will except any math question and unit conversion..`,
+					"color": sS.c['white'].m
+				}]
+			)}\n`,
+			discord : {
+				string: null,
+				embed: {
+					title: "qm",
+					description: "will except any math question and unit conversion.",
+					color: parseInt(sS.c['orange'].h, 16),
+					timestamp: new Date(),
+					fields: [{
+						name: "Description",
+						value: "Add Description"
+					}, {
+						name: "Example",
+						value: "~qm 1 + 1"
+					}]
+				}
+			}
 		}]
 	},
 	getSpawn: function(vars) {
 		return [{
 			console: `${sS.c[sS.modules['nbt'].color].c}World spawn is ${sS.c['reset'].c}${vars.worldSpawn.x} ${vars.worldSpawn.y} ${vars.worldSpawn.z}`,
-			ingame: `tellraw ${vars.user} ${JSON.stringify(
+			minecraft: `tellraw ${vars.user} ${JSON.stringify(
 				[{
 					"text": `World spawn is `,
 					"color": sS.c[sS.modules['nbt'].color].m
@@ -110,10 +243,44 @@ const logFunctions = {
 			}
 		}]
 	},
+	getspawn_help: function(vars) {
+		return [{
+				console: `${sS.c['white'].c}Gives player spawn coordinates.${sS.c['reset'].c}`,
+				minecraft: `tellraw ${vars.user} ${JSON.stringify(
+				[{
+					"text": `Gives player the spawn coordinates`,
+					"color": sS.c['white'].m
+				}, {
+					"text": `\nExample ~`,
+					"color": sS.c['brightWhite'].m
+				}, {
+					"text": `getspawn`,
+					"color": sS.c['yellow'].m
+				}]
+
+			)}\n`,
+			discord : {
+				string: null,
+				embed: {
+					title: "get spawn",
+					description: "Gives any servers spawn coordinates",
+					color: parseInt(sS.c['orange'].h, 16),
+					timestamp: new Date(),
+					fields: [{
+						name: "Description",
+						value: "Uses the server files to determine a servers spawn."
+					}, {
+						name: "Example",
+						value: "@testserver ~getspawn"
+					}]
+				}
+			}
+		}]
+	},
 	getProperty: function(vars) {
 		return [{
 			console: `${sS.c[sS.modules['properties'].color].c}Property ${sS.c['reset'].c}"${sS.c['brightYellow'].c}${vars.property}${sS.c['reset'].c}"${sS.c['red'].c}:${sS.c['reset'].c} ${sS.c['brightCyan'].c}${vars.propertyValue}${sS.c['reset'].c}`,
-			ingame: `tellraw ${vars.user} ${JSON.stringify(
+			minecraft: `tellraw ${vars.user} ${JSON.stringify(
 				[{
 					"text": `Property `,
 					"color": sS.c[sS.modules['properties'].color].m
@@ -151,15 +318,50 @@ const logFunctions = {
 			}
 		}]
 	},
+	getproperty_help: function(vars) {
+		return [{
+				console: `${sS.c['brightWhite'].c}gets specified server property.${sS.c['brightWhite'].c}Example ~getproperty server-port.${sS.c['reset'].c}`,
+				minecraft: `tellraw ${vars.user} ${JSON.stringify(
+				[{
+					"text": `Gets specified server property. `,
+					"color": sS.c['brightWhite'].m
+				}, {
+					"text": `Exmaple ~getproperty server-port. `,
+					"color": sS.c['white'].m
+				}]
+
+			)}\n`,
+			discord : {
+				string: null,
+				embed: {
+					title: "get spawn",
+					description: "gets specified server property",
+					color: parseInt(sS.c['orange'].h, 16),
+					timestamp: new Date(),
+					fields: [{
+						name: "Description",
+						value: "gets specified server property by looking at the serverSettings.JSON."
+					}, {
+						name: "Example",
+						value: "@ForgeTest ~getproperty server-port"
+					}]
+				}
+			}
+		}]
+	},
+	//gets specified server property
+	//exmaple ~getproperty server-port
+
+
 	getProperties: function(vars) {
-		let ingameObj = [{
+		let minecraftObj = [{
 			"text": `Properties: `,
 			"color": sS.c[sS.modules['properties'].color].m
 		}];
 		return [{
 			console: `${sS.c[sS.modules['properties'].color].c}Properties:\n${sS.c['reset'].c}${vars.properties}`,
-			ingame: `tellraw ${vars.user} ${
-				JSON.stringify(ingameObj.concat(Object.keys(vars.properties).map(function(propertyKey) {
+			minecraft: `tellraw ${vars.user} ${
+				JSON.stringify(minecraftObj.concat(Object.keys(vars.properties).map(function(propertyKey) {
 					return [{
 						"text": `\n"`,
 						"color": "white"
@@ -195,10 +397,46 @@ const logFunctions = {
 			}
 		}]
 	},
+	getpropertise_help: function(vars) {
+		return [{
+				console: `${sS.c['brightWhite'].c}shows server propertise file. Example ${sS.c['yellow'].c}~getproptise .${sS.c['reset'].c}`,
+				minecraft: `tellraw ${vars.user} ${JSON.stringify(
+				[{
+					"text": `getproptise shows server propertise file. `,
+					"color": sS.c['brightWhite'].m
+				}, {
+					"text": `Example.`,
+					"color": sS.c['white'].m
+					}, {
+					"text": `~getpropertise.`,
+					"color": sS.c['yellow'].m
+				}]
+
+			)}\n`,
+			discord : {
+				string: null,
+				embed: {
+					title: "get propertise",
+					description: "~getpropertise",
+					color: parseInt(sS.c['orange'].h, 16),
+					timestamp: new Date(),
+					fields: [{
+						name: "Description",
+						value: "shows server.properties file."
+					}, {
+						name: "Example",
+						value: "@forgeTest ~getpropertise or ~getpropertise in a server managment channel."
+					}]
+				}
+			}
+		}]
+	},
+
+	//getProperty error
 	getProperty_undefined: function(vars) {
 		return [{
 			console: `${sS.c[sS.modules['properties'].color].c}Property ${sS.c['reset'].c}${vars.property} does not exist...`,
-			ingame: `tellraw ${vars.user} ${JSON.stringify(
+			minecraft: `tellraw ${vars.user} ${JSON.stringify(
 				[{
 					"text": `Property `,
 					"color": sS.c[sS.modules['properties'].color].m
@@ -224,7 +462,7 @@ const logFunctions = {
 	clearBackupInterval: function(vars) {
 		return [{
 			console: `${sS.c[sS.modules['backup'].color].c}Automatic backup's stopped!${sS.c['reset'].c}`,
-			ingame: `tellraw ${vars.user} ${JSON.stringify(
+			minecraft: `tellraw ${vars.user} ${JSON.stringify(
 				{
 					"text": `Automatic backup's stopped!`,
 					"color": sS.c[sS.modules['backup'].color].m
@@ -244,10 +482,44 @@ const logFunctions = {
 			}
 		}]
 	},
+	clearbackupinterval_help: function(vars) {
+		return [{
+				console: `${sS.c['brightWhite'].c}Stops automatic backups from running. Example ${sS.c['yellow'].c}~clearbackupinterval.${sS.c['reset'].c}`,
+				minecraft: `tellraw ${vars.user} ${JSON.stringify(
+				[{
+					"text": `clearbackupinterval stops automatic backups. `,
+					"color": sS.c['brightWhite'].m
+				}, {
+					"text": `Example.`,
+					"color": sS.c['white'].m
+					}, {
+					"text": `~clearbackupinterval.`,
+					"color": sS.c['yellow'].m
+				}]
+
+			)}\n`,
+			discord : {
+				string: null,
+				embed: {
+					title: "clear backup interval",
+					description: "~clearbackupinterval",
+					color: parseInt(sS.c['orange'].h, 16),
+					timestamp: new Date(),
+					fields: [{
+						name: "Description",
+						value: "Stops Automatic Backups."
+					}, {
+						name: "Example",
+						value: "@forgeTest ~clearbackupinterval or ~clearbackupinterval in a server managment channel."
+					}]
+				}
+			}
+		}]
+	},
 	startBackupInterval: function(vars) {
 		return [{
 			console: `${sS.c[sS.modules['backup'].color].c}Automatic backup's started!${sS.c['reset'].c} Next backup in ${moment(vars.timeToNextBackup).fromNow()}`,
-			ingame: `tellraw ${vars.user} ${JSON.stringify(
+			minecraft: `tellraw ${vars.user} ${JSON.stringify(
 				[{
 					"text": `Automatic backup's started!`,
 					"color": sS.c[sS.modules['backup'].color].m
@@ -270,10 +542,44 @@ const logFunctions = {
 			}
 		}]
 	},
+	startbackupinterval_help: function(vars) {
+		return [{
+				console: `${sS.c['brightWhite'].c}Starts automatic backups. Example ${sS.c['yellow'].c}~startbackupinterval.${sS.c['reset'].c}`,
+				minecraft: `tellraw ${vars.user} ${JSON.stringify(
+				[{
+					"text": `startbackupinterval starts automatic backups. `,
+					"color": sS.c['brightWhite'].m
+				}, {
+					"text": `Example.`,
+					"color": sS.c['white'].m
+					}, {
+					"text": `~startbackupinterval.`,
+					"color": sS.c['yellow'].m
+				}]
+
+			)}\n`,
+			discord : {
+				string: null,
+				embed: {
+					title: "start backup interval",
+					description: "~startbackupinterval",
+					color: parseInt(sS.c['orange'].h, 16),
+					timestamp: new Date(),
+					fields: [{
+						name: "Description",
+						value: "Starts Automatic Backups."
+					}, {
+						name: "Example",
+						value: "@forgeTest ~startbackupinterval or ~startbackupinterval in a server managment channel."
+					}]
+				}
+			}
+		}]
+	},
 	loadSettings: function(vars) {
 		return [{
 			console: `${sS.c['brightCyan'].c}Loaded settings${sS.c['reset'].c}`,
-			ingame: `tellraw ${vars.user} ${JSON.stringify(
+			minecraft: `tellraw ${vars.user} ${JSON.stringify(
 				{
 					"text": `Loaded settings`,
 					"color": sS.c['brightCyan'].m
@@ -296,7 +602,7 @@ const logFunctions = {
 	saveSettings: function(vars) {
 		return [{
 			console: `${sS.c['brightCyan'].c}Saved settings${sS.c['reset'].c}`,
-			ingame: `tellraw ${vars.user} ${JSON.stringify(
+			minecraft: `tellraw ${vars.user} ${JSON.stringify(
 				{
 					"text": `Saved settings`,
 					"color": sS.c['brightCyan'].m
@@ -316,10 +622,11 @@ const logFunctions = {
 			}
 		}]
 	},
+
 	backupSettings: function(vars) {
 		return [{
 			console: `${sS.c['brightCyan'].c}Backed up settings${sS.c['reset'].c}`,
-			ingame: `tellraw ${vars.user} ${JSON.stringify(
+			minecraft: `tellraw ${vars.user} ${JSON.stringify(
 				{
 					"text": `Backed up settings`,
 					"color": sS.c['brightCyan'].m
@@ -342,7 +649,7 @@ const logFunctions = {
 	loadModuleFunctions: function(vars) {
 		return [{
 			console: `${sS.c['brightCyan'].c}Loaded${sS.c['reset'].c} ${vars.color.c}${vars.name}${sS.c['reset'].c}'s functions`,
-			ingame: `tellraw ${vars.user} ${JSON.stringify(
+			minecraft: `tellraw ${vars.user} ${JSON.stringify(
 				[{
 					"text": `Loaded `,
 					"color": sS.c['brightCyan'].m
@@ -368,10 +675,43 @@ const logFunctions = {
 			}
 		}]
 	},
+	loadmodule_help: function(vars) {
+		return [{
+				console: `${sS.c['brightWhite'].c}Loads any given module. Example ${sS.c['yellow'].c}~loadmodule discord.${sS.c['reset'].c}`,
+				minecraft: `tellraw ${vars.user} ${JSON.stringify(
+				[{
+					"text": `Loads any given module. `,
+					"color": sS.c['brightWhite'].m
+				}, {
+					"text": `Example.`,
+					"color": sS.c['white'].m
+					}, {
+					"text": `~loadmodule discord.`,
+					"color": sS.c['yellow'].m
+				}]
+			)}\n`,
+			discord : {
+				string: null,
+				embed: {
+					title: "Load Module",
+					description: "~loadmodule discord",
+					color: parseInt(sS.c['orange'].h, 16),
+					timestamp: new Date(),
+					fields: [{
+						name: "Description",
+						value: "Loads any given module."
+					}, {
+						name: "Example",
+						value: "@forgeTest ~loadmodule discord or ~loadmodule discord in a server managment channel."
+					}]
+				}
+			}
+		}]
+	},
 	killModule: function(vars) {
 		return [{
 			console: `${sS.c['brightCyan'].c}Killed module${sS.c['reset'].c}: ${vars.color.c}${vars.name}${sS.c['reset'].c}`,
-			ingame: `tellraw ${vars.user} ${JSON.stringify(
+			minecraft: `tellraw ${vars.user} ${JSON.stringify(
 				[{
 					"text": `Killed module `,
 					"color": sS.c['brightCyan'].m
@@ -394,10 +734,11 @@ const logFunctions = {
 			}
 		}]
 	},
+	//Kill Module Error
 	killModule_notRunning: function(vars) {
 		return [{
 			console: `${sS.c['brightCyan'].c}Module${sS.c['reset'].c} ${vars.color.c}${vars.name}${sS.c['reset'].c} is not running...`,
-			ingame: `tellraw ${vars.user} ${JSON.stringify(
+			minecraft: `tellraw ${vars.user} ${JSON.stringify(
 				[{
 					"text": `Module `,
 					"color": sS.c['brightCyan'].m
@@ -423,10 +764,11 @@ const logFunctions = {
 			}
 		}]
 	},
+	//command not found error
 	commandNotFound: function(vars) {
 		return [{
 			console: `The command "${sS.c['brightRed'].c}${vars.message.string}${sS.c['reset'].c}" could not be matched to a known command...`,
-			ingame: `tellraw ${vars.user} ${JSON.stringify(
+			minecraft: `tellraw ${vars.user} ${JSON.stringify(
 				[{
 					"text": `The command "`,
 					"color": "white"
@@ -455,7 +797,7 @@ const logFunctions = {
 	startModule: function(vars) {
 		return [{
 			console: `${sS.c['brightCyan'].c}Started module${sS.c['reset'].c}: ${vars.color.c}${vars.name}${sS.c['reset'].c}`,
-			ingame: `tellraw ${vars.user} ${JSON.stringify(
+			minecraft: `tellraw ${vars.user} ${JSON.stringify(
 				[{
 					"text": `Started module `,
 					"color": sS.c['brightCyan'].m
@@ -478,10 +820,11 @@ const logFunctions = {
 			}
 		}]
 	},
+	//startmodule error
 	startModule_alreadyRunning: function(vars) {
 		return [{
 			console: `${sS.c['brightCyan'].c}Module${sS.c['reset'].c} ${vars.color.c}${vars.name}${sS.c['reset'].c} is already running...`,
-			ingame: `tellraw ${vars.user} ${JSON.stringify(
+			minecraft: `tellraw ${vars.user} ${JSON.stringify(
 				[{
 					"text": 'Module ',
 					"color": sS.c['brightCyan'].m
@@ -510,7 +853,7 @@ const logFunctions = {
 	enableModule: function(vars) {
 		return [{
 			console: `${sS.c['brightCyan'].c}Enabled module${sS.c['reset'].c}: ${vars.color.c}${vars.name}${sS.c['reset'].c}`,
-			ingame: `tellraw ${vars.user} ${JSON.stringify(
+			minecraft: `tellraw ${vars.user} ${JSON.stringify(
 				[{
 					"text": `Enabled module `,
 					"color": sS.c['brightCyan'].m
@@ -536,7 +879,7 @@ const logFunctions = {
 	disableModule: function(vars) {
 		return [{
 			console: `${sS.c['brightCyan'].c}Disabled module${sS.c['reset'].c}: ${vars.color.c}${vars.name}${sS.c['reset'].c}`,
-			ingame: `tellraw ${vars.user} ${JSON.stringify(
+			minecraft: `tellraw ${vars.user} ${JSON.stringify(
 				[{
 					"text": `Disabled module `,
 					"color": sS.c['brightCyan'].m
@@ -564,6 +907,7 @@ const logFunctions = {
 			discord: { string: `Removed all commands from **${(vars.whitelisted_object.Username) ? vars.whitelisted_object.Username : vars.whitelisted_object.Name}**`, embed: null }
 		}]
 	},
+
 	cw_remove: function(vars) {
 		return [{
 			discord: { string: `Removed command **${vars.args[1]}** from **${(vars.whitelisted_object.Username) ? vars.whitelisted_object.Username : vars.whitelisted_object.Name}**`, embed: null }
@@ -589,7 +933,7 @@ const logFunctions = {
 				}
 			},
 			console: `${ vars.timeToNextBackup ? `${sS.c[sS.modules['backup'].color].c}Next backup ${moment(vars.timeToNextBackup).fromNow()}` : `${sS.c[sS.modules['backup'].color].c}Backups disabled...`}${sS.c['reset'].c}`,
-			ingame: `tellraw ${vars.user} ${JSON.stringify(
+			minecraft: `tellraw ${vars.user} ${JSON.stringify(
 				[{
 					"text": vars.timeToNextBackup ? `Next backup ` : 'Backups disabled...',
 					"color": vars.timeToNextBackup ? '' : sS.c[sS.modules['backup'].color].m
@@ -598,6 +942,39 @@ const logFunctions = {
 					"color": vars.timeToNextBackup ? sS.c[sS.modules['backup'].color].m : ''
 				}]
 			)}\n`
+		}]
+	},
+	nextbackup_help: function(vars) {
+		return [{
+				console: `${sS.c['brightWhite'].c}Tells player when next back up is. Example ${sS.c['yellow'].c}~nextbackup.${sS.c['reset'].c}`,
+				minecraft: `tellraw ${vars.user} ${JSON.stringify(
+				[{
+					"text": `Tells player when next back up is. `,
+					"color": sS.c['brightWhite'].m
+				}, {
+					"text": `Example.`,
+					"color": sS.c['white'].m
+					}, {
+					"text": `~nextbackup.`,
+					"color": sS.c['yellow'].m
+				}]
+			)}\n`,
+			discord : {
+				string: null,
+				embed: {
+					title: "Next Backup",
+					description: "~nextbackup",
+					color: parseInt(sS.c['orange'].h, 16),
+					timestamp: new Date(),
+					fields: [{
+						name: "Description",
+						value: "Tells player when next back up is."
+					}, {
+						name: "Example",
+						value: "@forgeTest ~nextbackup or ~nextbackup in a server managment channel."
+					}]
+				}
+			}
 		}]
 	},
 	backupDir: function(vars) {
@@ -615,7 +992,7 @@ const logFunctions = {
 				}
 			},
 			console: `Saving backups in: ${sS.c[sS.modules['backup'].color].c}${vars.backupDir}${sS.c['reset'].c}`,
-			ingame: `tellraw ${vars.user} ${JSON.stringify(
+			minecraft: `tellraw ${vars.user} ${JSON.stringify(
 				[{
 					"text": `Saving backups in: `,
 					"color": "white"
@@ -624,6 +1001,39 @@ const logFunctions = {
 					"color": sS.c[sS.modules['backup'].color].m
 				}]
 			)}\n`
+		}]
+	},
+	backupdir_help: function(vars) {
+		return [{
+				console: `${sS.c['brightWhite'].c}Shows the directory backups are saved in. Example ${sS.c['yellow'].c}~backupdir.${sS.c['reset'].c}`,
+				minecraft: `tellraw ${vars.user} ${JSON.stringify(
+				[{
+					"text": `Shows the directory backups are saved in. `,
+					"color": sS.c['brightWhite'].m
+				}, {
+					"text": `Example.`,
+					"color": sS.c['white'].m
+					}, {
+					"text": `~backupdir.`,
+					"color": sS.c['yellow'].m
+				}]
+			)}\n`,
+			discord : {
+				string: null,
+				embed: {
+					title: "Next Backup",
+					description: "~backupdir",
+					color: parseInt(sS.c['orange'].h, 16),
+					timestamp: new Date(),
+					fields: [{
+						name: "Description",
+						value: "Shows the directory backups are saved in."
+					}, {
+						name: "Example",
+						value: "@forgeTest ~backupdir or ~backupdir in a server managment channel."
+					}]
+				}
+			}
 		}]
 	},
 	lastBackup: function(vars) {
@@ -641,7 +1051,7 @@ const logFunctions = {
 				}
 			},
 			console: `${(vars.lastBackupStartTime) ? `Last backup happened ${sS.c[sS.modules['backup'].color].c}${moment(vars.lastBackupStartTime).fromNow()}` : `${sS.c[sS.modules['backup'].color].c}No backup has occoured yet...`}${sS.c['reset'].c}`,
-			ingame: `tellraw ${vars.user} ${JSON.stringify(
+			minecraft: `tellraw ${vars.user} ${JSON.stringify(
 				[{
 					"text": `${(vars.lastBackupStartTime) ? 'Last backup happened ' : 'No backup has occoured yet...'}`,
 					"color": (vars.lastBackupStartTime) ? '' : sS.c[sS.modules['backup'].color].m
@@ -650,6 +1060,39 @@ const logFunctions = {
 					"color": (vars.lastBackupStartTime) ? sS.c[sS.modules['backup'].color].m : ''
 				}]
 			)}\n`
+		}]
+	},
+	lastbackup_help: function(vars) {
+		return [{
+				console: `${sS.c['brightWhite'].c}Shows when last backup happened. Example ${sS.c['yellow'].c}~lastbackup.${sS.c['reset'].c}`,
+				minecraft: `tellraw ${vars.user} ${JSON.stringify(
+				[{
+					"text": `Shows when last backup happened. `,
+					"color": sS.c['brightWhite'].m
+				}, {
+					"text": `Example.`,
+					"color": sS.c['white'].m
+					}, {
+					"text": `~lastbackup.`,
+					"color": sS.c['yellow'].m
+				}]
+			)}\n`,
+			discord : {
+				string: null,
+				embed: {
+					title: "Next Backup",
+					description: "~lastbackup",
+					color: parseInt(sS.c['orange'].h, 16),
+					timestamp: new Date(),
+					fields: [{
+						name: "Description",
+						value: "Shows when last backup happened."
+					}, {
+						name: "Example",
+						value: "@forgeTest ~lastbackup or ~lastbackup in a server managment channel."
+					}]
+				}
+			}
 		}]
 	},
 	listModules: function(vars) {
@@ -711,11 +1154,12 @@ const logFunctions = {
 			};
 		}).concat([{
 			discord: ``,
-			ingame: `tellraw ${vars.user} ${JSON.stringify(enabledModulesIng.concat(disabledModulesIng))}\n`,
+			minecraft: `tellraw ${vars.user} ${JSON.stringify(enabledModulesIng.concat(disabledModulesIng))}\n`,
 			console: `\n${sS.c['brightCyan'].c}Enabled wrapper modules${sS.c['reset'].c}: ${enabledModules}\n`+`${sS.c['brightCyan'].c}Disabled wrapper modules${sS.c['reset'].c}: ${disabledModules}\n`
 		}])
 	}
-}
+};
+
 
 function parseDuration(startTime, endTime) {
 	let duration = moment.duration(endTime.diff(startTime));
@@ -730,7 +1174,7 @@ function parseDuration(startTime, endTime) {
 }
 
 function logOut(logObj) {
-	if (!logObj.logTo) logObj.logTo = { console: true, discord: false, ingame: false }
+	if (!logObj.logTo) logObj.logTo = { console: true, discord: false, minecraft: false }
 	for (logInfo in logObj.logInfoArray) {
 		logInfo = logObj.logInfoArray[logInfo]
 		if (!logInfo || !logInfo.function) debug(`Invalid logInfo passed!! ${logInfo}`)
@@ -740,7 +1184,7 @@ function logOut(logObj) {
 			var logStrings = logFunctions[logInfo.function](logInfo.vars);
 			logStrings.forEach(function(logString) {
 				if (logObj.logTo.console && logString.console) process.stdout.write(logString.console+'\n');
-				if (logObj.logTo.ingame && logString.ingame) process.send({ function: 'serverStdin', string: logString.ingame });
+				if (logObj.logTo.minecraft && logString.minecraft) process.send({ function: 'serverStdin', string: logString.minecraft });
 				if (logObj.logTo.discord && logString.discord) process.send({
 					function: 'unicast',
 					module: 'discord',

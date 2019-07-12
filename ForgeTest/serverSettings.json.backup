@@ -1,0 +1,315 @@
+{
+  "serverName": "ForgeTest",
+  "jar": "forge-1.12.2-14.23.5.2814-universal.jar",
+  "minRamAllocation": "2G",
+  "maxRamAllocation": "2G",
+  "serverStartVars": [
+    "-server",
+    "-XX:+UseG1GC",
+    "-Dsun.rmi.dgc.server.gcInterval=2147483646",
+    "-XX:+UnlockExperimentalVMOptions",
+    "-XX:MaxGCPauseMillis=50",
+    "-XX:+DisableExplicitGC",
+    "-XX:TargetSurvivorRatio=90",
+    "-XX:G1NewSizePercent=30",
+    "-XX:G1HeapRegionSize=32M",
+    "-XX:G1MaxNewSizePercent=80",
+    "-XX:G1MixedGCLiveThresholdPercent=35",
+    "-XX:+ParallelRefProcEnabled",
+    "-XX:ParallelGCThreads=8",
+    "-XX:ConcGCThreads=8"
+  ],
+  "serverPostfixVars": [
+    "nogui",
+    "-Dfml.queryResult=confirm",
+    "-Dfml.readTimeout=180"
+  ],
+  "modulesDir": "../",
+  "modules": {
+    "nbt": {
+      "file": "nbt.js",
+      "enabled": true,
+      "color": "yellow",
+      "import": false,
+      "description": "Gives the server data files the good touch...",
+      "settings": {}
+    },
+    "math": {
+      "file": "math.js",
+      "enabled": true,
+      "color": "brightMagenta",
+      "import": false,
+      "description": "Handles advaced math problems.",
+      "settings": {}
+    },
+    "log": {
+      "file": "log.js",
+      "enabled": true,
+      "color": "white",
+      "import": false,
+      "description": "Handles all command output, hey you're using this now!",
+      "settings": {}
+    },
+    "stats": {
+      "file": "stats.js",
+      "enabled": true,
+      "color": "brightYellow",
+      "import": false,
+      "description": "Displays server stats on console window.",
+      "settings": {
+        "pollRate": 2000
+      }
+    },
+    "discord": {
+      "file": "discord.js",
+      "enabled": true,
+      "color": "brightBlue",
+      "discordColor": "discordBlue",
+      "import": false,
+      "description": "Handles all things discord.",
+      "settings": {
+        "messageFlushRate": 100,
+        "discord_token": "NDg3ODExOTkwNTMwNTU1OTA0.XSQ-uQ.0lUQcpbDT2la13756Tf65iijgrs",
+        "management_channel_id": "475502976656736257"
+      }
+    },
+    "backup": {
+      "file": "backup.js",
+      "enabled": true,
+      "color": "brightRed",
+      "import": false,
+      "description": "Runs server backups.",
+      "settings": {
+        "serverWorldFolder": "Cookies",
+        "rootBackupDir": "/mnt/redlive/LiveArchives/",
+        "overrideBackupDir": "",
+        "backupIntervalInHours": 0.5,
+        "threads": 1
+      }
+    },
+    "command": {
+      "file": "command.js",
+      "enabled": true,
+      "color": "brightGreen",
+      "import": false,
+      "description": "Handles all wrapper/server commands and their permissions.",
+      "settings": {
+        "whitelisted_discord_roles": {
+          "344286675691896832": {
+            "Name": "Mods",
+            "allowedCommands": {
+              "*": {
+                "assignedAt": "2019-03-25T06:49:08.684Z",
+                "assignedBy": {
+                  "Username": "Sir Inrix | <3",
+                  "discord_id": "155530711326130176"
+                },
+                "expiresAt": false,
+                "expired": false
+              }
+            }
+          }
+        },
+        "whitelisted_discord_users": {
+          "155530711326130176": {
+            "Username": "Sir Inrix | <3",
+            "allowedCommands": {
+              "~cw_add": {
+                "assignedAt": "2019-03-24T05:58:04.891Z",
+                "assignedBy": {
+                  "Username": "Sir Inrix | <3",
+                  "discord_id": "155530711326130176"
+                },
+                "expiresAt": false,
+                "expired": false
+              },
+              "~cw_remove": {
+                "assignedAt": "2019-03-24T05:58:19.998Z",
+                "assignedBy": {
+                  "Username": "Sir Inrix | <3",
+                  "discord_id": "155530711326130176"
+                },
+                "expiresAt": false,
+                "expired": false
+              },
+              "*": {
+                "assignedAt": "2019-03-25T06:49:08.684Z",
+                "assignedBy": {
+                  "Username": "Sir Inrix | <3",
+                  "discord_id": "155530711326130176"
+                },
+                "expiresAt": false,
+                "expired": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "properties": {
+      "file": "properties.js",
+      "enabled": true,
+      "color": "cyan",
+      "import": false,
+      "description": "Reads server.properties info",
+      "settings": {
+        "p": {
+          "max-tick-time": 60000,
+          "generator-settings": null,
+          "force-gamemode": false,
+          "allow-nether": true,
+          "gamemode": 0,
+          "broadcast-console-to-ops": true,
+          "enable-query": false,
+          "player-idle-timeout": 0,
+          "difficulty": 1,
+          "spawn-monsters": true,
+          "op-permission-level": 4,
+          "pvp": true,
+          "snooper-enabled": true,
+          "level-type": "DEFAULT",
+          "hardcore": false,
+          "enable-command-block": true,
+          "max-players": 20,
+          "network-compression-threshold": 256,
+          "resource-pack-sha1": null,
+          "max-world-size": 29999984,
+          "server-port": 25586,
+          "server-ip": null,
+          "spawn-npcs": true,
+          "allow-flight": false,
+          "level-name": "Cookies",
+          "view-distance": 10,
+          "resource-pack": null,
+          "spawn-animals": true,
+          "white-list": false,
+          "generate-structures": true,
+          "online-mode": true,
+          "max-build-height": 256,
+          "level-seed": null,
+          "prevent-proxy-connections": false,
+          "use-native-transport": true,
+          "enable-rcon": false,
+          "motd": "A Minecraft Server"
+        }
+      }
+    }
+  },
+  "c": {
+    "reset": {
+      "c": "\u001b[0m",
+      "h": "",
+      "m": "white",
+      "mc": "§r"
+    },
+    "black": {
+      "c": "\u001b[30;1m",
+      "h": "000000",
+      "m": "black",
+      "mc": "§0"
+    },
+    "red": {
+      "c": "\u001b[31;1m",
+      "h": "800000",
+      "m": "dark_red",
+      "mc": "§4"
+    },
+    "green": {
+      "c": "\u001b[32;1m",
+      "h": "008000",
+      "m": "dark_green",
+      "mc": "§2"
+    },
+    "yellow": {
+      "c": "\u001b[33;1m",
+      "h": "808000",
+      "m": "gold",
+      "mc": "§6"
+    },
+    "blue": {
+      "c": "\u001b[34;1m",
+      "h": "000080",
+      "m": "dark_blue",
+      "mc": "§1"
+    },
+    "magenta": {
+      "c": "\u001b[35;1m",
+      "h": "800080",
+      "m": "dark_purple",
+      "mc": "§5"
+    },
+    "cyan": {
+      "c": "\u001b[36;1m",
+      "h": "008080",
+      "m": "dark_aqua",
+      "mc": "§3"
+    },
+    "white": {
+      "c": "\u001b[37;1m",
+      "h": "c0c0c0",
+      "m": "gray",
+      "mc": "§7"
+    },
+    "brightBlack": {
+      "c": "\u001b[90;1m",
+      "h": "808080",
+      "m": "dark_gray",
+      "mc": "§8"
+    },
+    "brightRed": {
+      "c": "\u001b[91;1m",
+      "h": "ff0000",
+      "m": "red",
+      "mc": "§c"
+    },
+    "brightGreen": {
+      "c": "\u001b[92;1m",
+      "h": "00ff00",
+      "m": "green",
+      "mc": "§a"
+    },
+    "brightYellow": {
+      "c": "\u001b[93;1m",
+      "h": "ffff00",
+      "m": "yellow",
+      "mc": "§e"
+    },
+    "brightBlue": {
+      "c": "\u001b[94;1m",
+      "h": "0000ff",
+      "m": "blue",
+      "mc": "§9"
+    },
+    "brightMagenta": {
+      "c": "\u001b[95;1m",
+      "h": "ff00ff",
+      "m": "light_purple",
+      "mc": "§d"
+    },
+    "brightCyan": {
+      "c": "\u001b[96;1m",
+      "h": "00ffff",
+      "m": "aqua",
+      "mc": "§b"
+    },
+    "brightWhite": {
+      "c": "\u001b[97;1m",
+      "h": "ffffff",
+      "m": "white",
+      "mc": "§f"
+    },
+    "discordBlue": {
+      "c": "",
+      "h": "7289da",
+      "m": "",
+      "mc": ""
+    },
+    "orange": {
+      "c": "\u001b[38;5;208m",
+      "h": "e77c02",
+      "m": "",
+      "mc": ""
+    }
+  },
+  "server_dir": "/home/hotpink/wrapperModules/ForgeTest"
+}

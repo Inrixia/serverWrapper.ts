@@ -1,4 +1,4 @@
-// Import core packages
+// Import core packages 
 const properties = require('properties');
 
 // Set defaults

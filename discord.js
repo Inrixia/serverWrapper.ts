@@ -118,6 +118,7 @@ discord.on('message', message => {
 			message: discordMessage
 		}
 	});
+	// WIP interactive message
 	/*if (message.toString() == '^') {
 		message.channel.send(`
 		${"```"}javascript

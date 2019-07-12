@@ -6,6 +6,19 @@ desktop.ini
 node_modules/
 
 # Testserver Files
-TestServer/world/
-TestServer/Cookies/
-TestServer/logs/
+ForgeTest/world/
+ForgeTest/Cookies/
+ForgeTest/logs/
+ForgeTest/mods/
+ForgeTest/config/
+ForgeTest/.mixin.out/
+ForgeTest/crash-reports/
+ForgeTest/libraries/
+ForgeTest/local/
+ForgeTest/banned*
+ForgeTest/eula.txt
+ForgeTest/*.jar
+ForgeTest/ops.json
+ForgeTest/ServerStart.bat
+ForgeTest/user*
+ForgeTest/whitelist.json
