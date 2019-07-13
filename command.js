@@ -1226,11 +1226,36 @@ function loadCommands() {
 		},
 		description: {
 			grouping: 'Minecraft',
-			summary: ``,
-			console: ``,
-			minecraft: {
-
-			},
+			summary: `Teleports player to a specified region`,
+			console: `${sS.c['white'].c}Teleports player to region coordinates. ${sS.c['brightWhite'].c}Example: ~tpr ${sS.c['yellow'].c}10 ${sS.c['yellow'].c}10${sS.c['reset'].c}`,
+			minecraft: [{
+				"text": `tpr teleports players to region coordinates.`,
+				"color": sS.c['white'].m
+			}, {
+				"text": ' \nExample:',
+				"color": sS.c['brightWhite'].m
+			}, {
+				"text": '~tpr',
+				"color": sS.c['brightWhite'].m
+			}, {
+				"text": ' 10',
+				"color": sS.c['yellow'].m
+			}, {
+				"text": ' 10',
+				"color": sS.c['yellow'].m
+			}, {
+				"text": ' Teleports player to coordinates',
+				"color": sS.c['brightWhite'].m
+			}, {
+				"text": ' 5,120',
+				"color": sS.c['yellow'].m
+			}, {
+				"text": ' 100',
+				"color": sS.c['yellow'].m
+			}, {
+				"text": ' 5,120',
+				"color": sS.c['yellow'].m
+			}],
 			discord: {
 
 			}
