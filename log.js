@@ -25,6 +25,73 @@ process.on('message', message => {
 	}
 });
 
+
+
+function parseDuration(startTime, endTime) {
+	let duration = moment.duration(endTime.diff(startTime));
+	let t = {
+		ms: duration.milliseconds(),
+		s: duration.seconds(),
+		m: duration.minutes(),
+		h: duration.hours()
+	}
+	t.ms = t.ms||1; // Make sure we dont have no time passed
+	return `${(t.m>0) ? `${t.m}min, ` : ''}${(t.s>0) ? `${t.s}sec, ` : ''}${(t.ms>0) ? `${t.ms}ms` : ''}`;
+}
+
+function logOut(logObj) {
+	if (!logObj.logTo) logObj.logTo = { console: true, discord: false, minecraft: false }
+	for (logInfo in logObj.logInfoArray) {
+		logInfo = logObj.logInfoArray[logInfo]
+		if (!logInfo || !logInfo.function) debug(`Invalid logInfo passed!! ${logInfo}`)
+		else if (!logFunctions[logInfo.function]) debug(`Missing logging function for ${logInfo.function}!!`)
+		else {
+			logInfo.vars.user = logObj.logTo.user;
+			var logStrings = logFunctions[logInfo.function](logInfo.vars);
+			logStrings.forEach(function(logString) {
+				if (logObj.logTo.console && logString.console) process.stdout.write(logString.console+'\n');
+				if (logObj.logTo.minecraft && logString.minecraft) process.send({ function: 'serverStdin', string: logString.minecraft });
+				if (logObj.logTo.discord && logString.discord) process.send({
+					function: 'unicast',
+					module: 'discord',
+					message: { function: 'discordStdin', string: logString.discord.string, embed: logString.discord.embed, channel: logObj.logTo.discord.channel||null }
+				});
+			})
+		}
+	}
+}
+
+/*
+/ Util Functions
+*/
+
+function debug(stringOut) {
+	try {
+		if (typeof stringOut === 'string') process.stdout.write(`\n\u001b[41mDEBUG>${sS.c['reset'].c} ${stringOut}\n\n`)
+		else {
+			process.stdout.write(`\n\u001b[41mDEBUG>${sS.c['reset'].c}`);
+			console.log(stringOut);
+		}
+	} catch (e) {
+		process.stdout.write(`\n\u001b[41mDEBUG>${sS.c['reset'].c} ${stringOut}\n\n`);
+	}
+}
+
+if (!('toJSON' in Error.prototype))
+Object.defineProperty(Error.prototype, 'toJSON', {
+    value: function () {
+        var alt = {};
+
+        Object.getOwnPropertyNames(this).forEach(function (key) {
+            alt[key] = this[key];
+        }, this);
+
+        return alt;
+    },
+    configurable: true,
+    writable: true
+});
+
 /*
 / Discord embed object
 / https://anidiots.guide/first-bot/using-embeds-in-messages
@@ -32,10 +99,17 @@ process.on('message', message => {
 */
 
 const logFunctions = {
+	help: function(vars) {
+		return [{
+			console: vars.console,
+			minecraft: `tellraw ${vars.user} ${JSON.stringify(vars.minecraft)}\n`,
+			discord: vars.discord
+		}]
+	},
 	error: function(vars) {
 		return [{
 			console: `${vars.niceName ? `${sS.c['brightRed'].c}${vars.niceName}${sS.c['reset'].c} ` : ''}${vars.err.message}\n${vars.err.stack}`,
-			ingame: `tellraw ${vars.user} ${JSON.stringify(
+			minecraft: `tellraw ${vars.user} ${JSON.stringify(
 				[{
 					"text": `${vars.niceName||''}\n`,
 					"color": sS.c['brightRed'].m
@@ -60,17 +134,17 @@ const logFunctions = {
 	},
 	tpc: function(vars) {
 		return [{
-			ingame: `tp ${vars.user} ${vars.args[1]*16} 100 ${vars.args[2]*16}\n`
+			minecraft: `tp ${vars.user} ${vars.args[1]*16} 100 ${vars.args[2]*16}\n`
 		}]
 	},
 	tpr: function(vars) {
 		return [{
-			ingame: `tp ${vars.user} ${vars.args[1]*512} 100 ${vars.args[2]*512}\n`
+			minecraft: `tp ${vars.user} ${vars.args[1]*512} 100 ${vars.args[2]*512}\n`
 		}]
 	},
 	qm: function(vars) {
 		return [{
-			ingame: `tellraw ${vars.user} ${JSON.stringify(
+			minecraft: `tellraw ${vars.user} ${JSON.stringify(
 				[{
 					"text": vars.question,
 					"color": "white"
@@ -87,7 +161,7 @@ const logFunctions = {
 	getSpawn: function(vars) {
 		return [{
 			console: `${sS.c[sS.modules['nbt'].color].c}World spawn is ${sS.c['reset'].c}${vars.worldSpawn.x} ${vars.worldSpawn.y} ${vars.worldSpawn.z}`,
-			ingame: `tellraw ${vars.user} ${JSON.stringify(
+			minecraft: `tellraw ${vars.user} ${JSON.stringify(
 				[{
 					"text": `World spawn is `,
 					"color": sS.c[sS.modules['nbt'].color].m
@@ -113,7 +187,7 @@ const logFunctions = {
 	getProperty: function(vars) {
 		return [{
 			console: `${sS.c[sS.modules['properties'].color].c}Property ${sS.c['reset'].c}"${sS.c['brightYellow'].c}${vars.property}${sS.c['reset'].c}"${sS.c['red'].c}:${sS.c['reset'].c} ${sS.c['brightCyan'].c}${vars.propertyValue}${sS.c['reset'].c}`,
-			ingame: `tellraw ${vars.user} ${JSON.stringify(
+			minecraft: `tellraw ${vars.user} ${JSON.stringify(
 				[{
 					"text": `Property `,
 					"color": sS.c[sS.modules['properties'].color].m
@@ -152,14 +226,14 @@ const logFunctions = {
 		}]
 	},
 	getProperties: function(vars) {
-		let ingameObj = [{
+		let minecraftObj = [{
 			"text": `Properties: `,
 			"color": sS.c[sS.modules['properties'].color].m
 		}];
 		return [{
 			console: `${sS.c[sS.modules['properties'].color].c}Properties:\n${sS.c['reset'].c}${vars.properties}`,
-			ingame: `tellraw ${vars.user} ${
-				JSON.stringify(ingameObj.concat(Object.keys(vars.properties).map(function(propertyKey) {
+			minecraft: `tellraw ${vars.user} ${
+				JSON.stringify(minecraftObj.concat(Object.keys(vars.properties).map(function(propertyKey) {
 					return [{
 						"text": `\n"`,
 						"color": "white"
@@ -195,10 +269,11 @@ const logFunctions = {
 			}
 		}]
 	},
+	//getProperty error
 	getProperty_undefined: function(vars) {
 		return [{
 			console: `${sS.c[sS.modules['properties'].color].c}Property ${sS.c['reset'].c}${vars.property} does not exist...`,
-			ingame: `tellraw ${vars.user} ${JSON.stringify(
+			minecraft: `tellraw ${vars.user} ${JSON.stringify(
 				[{
 					"text": `Property `,
 					"color": sS.c[sS.modules['properties'].color].m
@@ -224,7 +299,7 @@ const logFunctions = {
 	clearBackupInterval: function(vars) {
 		return [{
 			console: `${sS.c[sS.modules['backup'].color].c}Automatic backup's stopped!${sS.c['reset'].c}`,
-			ingame: `tellraw ${vars.user} ${JSON.stringify(
+			minecraft: `tellraw ${vars.user} ${JSON.stringify(
 				{
 					"text": `Automatic backup's stopped!`,
 					"color": sS.c[sS.modules['backup'].color].m
@@ -247,7 +322,7 @@ const logFunctions = {
 	startBackupInterval: function(vars) {
 		return [{
 			console: `${sS.c[sS.modules['backup'].color].c}Automatic backup's started!${sS.c['reset'].c} Next backup in ${moment(vars.timeToNextBackup).fromNow()}`,
-			ingame: `tellraw ${vars.user} ${JSON.stringify(
+			minecraft: `tellraw ${vars.user} ${JSON.stringify(
 				[{
 					"text": `Automatic backup's started!`,
 					"color": sS.c[sS.modules['backup'].color].m
@@ -273,7 +348,7 @@ const logFunctions = {
 	loadSettings: function(vars) {
 		return [{
 			console: `${sS.c['brightCyan'].c}Loaded settings${sS.c['reset'].c}`,
-			ingame: `tellraw ${vars.user} ${JSON.stringify(
+			minecraft: `tellraw ${vars.user} ${JSON.stringify(
 				{
 					"text": `Loaded settings`,
 					"color": sS.c['brightCyan'].m
@@ -296,7 +371,7 @@ const logFunctions = {
 	saveSettings: function(vars) {
 		return [{
 			console: `${sS.c['brightCyan'].c}Saved settings${sS.c['reset'].c}`,
-			ingame: `tellraw ${vars.user} ${JSON.stringify(
+			minecraft: `tellraw ${vars.user} ${JSON.stringify(
 				{
 					"text": `Saved settings`,
 					"color": sS.c['brightCyan'].m
@@ -319,7 +394,7 @@ const logFunctions = {
 	backupSettings: function(vars) {
 		return [{
 			console: `${sS.c['brightCyan'].c}Backed up settings${sS.c['reset'].c}`,
-			ingame: `tellraw ${vars.user} ${JSON.stringify(
+			minecraft: `tellraw ${vars.user} ${JSON.stringify(
 				{
 					"text": `Backed up settings`,
 					"color": sS.c['brightCyan'].m
@@ -342,7 +417,7 @@ const logFunctions = {
 	loadModuleFunctions: function(vars) {
 		return [{
 			console: `${sS.c['brightCyan'].c}Loaded${sS.c['reset'].c} ${vars.color.c}${vars.name}${sS.c['reset'].c}'s functions`,
-			ingame: `tellraw ${vars.user} ${JSON.stringify(
+			minecraft: `tellraw ${vars.user} ${JSON.stringify(
 				[{
 					"text": `Loaded `,
 					"color": sS.c['brightCyan'].m
@@ -371,7 +446,7 @@ const logFunctions = {
 	killModule: function(vars) {
 		return [{
 			console: `${sS.c['brightCyan'].c}Killed module${sS.c['reset'].c}: ${vars.color.c}${vars.name}${sS.c['reset'].c}`,
-			ingame: `tellraw ${vars.user} ${JSON.stringify(
+			minecraft: `tellraw ${vars.user} ${JSON.stringify(
 				[{
 					"text": `Killed module `,
 					"color": sS.c['brightCyan'].m
@@ -394,10 +469,11 @@ const logFunctions = {
 			}
 		}]
 	},
+	//Kill Module Error
 	killModule_notRunning: function(vars) {
 		return [{
 			console: `${sS.c['brightCyan'].c}Module${sS.c['reset'].c} ${vars.color.c}${vars.name}${sS.c['reset'].c} is not running...`,
-			ingame: `tellraw ${vars.user} ${JSON.stringify(
+			minecraft: `tellraw ${vars.user} ${JSON.stringify(
 				[{
 					"text": `Module `,
 					"color": sS.c['brightCyan'].m
@@ -423,10 +499,11 @@ const logFunctions = {
 			}
 		}]
 	},
+	//command not found error
 	commandNotFound: function(vars) {
 		return [{
 			console: `The command "${sS.c['brightRed'].c}${vars.message.string}${sS.c['reset'].c}" could not be matched to a known command...`,
-			ingame: `tellraw ${vars.user} ${JSON.stringify(
+			minecraft: `tellraw ${vars.user} ${JSON.stringify(
 				[{
 					"text": `The command "`,
 					"color": "white"
@@ -455,7 +532,7 @@ const logFunctions = {
 	startModule: function(vars) {
 		return [{
 			console: `${sS.c['brightCyan'].c}Started module${sS.c['reset'].c}: ${vars.color.c}${vars.name}${sS.c['reset'].c}`,
-			ingame: `tellraw ${vars.user} ${JSON.stringify(
+			minecraft: `tellraw ${vars.user} ${JSON.stringify(
 				[{
 					"text": `Started module `,
 					"color": sS.c['brightCyan'].m
@@ -478,10 +555,11 @@ const logFunctions = {
 			}
 		}]
 	},
+	//startmodule error
 	startModule_alreadyRunning: function(vars) {
 		return [{
 			console: `${sS.c['brightCyan'].c}Module${sS.c['reset'].c} ${vars.color.c}${vars.name}${sS.c['reset'].c} is already running...`,
-			ingame: `tellraw ${vars.user} ${JSON.stringify(
+			minecraft: `tellraw ${vars.user} ${JSON.stringify(
 				[{
 					"text": 'Module ',
 					"color": sS.c['brightCyan'].m
@@ -510,7 +588,7 @@ const logFunctions = {
 	enableModule: function(vars) {
 		return [{
 			console: `${sS.c['brightCyan'].c}Enabled module${sS.c['reset'].c}: ${vars.color.c}${vars.name}${sS.c['reset'].c}`,
-			ingame: `tellraw ${vars.user} ${JSON.stringify(
+			minecraft: `tellraw ${vars.user} ${JSON.stringify(
 				[{
 					"text": `Enabled module `,
 					"color": sS.c['brightCyan'].m
@@ -536,7 +614,7 @@ const logFunctions = {
 	disableModule: function(vars) {
 		return [{
 			console: `${sS.c['brightCyan'].c}Disabled module${sS.c['reset'].c}: ${vars.color.c}${vars.name}${sS.c['reset'].c}`,
-			ingame: `tellraw ${vars.user} ${JSON.stringify(
+			minecraft: `tellraw ${vars.user} ${JSON.stringify(
 				[{
 					"text": `Disabled module `,
 					"color": sS.c['brightCyan'].m
@@ -564,6 +642,7 @@ const logFunctions = {
 			discord: { string: `Removed all commands from **${(vars.whitelisted_object.Username) ? vars.whitelisted_object.Username : vars.whitelisted_object.Name}**`, embed: null }
 		}]
 	},
+
 	cw_remove: function(vars) {
 		return [{
 			discord: { string: `Removed command **${vars.args[1]}** from **${(vars.whitelisted_object.Username) ? vars.whitelisted_object.Username : vars.whitelisted_object.Name}**`, embed: null }
@@ -589,7 +668,7 @@ const logFunctions = {
 				}
 			},
 			console: `${ vars.timeToNextBackup ? `${sS.c[sS.modules['backup'].color].c}Next backup ${moment(vars.timeToNextBackup).fromNow()}` : `${sS.c[sS.modules['backup'].color].c}Backups disabled...`}${sS.c['reset'].c}`,
-			ingame: `tellraw ${vars.user} ${JSON.stringify(
+			minecraft: `tellraw ${vars.user} ${JSON.stringify(
 				[{
 					"text": vars.timeToNextBackup ? `Next backup ` : 'Backups disabled...',
 					"color": vars.timeToNextBackup ? '' : sS.c[sS.modules['backup'].color].m
@@ -615,7 +694,7 @@ const logFunctions = {
 				}
 			},
 			console: `Saving backups in: ${sS.c[sS.modules['backup'].color].c}${vars.backupDir}${sS.c['reset'].c}`,
-			ingame: `tellraw ${vars.user} ${JSON.stringify(
+			minecraft: `tellraw ${vars.user} ${JSON.stringify(
 				[{
 					"text": `Saving backups in: `,
 					"color": "white"
@@ -641,7 +720,7 @@ const logFunctions = {
 				}
 			},
 			console: `${(vars.lastBackupStartTime) ? `Last backup happened ${sS.c[sS.modules['backup'].color].c}${moment(vars.lastBackupStartTime).fromNow()}` : `${sS.c[sS.modules['backup'].color].c}No backup has occoured yet...`}${sS.c['reset'].c}`,
-			ingame: `tellraw ${vars.user} ${JSON.stringify(
+			minecraft: `tellraw ${vars.user} ${JSON.stringify(
 				[{
 					"text": `${(vars.lastBackupStartTime) ? 'Last backup happened ' : 'No backup has occoured yet...'}`,
 					"color": (vars.lastBackupStartTime) ? '' : sS.c[sS.modules['backup'].color].m
@@ -711,73 +790,8 @@ const logFunctions = {
 			};
 		}).concat([{
 			discord: ``,
-			ingame: `tellraw ${vars.user} ${JSON.stringify(enabledModulesIng.concat(disabledModulesIng))}\n`,
+			minecraft: `tellraw ${vars.user} ${JSON.stringify(enabledModulesIng.concat(disabledModulesIng))}\n`,
 			console: `\n${sS.c['brightCyan'].c}Enabled wrapper modules${sS.c['reset'].c}: ${enabledModules}\n`+`${sS.c['brightCyan'].c}Disabled wrapper modules${sS.c['reset'].c}: ${disabledModules}\n`
 		}])
 	}
-}
-
-function parseDuration(startTime, endTime) {
-	let duration = moment.duration(endTime.diff(startTime));
-	let t = {
-		ms: duration.milliseconds(),
-		s: duration.seconds(),
-		m: duration.minutes(),
-		h: duration.hours()
-	}
-	t.ms = t.ms||1; // Make sure we dont have no time passed
-	return `${(t.m>0) ? `${t.m}min, ` : ''}${(t.s>0) ? `${t.s}sec, ` : ''}${(t.ms>0) ? `${t.ms}ms` : ''}`;
-}
-
-function logOut(logObj) {
-	if (!logObj.logTo) logObj.logTo = { console: true, discord: false, ingame: false }
-	for (logInfo in logObj.logInfoArray) {
-		logInfo = logObj.logInfoArray[logInfo]
-		if (!logInfo || !logInfo.function) debug(`Invalid logInfo passed!! ${logInfo}`)
-		else if (!logFunctions[logInfo.function]) debug(`Missing logging function for ${logInfo.function}!!`)
-		else {
-			logInfo.vars.user = logObj.logTo.user;
-			var logStrings = logFunctions[logInfo.function](logInfo.vars);
-			logStrings.forEach(function(logString) {
-				if (logObj.logTo.console && logString.console) process.stdout.write(logString.console+'\n');
-				if (logObj.logTo.ingame && logString.ingame) process.send({ function: 'serverStdin', string: logString.ingame });
-				if (logObj.logTo.discord && logString.discord) process.send({
-					function: 'unicast',
-					module: 'discord',
-					message: { function: 'discordStdin', string: logString.discord.string, embed: logString.discord.embed, channel: logObj.logTo.discord.channel||null }
-				});
-			})
-		}
-	}
-}
-
-/*
-/ Util Functions
-*/
-
-function debug(stringOut) {
-	try {
-		if (typeof stringOut === 'string') process.stdout.write(`\n\u001b[41mDEBUG>${sS.c['reset'].c} ${stringOut}\n\n`)
-		else {
-			process.stdout.write(`\n\u001b[41mDEBUG>${sS.c['reset'].c}`);
-			console.log(stringOut);
-		}
-	} catch (e) {
-		process.stdout.write(`\n\u001b[41mDEBUG>${sS.c['reset'].c} ${stringOut}\n\n`);
-	}
-}
-
-if (!('toJSON' in Error.prototype))
-Object.defineProperty(Error.prototype, 'toJSON', {
-    value: function () {
-        var alt = {};
-
-        Object.getOwnPropertyNames(this).forEach(function (key) {
-            alt[key] = this[key];
-        }, this);
-
-        return alt;
-    },
-    configurable: true,
-    writable: true
-});
+};

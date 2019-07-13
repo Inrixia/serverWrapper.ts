@@ -141,7 +141,8 @@
                 "expiresAt": false,
                 "expired": false
               }
-            }
+            },
+            "allowAllCommands": false
           }
         }
       }
@@ -189,8 +190,8 @@
           "level-seed": null,
           "prevent-proxy-connections": false,
           "use-native-transport": true,
-          "enable-rcon": false,
-          "motd": "A Minecraft Server"
+          "motd": "A Minecraft Server",
+          "enable-rcon": false
         }
       }
     }

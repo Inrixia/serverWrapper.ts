@@ -140,8 +140,18 @@
                 },
                 "expiresAt": false,
                 "expired": false
+              },
+              "!list": {
+                "assignedAt": "2019-07-13T08:51:44.802Z",
+                "assignedBy": {
+                  "Username": "Sir Inrix | <3",
+                  "discord_id": "155530711326130176"
+                },
+                "expiresAt": "2019-07-13T08:52:44.801Z",
+                "expired": false
               }
-            }
+            },
+            "allowAllCommands": false
           }
         }
       }

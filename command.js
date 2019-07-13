@@ -268,65 +268,64 @@ function commandMatch(string, commandString) {
 	return false;
 }
 
-function commandWhitelistAdd() {
-	return function(message) {
-		// ~commandwhitelist add !list @Inrix 1 hour
-		// ~commandwhitelist remove !list @Inrix 1 hour
-		if (message.command.mentions.users[0].id) {
-			var whitelisted_object = mS.whitelisted_discord_users[message.command.mentions.users[0].id];
-			whitelisted_object.Username = message.command.mentions.users[0].username;
-		} else if (message.command.mentions.roles[0].id) {
-			var whitelisted_object = mS.whitelisted_discord_roles[message.command.mentions.roles[0].id];
-			whitelisted_object.Name = message.command.mentions.roles[0].name;
-		}
-		if (!whitelisted_object.allowAllCommands) whitelisted_object.allowAllCommands = false;
+function commandWhitelistAdd(message) {
+	// ~commandwhitelist add !list @Inrix 1 hour
+	// ~commandwhitelist remove !list @Inrix 1 hour
+	if (message.mentions.users[0].id) {
+		var whitelisted_object = mS.whitelisted_discord_users[message.mentions.users[0].id];
+		whitelisted_object.Username = message.mentions.users[0].username;
+	} else if (message.mentions.roles[0].id) {
+		var whitelisted_object = mS.whitelisted_discord_roles[message.mentions.roles[0].id];
+		whitelisted_object.Name = message.mentions.roles[0].name;
+	}
+	if (!whitelisted_object.allowAllCommands) whitelisted_object.allowAllCommands = false;
 
-		if (!whitelisted_object.allowedCommands) whitelisted_object.allowedCommands = {}
-		var expiresin = message.args[3] ? new moment().add(message.args[3], message.args[4]) : false;
-		whitelisted_object.allowedCommands[message.args[1].toLowerCase()] = {
-			"assignedAt": new Date(),
-			"assignedBy": {
-				"Username": message.command.author.username,
-				"discord_id": message.command.author.id
-			},
-			"expiresAt": expiresin, // If the user specifies a expiery time set it, otherwise use infinite
-			"expired": false
+	if (!whitelisted_object.allowedCommands) whitelisted_object.allowedCommands = {}
+	var expiresin = message.args[3] ? new moment().add(message.args[3], message.args[4]) : false;
+	whitelisted_object.allowedCommands[message.args[1].toLowerCase()] = {
+		"assignedAt": new Date(),
+		"assignedBy": {
+			"Username": message.author.username,
+			"discord_id": message.author.id
+		},
+		"expiresAt": expiresin, // If the user specifies a expiery time set it, otherwise use infinite
+		"expired": false
+	}
+	saveSettings();
+	return [{
+		function: 'cw_add',
+		vars: {
+			args: message.args,
+			expiresin: expiresin ? expiresin.fromNow() : false,
+			whitelisted_object: whitelisted_object
 		}
+	}]
+}
+
+function commandWhitelistRemove(message) {
+	if (message.args[0] == "~cw_removeall") {
+		let whitelisted_object = mS.whitelisted_discord_users[message.mentions.users[0].id];
+		if (message.mentions.users[0].id) delete mS.whitelisted_discord_users[message.mentions.users[0].id];
+		else if (message.mentions.roles[0].id) delete mS.whitelisted_discord_roles[message.mentions.roles[0].id];
 		saveSettings();
 		return [{
-			function: 'cw_add',
+			function: 'cw_removeall',
 			vars: {
-				args: message.args,
-				expiresin: expiresin ? expiresin.fromNow() : false,
 				whitelisted_object: whitelisted_object
 			}
 		}]
-	}
-}
-
-function commandWhitelistRemove() {
-	return function(message) {
-		if (message.command.mentions.users[0].id) var whitelisted_object = mS.whitelisted_discord_users[message.command.mentions.users[0].id];
-		else if (message.command.mentions.roles[0].id) var whitelisted_object = mS.whitelisted_discord_roles[message.command.mentions.roles[0].id];
-		if (message.args[0] == "~cw_removeall") {
-			delete whitelisted_object;
-			return [{
-				function: 'cw_removeall',
-				vars: {
-					whitelisted_object: whitelisted_object
-				}
-			}]
-		} else {
-			return [{
-				function: 'cw_remove',
-				vars: {
-					args: message.args,
-					whitelisted_object: whitelisted_object
-				}
-			}]
-			delete whitelisted_object.allowedCommands[message.args[1].toLowerCase()];
-		}
+	} else {
+		let whitelisted_object = mS.whitelisted_discord_users[message.mentions.users[0].id].allowedCommands[message.args[1].toLowerCase()];
+		if (message.mentions.users[0].id) delete mS.whitelisted_discord_users[message.mentions.users[0].id].allowedCommands[message.args[1].toLowerCase()];
+		else if (message.mentions.roles[0].id) delete mS.whitelisted_discord_roles[message.mentions.roles[0].id].allowedCommands[message.args[1].toLowerCase()];
 		saveSettings();
+		return [{
+			function: 'cw_remove',
+			vars: {
+				args: message.args,
+				whitelisted_object: whitelisted_object
+			}
+		}]
 	}
 }
 
@@ -388,22 +387,25 @@ function loadCommands() {
 		description: {
 			grouping: 'Wrapper Core',
 			summary: `Returns all commands or gives info on a specific command given.`,
-			console: `${sS.c['brightWhite'].c}Returns all commands or gives info on a specific command given. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~help listmodules ${sS.c['reset'].c}or ${sS.c['yellow'].c}?listmodules${sS.c['reset'].c}`,
+			console: `${sS.c['brightWhite'].c}Returns all commands or gives info on a specific command given. ${sS.c['reset'].c}\nExamples: ${sS.c['yellow'].c}~help ${sS.c['brightBlue'].c}listmodules ${sS.c['reset'].c}\n${sS.c['yellow'].c}?${sS.c['brightBlue'].c}listmodules${sS.c['reset'].c}`,
 			minecraft: [{
 				"text": `Returns all commands or gives info on a specific command given. `,
 				"color": sS.c['brightWhite'].m
 			}, {
-				"text": `Example: `,
+				"text": `Examples: \n`,
 				"color": sS.c['white'].m
 			}, {
-				"text": `~help listmodules`,
+				"text": `~help `,
 				"color": sS.c['yellow'].m
 			}, {
-				"text": ` or `,
-				"color": sS.c['white'].m
+				"text": `listmodules\n`,
+				"color": sS.c['brightBlue'].m
 			}, {
-				"text": `?listmodules`,
+				"text": `?`,
 				"color": sS.c['yellow'].m
+			}, {
+				"text": `listmodules`,
+				"color": sS.c['brightBlue'].m
 			}],
 			discord: {
 				string: null,
@@ -417,7 +419,7 @@ function loadCommands() {
 						value: "Returns all commands or gives info on a specific command given."
 					}, {
 						name: "Examples",
-						value: "~help listmodules **or** ?listmodules"
+						value: "**~help** listmodules\n**?**listmodules"
 					}]
 				}
 			}
@@ -429,22 +431,22 @@ function loadCommands() {
 		description: {
 			grouping: 'Wrapper Core',
 			summary: `Restarts all modules`,
-			console: `${sS.c['brightWhite'].c}Restarts all modules. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~restartallmodules${sS.c['reset'].c}`,
+			console: `${sS.c['brightWhite'].c}Restarts all modules. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~restartAllModules${sS.c['reset'].c}`,
 			minecraft: [{
 				"text": `Restarts all modules. `,
 				"color": sS.c['brightWhite'].m
 			}, {
-				"text": `Example:`,
+				"text": `Example: `,
 				"color": sS.c['white'].m
 				}, {
-				"text": `~restartallmodules.`,
+				"text": `~restartAllModules`,
 				"color": sS.c['yellow'].m
 			}],
 			discord: {
 				string: null,
 				embed: {
 					title: "Restart All Modules",
-					description: "~restartallmodules",
+					description: "~restartAllModules",
 					color: parseInt(sS.c['orange'].h, 16),
 					timestamp: new Date(),
 					fields: [{
@@ -452,7 +454,7 @@ function loadCommands() {
 						value: "Restarts all modules."
 					}, {
 						name: "Example",
-						value: "~restartallmodules"
+						value: "**~restartAllModules**"
 					}]
 				}
 			}
@@ -463,22 +465,22 @@ function loadCommands() {
 		description: {
 			grouping: 'Wrapper Core',
 			summary: `Stops and unloads all modules.`,
-			console: `${sS.c['brightWhite'].c}Stops and unloads all modules except command and log. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~unloadallmodules${sS.c['reset'].c}`,
+			console: `${sS.c['brightWhite'].c}Stops and unloads all modules except command and log. ${sS.c['reset'].c}\nExample: ${sS.c['yellow'].c}~unloadAllModules${sS.c['reset'].c}`,
 			minecraft: [{
-				"text": `Stops and unloads all modules except command and log. `,
+				"text": `Stops and unloads all modules except command and log.\n`,
 				"color": sS.c['brightWhite'].m
 			}, {
-				"text": `Example:`,
+				"text": `Example: `,
 				"color": sS.c['white'].m
 				}, {
-				"text": `~unloadallmodules.`,
+				"text": `~unloadAllModules`,
 				"color": sS.c['yellow'].m
 			}],
 			discord: {
 				string: null,
 				embed: {
 					title: "Unload All Modules",
-					description: "~unloadallmodules",
+					description: "~unloadAllModules",
 					color: parseInt(sS.c['orange'].h, 16),
 					timestamp: new Date(),
 					fields: [{
@@ -486,7 +488,7 @@ function loadCommands() {
 						value: "Stops and unloads all modules except command and log."
 					}, {
 						name: "Example",
-						value: "~unloadallmodules."
+						value: "**~unloadAllModules**"
 					}]
 				}
 			}
@@ -497,22 +499,22 @@ function loadCommands() {
 		description: {
 			grouping: 'Wrapper Core',
 			summary: `Reloads and restarts all modules.`,
-			console: `${sS.c['brightWhite'].c}Reloads and restarts all modules. Will load and run any changes to modules. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~reloadmodules{sS.c['reset'].c}`,
+			console: `${sS.c['brightWhite'].c}Reloads and restarts all modules. Will load and run any changes to modules. ${sS.c['reset'].c}\nExample: ${sS.c['yellow'].c}~reloadModules${sS.c['reset'].c}`,
 			minecraft: [{
-					"text": `Reloads and restarts all modules. Will load and run any changes to modules. `,
+					"text": `Reloads and restarts all modules. `,
 					"color": sS.c['brightWhite'].m
 				}, {
-					"text": `Example:`,
+					"text": `Example: `,
 					"color": sS.c['white'].m
 					}, {
-					"text": `~reloadmodules.`,
+					"text": `~reloadModules`,
 					"color": sS.c['yellow'].m
 				}],
 			discord: {
 				string: null,
 				embed: {
 					title: "Reload Modules",
-					description: "~reloadmodules",
+					description: "~reloadModules",
 					color: parseInt(sS.c['orange'].h, 16),
 					timestamp: new Date(),
 					fields: [{
@@ -520,7 +522,7 @@ function loadCommands() {
 						value: "Reloads and restarts all modules. Will load and run any changes to modules."
 					}, {
 						name: "Example",
-						value: "~reloadmodules."
+						value: "**~reloadModules**"
 					}]
 				}
 			}
@@ -530,31 +532,31 @@ function loadCommands() {
 		name: 'listModules', exeFunc: command.toWrapper(),
 		description: {
 			grouping: 'Wrapper Core',
-			summary: `Shows status of all modules currently installed in the wrapper.`,
-			console: `${sS.c['brightWhite'].c}Shows status of all modules currently installed in the wrapper. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~listmodules${sS.c['reset'].c}`,
+			summary: `Gets status of all modules currently installed in the wrapper.`,
+			console: `${sS.c['brightWhite'].c}Gets status of all modules currently installed. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~listModules${sS.c['reset'].c}`,
 			minecraft: [{
-				"text": `Lists all modules currently insalled in the wrapper.`,
+				"text": `Gets status of all modules currently insalled. `,
 				"color": sS.c['brightWhite'].m
 			}, {
-				"text": `Example:`,
+				"text": `Example: `,
 				"color": sS.c['white'].m
 				}, {
-				"text": `~listmodules`,
+				"text": `~listModules`,
 				"color": sS.c['yellow'].m
 			}],
 			discord: {
 				string: null,
 				embed: {
 					title: "List Modules",
-					description: "~listmodules",
+					description: "~listModules",
 					color: parseInt(sS.c['orange'].h, 16),
 					timestamp: new Date(),
 					fields: [{
 						name: "Description",
-						value: "Shows status of all modules currently installed in the wrapper."
+						value: "Gets status of all modules currently installed."
 					}, {
 						name: "Example",
-						value: "~listmudles."
+						value: "**~listModules**"
 						}]
 					}
 				}
@@ -565,22 +567,22 @@ function loadCommands() {
 		description: {
 			grouping: 'Wrapper Core',
 			summary: `Enables any given module.`,
-			console: `${sS.c['brightWhite'].c}Enables any given module. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~enablemodule discord${sS.c['reset'].c}`,
+			console: `${sS.c['brightWhite'].c}Enables any given module and saves settings if true. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~enableModule ${sS.c['brightBlue'].c}discord ${sS.c['orange'].c}true${sS.c['reset'].c}`,
 			minecraft: [{
-				"text": `Enables any given module. `,
+				"text": `Enables any given module and saves settings if true. `,
 				"color": sS.c['brightWhite'].m
 			}, {
-				"text": `Example:`,
+				"text": `Example: `,
 				"color": sS.c['white'].m
 				}, {
-				"text": `~enablemodule discord.`,
+				"text": `~enableModule discord`,
 				"color": sS.c['yellow'].m
 			}],
 			discord: {
 				string: null,
 				embed: {
 					title: "Enable Module",
-					description: "~enablemodule discord",
+					description: "~enableModule",
 					color: parseInt(sS.c['orange'].h, 16),
 					timestamp: new Date(),
 					fields: [{
@@ -588,7 +590,7 @@ function loadCommands() {
 						value: "Enables any given module. Excepts an optional parameter (true), Saves the change made to any setting."
 					}, {
 						name: "Example",
-						value: "~enablemodule discord."
+						value: "**~enableModule** discord true"
 					}]
 				}
 			}
@@ -599,22 +601,28 @@ function loadCommands() {
 		description: {
 			grouping: 'Wrapper Core',
 			summary: `Disables any given module.`,
-			console: `${sS.c['brightWhite'].c}Disables any given module. Excepts an optional parameter which if true, saves the updated settings. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~disablemodule discord true${sS.c['reset'].c}`,
+			console: `${sS.c['brightWhite'].c}Disables any given module and saves settings if true. ${sS.c['reset'].c}\nExample: ${sS.c['yellow'].c}~disableModule ${sS.c['brightBlue'].c}discord ${sS.c['orange'].c}true${sS.c['reset'].c}`,
 			minecraft: [{
-					"text": `Disables any given module. Excepts an optional parameter which if true, saves the updated settings.`,
+					"text": `Disables any given module and saves settings if true.\n`,
 					"color": sS.c['brightWhite'].m
 				}, {
-					"text": `Example:`,
+					"text": `Example: `,
 					"color": sS.c['white'].m
 					}, {
-					"text": `~diablemodule discord true.`,
+					"text": `~disableModule `,
+					"color": sS.c['yellow'].m
+				}, {
+					"text": `discord `,
+					"color": sS.c['brightBlue'].m
+				}, {
+					"text": `true`,
 					"color": sS.c['yellow'].m
 				}],
 			discord: {
 				string: null,
 				embed: {
 					title: "Disable Module",
-					description: "~diablemodule discord",
+					description: "~disableModule",
 					color: parseInt(sS.c['orange'].h, 16),
 					timestamp: new Date(),
 					fields: [{
@@ -622,7 +630,7 @@ function loadCommands() {
 						value: "Disables any given module. Excepts an optional parameter which if true, saves the updated settings."
 					}, {
 						name: "Example",
-						value: "~diablemodule discord true."
+						value: "**~disableModule** discord true"
 					}]
 				}
 			}
@@ -633,22 +641,25 @@ function loadCommands() {
 		description: {
 			grouping: 'Wrapper Core',
 			summary: `Reloads any given module.`,
-			console: `${sS.c['brightWhite'].c}Reloads any given module. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~reloadmodule discord.${sS.c['reset'].c}`,
+			console: `${sS.c['brightWhite'].c}Reloads any given module. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~reloadModule ${sS.c['brightBlue'].c}discord${sS.c['reset'].c}`,
 			minecraft: [{
 				"text": `Reloads any given module. `,
 				"color": sS.c['brightWhite'].m
 			}, {
-				"text": `Example:`,
+				"text": `Example: `,
 				"color": sS.c['white'].m
 				}, {
-				"text": `~reloadmodule discord.`,
+				"text": `~reloadModule `,
 				"color": sS.c['yellow'].m
+			}, {
+				"text": `discord`,
+				"color": sS.c['brightBlue'].m
 			}],
 			discord: {
 				string: null,
 				embed: {
 					title: "Reload Module",
-					description: "~reloadmodule discord",
+					description: "~reloadModule",
 					color: parseInt(sS.c['orange'].h, 16),
 					timestamp: new Date(),
 					fields: [{
@@ -656,7 +667,7 @@ function loadCommands() {
 						value: "Reloads any given module."
 					}, {
 						name: "Example",
-						value: "~reloadmodule discord."
+						value: "**~reloadModule** discord."
 					}]
 				}
 			}
@@ -667,23 +678,25 @@ function loadCommands() {
 		description: {
 			grouping: 'Wrapper Core',
 			summary: `Stops any given module.`,
-			console: `${sS.c['brightWhite'].c}Stops any given module. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~killmodule discord${sS.c['reset'].c}`,
+			console: `${sS.c['brightWhite'].c}Stops any given module. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~killModule ${sS.c['brightBlue'].c}discord${sS.c['reset'].c}`,
 			minecraft: [{
-				"text": `Stops any given module.`,
+				"text": `Stops any given module. `,
 				"color": sS.c['brightWhite'].m
 			}, {
-				"text": `Example:`,
+				"text": `Example: `,
 				"color": sS.c['white'].m
-				}, {
-				"text": `~killmodule discord.`,
+			}, {
+				"text": `~killModule `,
 				"color": sS.c['yellow'].m
-			}]
-		},
+			}, {
+				"text": `discord`,
+				"color": sS.c['brightBlue'].m
+			}],
 			discord: {
 				string: null,
 				embed: {
 					title: "Kill Module",
-					description: "~killmodule discord",
+					description: "~killModule",
 					color: parseInt(sS.c['orange'].h, 16),
 					timestamp: new Date(),
 					fields: [{
@@ -691,32 +704,36 @@ function loadCommands() {
 						value: "Stops any given module."
 					}, {
 						name: "Example",
-						value: "~killmodule discord."
+						value: "**~killModule** discord"
 					}]
 				}
 			}
+		}
 	});
 	new command({
 		name: 'startModule', exeFunc: command.toWrapper(),
 		description: {
 			grouping: 'Wrapper Core',
 			summary: `Starts any given module.`,
-			console: `${sS.c['brightWhite'].c}Starts any given module. ${sS.c['reset'].c}Example:${sS.c['yellow'].c}~startmodule discord.${sS.c['reset'].c}`,
+			console: `${sS.c['brightWhite'].c}Starts any given module. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~startModule ${sS.c['brightBlue'].c}discord${sS.c['reset'].c}`,
 			minecraft: [{
-				"text": `Starts any given module.`,
+				"text": `Starts any given module. `,
 				"color": sS.c['brightWhite'].m
 			}, {
-				"text": `Example:`,
+				"text": `Example: `,
 				"color": sS.c['white'].m
 				}, {
-				"text": `~startmodule discord.`,
+				"text": `~startModule `,
 				"color": sS.c['yellow'].m
+			}, {
+				"text": `discord`,
+				"color": sS.c['brightBlue'].m
 			}],
 			discord: {
 				string: null,
 				embed: {
 					title: "Start Module",
-					description: "~startmodule discord",
+					description: "~startModule",
 					color: parseInt(sS.c['orange'].h, 16),
 					timestamp: new Date(),
 					fields: [{
@@ -724,7 +741,7 @@ function loadCommands() {
 						value: "Starts any given module."
 					}, {
 						name: "Example",
-						value: "~startmodule discord."
+						value: "**~startModule** discord"
 					}]
 				}
 			}
@@ -735,22 +752,25 @@ function loadCommands() {
 		description: {
 			grouping: 'Wrapper Core',
 			summary: `Restarts any given module`,
-			console: `${sS.c['brightWhite'].c}Restarts any given module. ${sS.c['reset'].c}Example:${sS.c['yellow'].c}~restartmodule discord.${sS.c['reset'].c}`,
+			console: `${sS.c['brightWhite'].c}Restarts any given module. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~restartModule ${sS.c['brightBlue'].c}discord${sS.c['reset'].c}`,
 			minecraft: [{
-				"text": `Restarts any given module.`,
+				"text": `Restarts any given module. `,
 				"color": sS.c['brightWhite'].m
 			}, {
-				"text": `Example:`,
+				"text": `Example: `,
 				"color": sS.c['white'].m
 				}, {
-				"text": `~restartmodule discord.`,
+				"text": `~restartModule `,
 				"color": sS.c['yellow'].m
+			}, {
+				"text": `discord`,
+				"color": sS.c['brightBlue'].m
 			}],
 			discord: {
 				string: null,
 				embed: {
 					title: "Restart Module",
-					description: "~restartmodule discord",
+					description: "~restartModule",
 					color: parseInt(sS.c['orange'].h, 16),
 					timestamp: new Date(),
 					fields: [{
@@ -758,7 +778,7 @@ function loadCommands() {
 						value: "Restarts any given module."
 					}, {
 						name: "Example",
-						value: "~restartmodule discord."
+						value: "**~restartModule** discord"
 					}]
 				}
 			}
@@ -769,22 +789,25 @@ function loadCommands() {
 		description: {
 			grouping: 'Wrapper Core',
 			summary: `Loads any given modules functions.`,
-			console: `${sS.c['brightWhite'].c}Loads any given modules functions. ${sS.c['reset'].c}Example:${sS.c['yellow'].c}~loadmodulefunction discord.${sS.c['reset'].c}`,
+			console: `${sS.c['brightWhite'].c}Loads any given modules functions. ${sS.c['reset'].c}\nExample: ${sS.c['yellow'].c}~loadModuleFunctions ${sS.c['brightBlue'].c}discord${sS.c['reset'].c}`,
 			minecraft: [{
-				"text": `Loads any given module functions. `,
+				"text": `Loads any given module functions.\n`,
 				"color": sS.c['brightWhite'].m
 			}, {
-				"text": `Example:`,
+				"text": `Example: `,
 				"color": sS.c['white'].m
 				}, {
-				"text": `~loadmodulefunction discord.`,
+				"text": `~loadModuleFunctions `,
 				"color": sS.c['yellow'].m
+			}, {
+				"text": `discord`,
+				"color": sS.c['brightBlue'].m
 			}],
 			discord: {
 				string: null,
 				embed: {
 					title: "Load Module",
-					description: "~loadmodulefunction discord",
+					description: "~loadModuleFunctions",
 					color: parseInt(sS.c['orange'].h, 16),
 					timestamp: new Date(),
 					fields: [{
@@ -792,7 +815,7 @@ function loadCommands() {
 						value: "Loads any given modules functions."
 					}, {
 						name: "Example",
-						value: "~loadmodulefunction."
+						value: "**~loadModuleFunctions** discord"
 					}]
 				}
 			}
@@ -802,31 +825,31 @@ function loadCommands() {
 		name: 'loadSettings', exeFunc: command.toWrapper(),
 		description: {
 			grouping: 'Wrapper Core',
-			summary: `Load settings will load any changed settings.`,
-			console: `${sS.c['brightWhite'].c}Load settings will load any changed settings. ${sS.c['reset'].c}Example:${sS.c['yellow'].c}~loadsettings${sS.c['reset'].c}`,
+			summary: `Loads wrapper settings file.`,
+			console: `${sS.c['brightWhite'].c}Loads wrapper settings file. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~loadSettings${sS.c['reset'].c}`,
 			minecraft: [{
-				"text": `Load settings will load any changed settings.`,
+				"text": `Loads wrapper settings file. `,
 				"color": sS.c['brightWhite'].m
 			}, {
-				"text": `Example:`,
+				"text": `Example: `,
 				"color": sS.c['white'].m
 				}, {
-				"text": `~loadsettings.`,
+				"text": `~loadSettings`,
 				"color": sS.c['yellow'].m
 			}],
 			discord: {
 				string: null,
 				embed: {
-					title: "load settings",
-					description: "~loadsettings",
+					title: "Load Settings",
+					description: "~loadSettings",
 					color: parseInt(sS.c['orange'].h, 16),
 					timestamp: new Date(),
 					fields: [{
 							name: "Description",
-							value: "Will load any changed settings."
+							value: "Loads wrapper settings file."
 						}, {
 							name: "Example",
-							value: "~loadsettings."
+							value: "**~loadSettings**"
 					}]
 				}
 			}
@@ -837,30 +860,30 @@ function loadCommands() {
 		description: {
 			grouping: 'Wrapper Core',
 			summary: `Backups all settings.`,
-			console: `${sS.c['brightWhite'].c}Backups current wrapper settings to backup settings file. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~backupsettings${sS.c['reset'].c}`,
+			console: `${sS.c['brightWhite'].c}Backups current wrapper settings. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~backupSettings${sS.c['reset'].c}`,
 			minecraft: [{
-				"text": `Backups current wrapper settings to backup settings file. `,
+				"text": `Backups current wrapper settings. `,
 				"color": sS.c['brightWhite'].m
 			}, {
-				"text": `Example:`,
+				"text": `Example: `,
 				"color": sS.c['white'].m
 				}, {
-				"text": `~backupsettings.`,
+				"text": `~backupSettings`,
 				"color": sS.c['yellow'].m
 			}],
 			discord: {
 				string: null,
 				embed: {
 					title: "Backup Settings",
-					description: "~backupsettings",
+					description: "~backupSettings",
 					color: parseInt(sS.c['orange'].h, 16),
 					timestamp: new Date(),
 					fields: [{
 						name: "Description",
-						value: "Backups current wrapper settings to backup settings file."
+						value: "Backups current wrapper settings."
 					}, {
 						name: "Example",
-						value: "~backupsettings."
+						value: "**~backupSettings**"
 					}]
 				}
 			}
@@ -870,31 +893,31 @@ function loadCommands() {
 		name: 'saveSettings', exeFunc: function(message){saveSettings(message.logTo)},
 		description: {
 			grouping: 'Wrapper Core',
-			summary: `Saves current wrapper settings to settings file.`,
-			console: `${sS.c['brightWhite'].c}Saves current wrapper settings to settings file. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~savesettings${sS.c['reset'].c}`,
+			summary: `Saves current wrapper settings.`,
+			console: `${sS.c['brightWhite'].c}Saves current wrapper settings. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~saveSettings${sS.c['reset'].c}`,
 			minecraft: [{
-					"text": `Saves current wrapper settings to settings file. `,
-					"color": sS.c['brightWhite'].m
+				"text": `Saves current wrapper settings. `,
+				"color": sS.c['brightWhite'].m
+			}, {
+				"text": `Example: `,
+				"color": sS.c['white'].m
 				}, {
-					"text": `Example:`,
-					"color": sS.c['white'].m
-					}, {
-					"text": `~savesettings.`,
-					"color": sS.c['yellow'].m
-				}],
+				"text": `~saveSettings`,
+				"color": sS.c['yellow'].m
+			}],
 			discord: {
 				string: null,
 				embed: {
 					title: "Save Settings",
-					description: "~loadsettings",
+					description: "~saveSettings",
 					color: parseInt(sS.c['orange'].h, 16),
 					timestamp: new Date(),
 					fields: [{
 						name: "Description",
-						value: "Saves current wrapper settings to settings file."
+						value: "Saves current wrapper settings."
 					}, {
 						name: "Example",
-						value: "~savesettings."
+						value: "**~saveSettings**"
 					}]
 				}
 			}
@@ -904,44 +927,161 @@ function loadCommands() {
 		name: 'cw_add', exeFunc: function(message){commandWhitelistAdd(message)},
 		description: {
 			grouping: 'Command',
-			summary: ``,
-			console: ``,
-			minecraft: {
-
-			},
+			summary: `Adds given whitelisted command to a discord role or user. For a specific time if given, otherwise infinite.`,
+			console: `${sS.c['white'].c}Adds given whitelisted command to a discord role or user. ${sS.c['reset'].c}\nExamples  [Discord Only]:\n${sS.c['yellow'].c}~cw_add ${sS.c['brightBlue'].c}~listmodules ${sS.c['orange'].c}@DiscordUser ${sS.c['cyan'].c}1 hour\n${sS.c['reset'].c}${sS.c['yellow'].c}~cw_add ${sS.c['brightBlue'].c}!forge tps ${sS.c['orange'].c}@DiscordUser\n${sS.c['reset'].c}${sS.c['yellow'].c}~cw_add ${sS.c['brightBlue'].c}!tp ${sS.c['orange'].c}@DiscordRole ${sS.c['cyan'].c}5.2 minutes\n${sS.c['reset'].c}${sS.c['yellow'].c}~cw_add ${sS.c['brightBlue'].c}~getSpawn ${sS.c['orange'].c}@DiscordRole${sS.c['reset'].c}`,
+			minecraft: [{
+				"text": `Adds given whitelisted command to a discord role or user. For a specific time if given, otherwise infinite.\n`,
+				"color": sS.c['brightWhite'].m
+			}, {
+        "text": `Examples [Discord Only]:\n`,
+        "color": sS.c['white'].m
+    	}, {
+        "text": `~cw_add `,
+        "color": sS.c['yellow'].m
+			}, {
+				"text": `~listmodules `,
+				"color": sS.c['brightBlue'].m
+    	}, {
+        "text": `@DiscordUser `,
+        "color": sS.c['brightRed'].m
+			}, {
+				"text": `1 hour\n`,
+				"color": sS.c['cyan'].m
+    	}, {
+        "text": `~cw_add `,
+        "color": sS.c['yellow'].m
+			}, {
+				"text": `"!forge tps" `,
+				"color": sS.c['brightBlue'].m
+    	}, {
+        "text": `@DiscordUser\n`,
+        "color": sS.c['brightRed'].m
+			}, {
+        "text": `~cw_add `,
+        "color": sS.c['yellow'].m
+			}, {
+				"text": `!tp `,
+				"color": sS.c['brightBlue'].m
+    	}, {
+        "text": `@DiscordRole `,
+        "color": sS.c['brightRed'].m
+			}, {
+				"text": `5.2 minutes\n`,
+				"color": sS.c['cyan'].m
+    	}, {
+        "text": `~cw_add `,
+        "color": sS.c['yellow'].m
+			}, {
+				"text": `~getSpawn `,
+				"color": sS.c['brightBlue'].m
+    	}, {
+        "text": `@DiscordRole `,
+        "color": sS.c['brightRed'].m
+			}],
 			discord: {
-
+				string: null,
+				embed: {
+					title: "Command Whitelist Remove",
+					description: "~cw_removeall",
+					color: parseInt(sS.c['orange'].h, 16),
+					timestamp: new Date(),
+					fields: [{
+						name: "Description",
+						value: "Adds given whitelisted command to a discord role or user. \nIf a time is specified the user/role will have access to the command for that duration. Otherwise the permission is given with no expiry."
+					}, {
+						name: "Examples [Discord Only]:",
+						value: `**~cw_add** ~listModules @DiscordUser 1 hour\n**~cw_add** "forge tps" @DiscordUser\n**~cw_add** !tp @DiscordRole 5.2 minutes\n**~cw_add** ~getSpawn @DiscordRole`
+					}]
+				}
 			}
 		}
 	});
 	new command({
-		name: 'cw_remove', exeFunc: function(message){commandWhitelistAdd(message)},
+		name: 'cw_remove', exeFunc: function(message){commandWhitelistRemove(message)},
 		description: {
 			grouping: 'Command',
-			summary: ``,
-			console: ``,
-			minecraft: {
-
-			},
+			summary: `Removes given whitelisted commands from a discord role or user.`,
+			console: `${sS.c['white'].c}Removes given whitelisted commands from a discord role or user. ${sS.c['reset'].c}\nExamples:\n${sS.c['yellow'].c}~cw_remove ${sS.c['brightBlue'].c}@DiscordUser ${sS.c['brightWhite'].c}\n${sS.c['yellow'].c}~cw_remove ${sS.c['brightBlue'].c}@DiscordRole${sS.c['reset'].c}`,
+			minecraft: [{
+				"text": `Removes given whitelisted commands from a discord role or user.\n`,
+				"color": sS.c['brightWhite'].m
+			}, {
+        "text": `Examples:\n`,
+        "color": sS.c['white'].m
+    	}, {
+        "text": `~cw_remove `,
+        "color": sS.c['yellow'].m
+			}, {
+				"text": `@DiscordUser\n`,
+				"color": sS.c['brightBlue'].m
+    	}, {
+        "text": `~cw_remove `,
+        "color": sS.c['yellow'].m
+			}, {
+				"text": `@DiscordUser`,
+				"color": sS.c['brightBlue'].m
+    	}],
 			discord: {
-
+				string: null,
+				embed: {
+					title: "Command Whitelist Remove",
+					description: "~cw_removeall",
+					color: parseInt(sS.c['orange'].h, 16),
+					timestamp: new Date(),
+					fields: [{
+						name: "Description",
+						value: "Removes given whitelisted commands from a discord role or user."
+					}, {
+						name: "Example",
+						value: "**~cw_remove** @DiscordUser\n**~cw_remove** @DiscordRole"
+					}]
+				}
 			}
 		}
-	});
+	}),
 	new command({
-		name: 'cw_removeall', exeFunc: function(message){commandWhitelistAdd(message)},
+		name: 'cw_removeall', exeFunc: function(message){commandWhitelistRemove(message)},
 		description: {
 			grouping: 'Command',
-			summary: ``,
-			console: ``,
-			minecraft: {
-
-			},
+			summary: `Removes all whitelisted commands from a discord role or user.`,
+			console: `${sS.c['white'].c}Removes all whitelisted commands from a discord role or user. ${sS.c['reset'].c}\nExample: ${sS.c['yellow'].c}~cw_removeall ${sS.c['brightBlue'].c}@DiscordUser\n${sS.c['yellow'].c}~cw_removeall ${sS.c['brightBlue'].c}@DiscordRole${sS.c['reset'].c}`,
+			minecraft: [{
+				"text": `Removes all whitelisted commands from a discord role or user.\n`,
+				"color": sS.c['brightWhite'].m
+			}, {
+        "text": `Examples:\n`,
+        "color": sS.c['white'].m
+    	}, {
+        "text": `~cw_removeall `,
+        "color": sS.c['yellow'].m
+			}, {
+				"text": `@DiscordUser\n`,
+				"color": sS.c['brightBlue'].m
+    	}, {
+        "text": `~cw_removeall `,
+        "color": sS.c['yellow'].m
+			}, {
+				"text": `@DiscordUser`,
+				"color": sS.c['brightBlue'].m
+    	}],
 			discord: {
-
+				string: null,
+				embed: {
+					title: "Command Whitelist Remove-All",
+					description: "~cw_removeall",
+					color: parseInt(sS.c['orange'].h, 16),
+					timestamp: new Date(),
+					fields: [{
+						name: "Description",
+						value: "Removes all whitelisted commands from a discord role or user."
+					}, {
+						name: "Examples",
+						value: "**~cw_removeall** @DiscordUser\n**~cw_removeall** @DiscordRole"
+					}]
+				}
 			}
 		}
-	});
+	}),
 
 	// backup commands
 	new command({
@@ -958,31 +1098,71 @@ function loadCommands() {
 		},
 		description: {
 			grouping: 'Backups',
-			summary: ``,
-			console: ``,
-			minecraft: {
-
-			},
+			summary: `Starts a backup.`,
+			console: `${sS.c['white'].c}Starts a backup. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~backup${sS.c['reset'].c}`,
+			minecraft: [{
+				"text": `Starts a backup. `,
+				"color": sS.c['brightWhite'].m
+			}, {
+				"text": 'Example: ',
+				"color": sS.c['white'].m
+			}, {
+				"text": '~backup ',
+				"color": sS.c['yellow'].m
+			}],
 			discord: {
-
+				string: null,
+				embed: {
+					title: "Backup",
+					description: "~backup",
+					color: parseInt(sS.c['orange'].h, 16),
+					timestamp: new Date(),
+					fields: [{
+						name: "Description",
+						value: "Starts a backup."
+					}, {
+						name: "Example",
+						value: "**~backup**"
+					}]
+				}
 			}
 		}
-	});
+	}),
 	new command({
 		name: 'startBackupInterval',
 		exeFunc: function(message){ process.send({ function: 'unicast', module: 'backup', message: {function: 'startBackupInterval', logTo: message.logTo} }) },
 		description: {
 			grouping: 'Backups',
-			summary: ``,
-			console: ``,
-			minecraft: {
-
-			},
+			summary: `Starts automatic backups.`,
+			console: `${sS.c['white'].c}Starts automatic backups. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~startBackupInterval${sS.c['reset'].c}`,
+			minecraft: [{
+				"text": `Starts automatic backups. `,
+				"color": sS.c['brightWhite'].m
+			}, {
+				"text": 'Example: ',
+				"color": sS.c['white'].m
+			}, {
+				"text": '~startBackupInterval ',
+				"color": sS.c['yellow'].m
+			}],
 			discord: {
-
+				string: null,
+				embed: {
+					title: "Start Backup Interval",
+					description: "~startBackupInterval",
+					color: parseInt(sS.c['orange'].h, 16),
+					timestamp: new Date(),
+					fields: [{
+						name: "Description",
+						value: "Starts automatic backups."
+					}, {
+						name: "Example",
+						value: "**~startBackupInterval**"
+					}]
+				}
 			}
 		}
-	});
+	}),
 	new command({
 		name: 'clearBackupInterval',
 		exeFunc: function(message){
@@ -990,16 +1170,36 @@ function loadCommands() {
 		},
 		description: {
 			grouping: 'Backups',
-			summary: ``,
-			console: ``,
-			minecraft: {
-
-			},
+			summary: `Stops automatic backups.`,
+			console: `${sS.c['white'].c}Stops automatic backups. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~clearBackupInterval${sS.c['reset'].c}`,
+			minecraft: [{
+				"text": `Stops automatic backups. `,
+				"color": sS.c['brightWhite'].m
+			}, {
+				"text": 'Example: ',
+				"color": sS.c['white'].m
+			}, {
+				"text": '~clearBackupInterval ',
+				"color": sS.c['yellow'].m
+			}],
 			discord: {
-
+				string: null,
+				embed: {
+					title: "Clear Backup Interval",
+					description: "~clearBackupInterval",
+					color: parseInt(sS.c['orange'].h, 16),
+					timestamp: new Date(),
+					fields: [{
+						name: "Description",
+						value: "Stops automatic backups."
+					}, {
+						name: "Example",
+						value: "**~clearBackupInterval**"
+					}]
+				}
 			}
 		}
-	});
+	}),
 	new command({
 		name: 'setBackupInterval',
 		exeFunc: function(message){
@@ -1016,90 +1216,140 @@ function loadCommands() {
 		},
 		description: {
 			grouping: 'Backups',
-			summary: ``,
-			console: ``,
-			minecraft: {
-
-			},
+			summary: `Sets backup interval.`,
+			console: `${sS.c['white'].c}Sets backup interval. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~setBackupInterval${sS.c['reset'].c}`,
+			minecraft: [{
+				"text": `Sets backup interval. `,
+				"color": sS.c['brightWhite'].m
+			}, {
+				"text": 'Example: ',
+				"color": sS.c['white'].m
+			}, {
+				"text": '~setBackupInterval ',
+				"color": sS.c['yellow'].m
+			}],
 			discord: {
-
+				string: null,
+				embed: {
+					title: "Set Backup Interval",
+					description: "~setBackupInterval",
+					color: parseInt(sS.c['orange'].h, 16),
+					timestamp: new Date(),
+					fields: [{
+						name: "Description",
+						value: "Sets backup interval."
+					}, {
+						name: "Example",
+						value: "**~setBackupInterval**"
+					}]
+				}
 			}
 		}
-	});
+	}),
 
 	//new command({ name: 'backupdir_set', exeFunc: function(message){ process.send({ function: 'unicast', module: 'backup', message: {function: 'setBackupDir', backupDir: message.args[1],save: message.args[2], logTo: message.logTo} }) } });
 	new command({
 		name: 'backupDir',
 		exeFunc: function(message){ process.send({ function: 'unicast', module: 'backup', message: {function: 'getBackupDir', logTo: message.logTo} }) },
 		description: {
-			summary: ``,
-			console: ``,
-			minecraft: {
-
-			},
-			discord: {
-
-			}
-		},
-		description: {
 			grouping: 'Backups',
-			summary: ``,
-			console: ``,
-			minecraft: {
-
-			},
+			summary: `Gets backup directory.`,
+			console: `${sS.c['white'].c}Gets backup directory. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~backupDir${sS.c['reset'].c}`,
+			minecraft: [{
+				"text": `Gets backup directory. `,
+				"color": sS.c['brightWhite'].m
+			}, {
+				"text": 'Example: ',
+				"color": sS.c['white'].m
+			}, {
+				"text": '~backupDir',
+				"color": sS.c['yellow'].m
+			}],
 			discord: {
-
+				string: null,
+				embed: {
+					title: "Get Backup Directory",
+					description: "~backupDir",
+					color: parseInt(sS.c['orange'].h, 16),
+					timestamp: new Date(),
+					fields: [{
+						name: "Description",
+						value: "Gets backup directory."
+					}, {
+						name: "Example",
+						value: "**~backupDir**"
+					}]
+				}
 			}
 		}
-	});
+	}),
 	new command({
 		name: 'nextBackup',
 		exeFunc: function(message){ process.send({ function: 'unicast', module: 'backup', message: {function: 'nextBackup', logTo: message.logTo} }) },
 		description: {
-			summary: ``,
-			console: ``,
-			minecraft: {
-
-			},
-			discord: {
-
-			}
-		},
-		description: {
 			grouping: 'Backups',
-			summary: ``,
-			console: ``,
-			minecraft: {
-
-			},
+			summary: `Gets time to next backup.`,
+			console: `${sS.c['white'].c}Gets time to next backup. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~nextBackup${sS.c['reset'].c}`,
+			minecraft: [{
+				"text": `Gets time to next backup. `,
+				"color": sS.c['brightWhite'].m
+			}, {
+				"text": 'Example: ',
+				"color": sS.c['white'].m
+			}, {
+				"text": '~nextBackup',
+				"color": sS.c['yellow'].m
+			}],
 			discord: {
-
+				string: null,
+				embed: {
+					title: "Next Backup",
+					description: "~nextBackup",
+					color: parseInt(sS.c['orange'].h, 16),
+					timestamp: new Date(),
+					fields: [{
+						name: "Description",
+						value: "Gets time to next backup."
+					}, {
+						name: "Example",
+						value: "**~nextBackup**"
+					}]
+				}
 			}
 		}
-	});
+	}),
 	new command({
 		name: 'lastBackup',
 		exeFunc: function(message){ process.send({ function: 'unicast', module: 'backup', message: {function: 'lastBackup', logTo: message.logTo} }) },
 		description: {
-			summary: ``,
-			console: ``,
-			minecraft: {
-
-			},
+			grouping: 'Minecraft',
+			summary: `Gets last backup info.`,
+			console: `${sS.c['white'].c}Gets last backup info. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~lastBackup${sS.c['reset'].c}`,
+			minecraft: [{
+				"text": `Gets last backup info. `,
+				"color": sS.c['brightWhite'].m
+			}, {
+				"text": `Example: `,
+				"color": sS.c['white'].m
+			}, {
+				"text": `~lastBackup`,
+				"color": sS.c['yellow'].m
+			}],
 			discord: {
-
-			}
-		},
-		description: {
-			grouping: 'Backups',
-			summary: ``,
-			console: ``,
-			minecraft: {
-
-			},
-			discord: {
-
+				string: null,
+				embed: {
+					title: "Last Backup",
+					description: "~lastBackup",
+					color: parseInt(sS.c['orange'].h, 16),
+					timestamp: new Date(),
+					fields: [{
+						name: "Description",
+						value: "Gets last backup info, time etc."
+					}, {
+						name: "Example",
+						value: "**~lastBackup**"
+					}]
+				}
 			}
 		}
 	});
@@ -1109,24 +1359,34 @@ function loadCommands() {
 		name: 'getSpawn',
 		exeFunc: function(message){ process.send({ function: 'unicast', module: 'nbt', message: {function: 'getSpawn', logTo: message.logTo} }) },
 		description: {
-			summary: ``,
-			console: ``,
-			minecraft: {
-
-			},
-			discord: {
-
-			}
-		},
-		description: {
 			grouping: 'Minecraft',
-			summary: ``,
-			console: ``,
-			minecraft: {
-
-			},
+			summary: `Gets server spawn coords.`,
+			console: `${sS.c['white'].c}Gets server spawn coords. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~getSpawn${sS.c['reset'].c}`,
+			minecraft: [{
+				"text": `Gets server spawn coords. `,
+				"color": sS.c['brightWhite'].m
+			}, {
+				"text": `Example: `,
+				"color": sS.c['white'].m
+			}, {
+				"text": `~getSpawn`,
+				"color": sS.c['yellow'].m
+			}],
 			discord: {
-
+				string: null,
+				embed: {
+					title: "Get Spawn Coords",
+					description: "~getSpawn",
+					color: parseInt(sS.c['orange'].h, 16),
+					timestamp: new Date(),
+					fields: [{
+						name: "Description",
+						value: "Gets server spawn coords."
+					}, {
+						name: "Example",
+						value: "**~getSpawn**"
+					}]
+				}
 			}
 		}
 	});
@@ -1146,12 +1406,32 @@ function loadCommands() {
 		description: {
 			grouping: 'Minecraft',
 			summary: ``,
-			console: ``,
-			minecraft: {
-
-			},
+			console: `${sS.c['white'].c}Gets given server property. ${sS.c['brightWhite'].c}\nExample: ${sS.c['yellow'].c}~getProperty server-port${sS.c['reset'].c}`,
+			minecraft: [{
+				"text": `Gets given server property.\n`,
+				"color": sS.c['brightWhite'].m
+			}, {
+				"text": `Example: `,
+				"color": sS.c['white'].m
+			}, {
+				"text": `~getProperty server-port`,
+				"color": sS.c['yellow'].m
+			}],
 			discord: {
-
+				string: null,
+				embed: {
+					title: "Get Server Property",
+					description: "~getProperty",
+					color: parseInt(sS.c['orange'].h, 16),
+					timestamp: new Date(),
+					fields: [{
+						name: "Description",
+						value: "Gets given server property from server.properties file."
+					}, {
+						name: "Example",
+						value: "**~getProperty** server-port"
+					}]
+				}
 			}
 		}
 	});
@@ -1160,13 +1440,33 @@ function loadCommands() {
 		exeFunc: function(message){ process.send({ function: 'unicast', module: 'properties', message: {function: 'getProperties', logTo: message.logTo} }) },
 		description: {
 			grouping: 'Minecraft',
-			summary: ``,
-			console: ``,
-			minecraft: {
-
-			},
+			summary: `Gets server.properties file contents.`,
+			console: `${sS.c['white'].c}Gets server.properties file contents. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~getProperties${sS.c['reset'].c}`,
+			minecraft: [{
+				"text": `Gets server.properties file contents. `,
+				"color": sS.c['brightWhite'].m
+			}, {
+				"text": `Example: `,
+				"color": sS.c['white'].m
+				}, {
+				"text": `~getProperties`,
+				"color": sS.c['yellow'].m
+			}],
 			discord: {
-
+				string: null,
+				embed: {
+					title: "Get Server Properties",
+					description: "~getProperties",
+					color: parseInt(sS.c['orange'].h, 16),
+					timestamp: new Date(),
+					fields: [{
+						name: "Description",
+						value: "Gets server.properties file contents."
+					}, {
+						name: "Example",
+						value: "**~getProperties**"
+					}]
+				}
 			}
 		}
 	});
@@ -1194,16 +1494,54 @@ function loadCommands() {
 		},
 		description: {
 			grouping: 'Minecraft',
-			summary: ``,
-			console: ``,
-			minecraft: {
-
-			},
+			summary: `Teleports player to given chunk coords.`,
+			console: `${sS.c['white'].c}Teleports player to given chunk coords. ${sS.c['reset'].c}\nExample: ${sS.c['yellow'].c}~tpc ${sS.c['orange'].c}10 ${sS.c['brightBlue'].c}10 ${sS.c['reset'].c}tp's to ${sS.c['orange'].c}160 ${sS.c['white'].c}100 ${sS.c['brightBlue'].c}160 ${sS.c['reset'].c}`,
+			minecraft: [{
+				"text": `Teleports player to given chunk coords.\n`,
+				"color": sS.c['brightWhite'].m
+			}, {
+				"text": 'Example: ',
+				"color": sS.c['white'].m
+			}, {
+				"text": '~tpc ',
+				"color": sS.c['brightYellow'].m
+			}, {
+				"text": '10 ',
+				"color": sS.c['yellow'].m
+			}, {
+				"text": '10 ',
+				"color": sS.c['brightBlue'].m
+			}, {
+				"text": "tp's to ",
+				"color": sS.c['white'].m
+			}, {
+				"text": '160 ',
+				"color": sS.c['yellow'].m
+			}, {
+				"text": '100 ',
+				"color": sS.c['white'].m
+			}, {
+				"text": '160',
+				"color": sS.c['brightBlue'].m
+			}],
 			discord: {
-
+				string: null,
+				embed: {
+					title: "Teleport player to chunk coords",
+					description: "~tpc",
+					color: parseInt(sS.c['orange'].h, 16),
+					timestamp: new Date(),
+					fields: [{
+						name: "Description",
+						value: "Takes x and z coords given, multiplies them by 16 and teleports the player to that location."
+					}, {
+						name: "Example",
+						value: "**~tpc** 10 10 teleports player to coords 160 100 160"
+					}]
+				}
 			}
 		}
-	})
+	}),
 	new command({
 		name: 'tpr',
 		exeFunc: function(message) {
@@ -1226,41 +1564,54 @@ function loadCommands() {
 		},
 		description: {
 			grouping: 'Minecraft',
-			summary: `Teleports player to a specified region`,
-			console: `${sS.c['white'].c}Teleports player to region coordinates. ${sS.c['brightWhite'].c}Example: ~tpr ${sS.c['yellow'].c}10 ${sS.c['yellow'].c}10${sS.c['reset'].c}`,
+			summary: `Teleports player to given region coords.`,
+			console: `${sS.c['white'].c}Teleports player to given region coords. ${sS.c['reset'].c}\nExample: ${sS.c['yellow'].c}~tpr ${sS.c['orange'].c}10 ${sS.c['brightBlue'].c}10 ${sS.c['white'].c}tp's to ${sS.c['orange'].c}5120 ${sS.c['white'].c}100 ${sS.c['brightBlue'].c}5120 ${sS.c['reset'].c}`,
 			minecraft: [{
-				"text": `tpr teleports players to region coordinates.`,
+				"text": `Teleports player to given region coords.\n`,
+				"color": sS.c['brightWhite'].m
+			}, {
+				"text": 'Example: ',
 				"color": sS.c['white'].m
 			}, {
-				"text": ' \nExample:',
-				"color": sS.c['brightWhite'].m
+				"text": '~tpr ',
+				"color": sS.c['brightYellow'].m
 			}, {
-				"text": '~tpr',
-				"color": sS.c['brightWhite'].m
-			}, {
-				"text": ' 10',
+				"text": '10 ',
 				"color": sS.c['yellow'].m
 			}, {
-				"text": ' 10',
+				"text": '10 ',
+				"color": sS.c['brightBlue'].m
+			}, {
+				"text": "tp's to ",
+				"color": sS.c['white'].m
+			}, {
+				"text": '5120 ',
 				"color": sS.c['yellow'].m
 			}, {
-				"text": ' Teleports player to coordinates',
-				"color": sS.c['brightWhite'].m
+				"text": '100 ',
+				"color": sS.c['white'].m
 			}, {
-				"text": ' 5,120',
-				"color": sS.c['yellow'].m
-			}, {
-				"text": ' 100',
-				"color": sS.c['yellow'].m
-			}, {
-				"text": ' 5,120',
-				"color": sS.c['yellow'].m
+				"text": '5120',
+				"color": sS.c['brightBlue'].m
 			}],
 			discord: {
-
+				string: null,
+				embed: {
+					title: "Teleport player to region coords",
+					description: "~tpr",
+					color: parseInt(sS.c['orange'].h, 16),
+					timestamp: new Date(),
+					fields: [{
+						name: "Description",
+						value: "Takes x and z region coords, multiplies them by 512 and teleports the player to that location."
+					}, {
+						name: "Example",
+						value: "**~tpr** 10 10 teleports player to coords 5,120 100 5,120"
+					}]
+				}
 			}
 		}
-	})
+	}),
 	new command({
 		name: 'qm',
 		exeFunc: function(message) {
@@ -1269,20 +1620,73 @@ function loadCommands() {
 				module: 'math',
 				message: {
 					function: 'qm',
-					question: message.args.slice(1, -1).join(' '),
+					question: message.args.slice(1, message.args.length).join(' '),
 					logTo: message.logTo
 				}
 			})
 		},
 		description: {
 			grouping: 'Utility',
-			summary: ``,
-			console: ``,
-			minecraft: {
-
-			},
+			summary: `Accepts any math question and/or unit conversion.`,
+			console: `Accepts any math question and/or unit conversion. ${sS.c['white'].c}\nExamples:\n${sS.c['yellow'].c}~qm ${sS.c['cyan'].c}1 + 1\n${sS.c['yellow'].c}~qm ${sS.c['cyan'].c}1.2inch to cm\n${sS.c['yellow'].c}~qm ${sS.c['cyan'].c}1.2 * (2 + 4.5)\n${sS.c['yellow'].c}~qm ${sS.c['cyan'].c}sin(45 deg) ^ 2\n${sS.c['yellow'].c}~qm ${sS.c['cyan'].c}9 / 3 + 2i\n${sS.c['yellow'].c}~qm ${sS.c['cyan'].c}det([-1, 2; 3, 1])${sS.c['reset'].c}`,
+			minecraft: [{
+				"text": `Accepts any math question and/or unit conversion.\n`,
+				"color": sS.c['white'].m
+			}, {
+				"text": `Examples:\n`,
+				"color": sS.c['brightWhite'].m
+			}, {
+				"text": `~qm `,
+				"color": sS.c['yellow'].m
+			}, {
+				"text": `1+1\n`,
+				"color": sS.c['cyan'].m
+			}, {
+				"text": `~qm `,
+				"color": sS.c['yellow'].m
+			}, {
+				"text": `1cm to inch\n`,
+				"color": sS.c['cyan'].m
+			}, {
+				"text": `~qm `,
+				"color": sS.c['yellow'].m
+			}, {
+				"text": `1.2 * (2 + 4.5)\n`,
+				"color": sS.c['cyan'].m
+			}, {
+				"text": `~qm `,
+				"color": sS.c['yellow'].m
+			}, {
+				"text": `sin(45 deg) ^ 2\n`,
+				"color": sS.c['cyan'].m
+			}, {
+				"text": `~qm `,
+				"color": sS.c['yellow'].m
+			}, {
+				"text": `9 / 3 + 2i\n`,
+				"color": sS.c['cyan'].m
+			}, {
+				"text": `~qm `,
+				"color": sS.c['yellow'].m
+			}, {
+				"text": `det([-1, 2; 3, 1])\n`,
+				"color": sS.c['cyan'].m
+			}],
 			discord: {
-
+				string: null,
+				embed: {
+					title: "Quick Math",
+					description: "~qm",
+					color: parseInt(sS.c['orange'].h, 16),
+					timestamp: new Date(),
+					fields: [{
+						name: "Description",
+						value: "Accepts any math question and/or unit conversion. For more info see https://mathjs.org/"
+					}, {
+						name: "Examples:",
+						value: "**~qm** 1 + 1\n**~qm** 1.2inch to cm\n**~qm** 1.2 * (2 + 4.5)\n**~qm** sin(45 deg) ^ 2\n**~qm** 9 / 3 + 2i\n**~qm** det([-1, 2; 3, 1])"
+					}]
+				}
 			}
 		}
 	})
