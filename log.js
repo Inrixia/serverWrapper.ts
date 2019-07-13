@@ -25,8 +25,6 @@ process.on('message', message => {
 	}
 });
 
-
-
 function parseDuration(startTime, endTime) {
 	let duration = moment.duration(endTime.diff(startTime));
 	let t = {
@@ -649,8 +647,21 @@ const logFunctions = {
 		}]
 	},
 	cw_add: function(vars) {
+		console.log(vars)
 		return [{
-			discord: { string: `Added command **${vars.args[1]}** to **${(vars.whitelisted_object.Username) ? vars.whitelisted_object.Username : vars.whitelisted_object.Name}** ${(vars.args[3]) ? `Expires ${vars.expiresin}` : ''}`, embed: null }
+			discord : {
+				string: null,
+				embed: {
+					color: parseInt(sS.c[sS.modules['command'].discordColor||sS.modules['command'].color].h, 16),
+					title: `Whitelisted command ${vars.args[1]} for @${(vars.cr.wo.Username) ? vars.cr.wo.Username : vars.cr.wo.Name}`,
+					description: `Expires in ${moment(vars.cr.expiresin).fromNow(true)}`,
+					timestamp: new Date(),
+					footer: {
+						text: `Command executed in ${parseDuration(moment(vars.executionStartTime), moment(vars.executionEndTime))}`
+					}
+				}
+			},
+			console: `Whitelisted command ${sS.c['cyan'].c}${vars.args[1]}${sS.c['reset'].c} for ${sS.c['brightBlue'].c}${(vars.cr.wo.Username) ? vars.cr.wo.Username : vars.cr.wo.Name}${sS.c['reset'].c} ${sS.c['yellow'].c}${(vars.args[3]) ? `Expires in ${moment(vars.cr.expiresin).fromNow(true)}` : ''}${sS.c['reset'].c}`
 		}]
 	},
 	nextBackup: function(vars) {

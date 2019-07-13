@@ -292,7 +292,7 @@ function startEnabledModules() {
 
 function reloadModules() {
 	var logInfoArray = unloadAllModules();
-	loadModules();
+	loadModules().then(startEnabledModules());
 	return logInfoArray;
 }
 

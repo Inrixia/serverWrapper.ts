@@ -59,9 +59,9 @@ function sendStatsUpdate() {
 
 function getPidUsage() { // Get info for a running server from its PID
 	pidusage(serverStats.pid, function (err, stats) {
-		serverStats.cpu = stats.cpu;
-		serverStats.mem = stats.memory;
-		serverStats.uptime = stats.elapsed;
+		serverStats.cpu = (stats||{}).cpu;
+		serverStats.mem = (stats||{}).memory;
+		serverStats.uptime = (stats||{}).elapsed;
 		// => {
 		//   cpu: 10.0,            // percentage (from 0 to 100*vcore)
 		//   memory: 357306368,    // bytes

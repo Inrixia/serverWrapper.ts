@@ -281,7 +281,7 @@ function commandWhitelistAdd(message) {
 	if (!whitelisted_object.allowAllCommands) whitelisted_object.allowAllCommands = false;
 
 	if (!whitelisted_object.allowedCommands) whitelisted_object.allowedCommands = {}
-	var expiresin = message.args[3] ? new moment().add(message.args[3], message.args[4]) : false;
+	let expiresin = message.args[3] ? new moment().add(message.args[3], message.args[4]) : false;
 	whitelisted_object.allowedCommands[message.args[1].toLowerCase()] = {
 		"assignedAt": new Date(),
 		"assignedBy": {
@@ -292,14 +292,7 @@ function commandWhitelistAdd(message) {
 		"expired": false
 	}
 	saveSettings();
-	return [{
-		function: 'cw_add',
-		vars: {
-			args: message.args,
-			expiresin: expiresin ? expiresin.fromNow() : false,
-			whitelisted_object: whitelisted_object
-		}
-	}]
+	return { wo: whitelisted_object, expiresin: expiresin };
 }
 
 function commandWhitelistRemove(message) {
@@ -308,24 +301,13 @@ function commandWhitelistRemove(message) {
 		if (message.mentions.users[0].id) delete mS.whitelisted_discord_users[message.mentions.users[0].id];
 		else if (message.mentions.roles[0].id) delete mS.whitelisted_discord_roles[message.mentions.roles[0].id];
 		saveSettings();
-		return [{
-			function: 'cw_removeall',
-			vars: {
-				whitelisted_object: whitelisted_object
-			}
-		}]
+		return whitelisted_object
 	} else {
 		let whitelisted_object = mS.whitelisted_discord_users[message.mentions.users[0].id].allowedCommands[message.args[1].toLowerCase()];
 		if (message.mentions.users[0].id) delete mS.whitelisted_discord_users[message.mentions.users[0].id].allowedCommands[message.args[1].toLowerCase()];
 		else if (message.mentions.roles[0].id) delete mS.whitelisted_discord_roles[message.mentions.roles[0].id].allowedCommands[message.args[1].toLowerCase()];
 		saveSettings();
-		return [{
-			function: 'cw_remove',
-			vars: {
-				args: message.args,
-				whitelisted_object: whitelisted_object
-			}
-		}]
+		return whitelisted_object
 	}
 }
 
@@ -924,10 +906,31 @@ function loadCommands() {
 		}
 	});
 	new command({
-		name: 'cw_add', exeFunc: function(message){commandWhitelistAdd(message)},
+		name: 'cw_add', exeFunc: function(message){
+			let executionStartTime = new Date();
+			process.send({
+				function: 'unicast',
+				module: 'log',
+				message: {
+					function: 'log',
+					logObj: {
+						logInfoArray: [{
+							function: 'cw_add',
+							vars: {
+								args: message.args,
+								executionStartTime: executionStartTime,
+								executionEndTime: new Date(),
+								cr: commandWhitelistAdd(message)
+							}
+						}],
+						logTo: message.logTo
+					}
+				}
+			})
+		},
 		description: {
 			grouping: 'Command',
-			summary: `Adds given whitelisted command to a discord role or user. For a specific time if given, otherwise infinite.`,
+			summary: `Adds given whitelisted command to a discord role or user.\nFor a specific time if given, otherwise infinite.`,
 			console: `${sS.c['white'].c}Adds given whitelisted command to a discord role or user. ${sS.c['reset'].c}\nExamples  [Discord Only]:\n${sS.c['yellow'].c}~cw_add ${sS.c['brightBlue'].c}~listmodules ${sS.c['orange'].c}@DiscordUser ${sS.c['cyan'].c}1 hour\n${sS.c['reset'].c}${sS.c['yellow'].c}~cw_add ${sS.c['brightBlue'].c}!forge tps ${sS.c['orange'].c}@DiscordUser\n${sS.c['reset'].c}${sS.c['yellow'].c}~cw_add ${sS.c['brightBlue'].c}!tp ${sS.c['orange'].c}@DiscordRole ${sS.c['cyan'].c}5.2 minutes\n${sS.c['reset'].c}${sS.c['yellow'].c}~cw_add ${sS.c['brightBlue'].c}~getSpawn ${sS.c['orange'].c}@DiscordRole${sS.c['reset'].c}`,
 			minecraft: [{
 				"text": `Adds given whitelisted command to a discord role or user. For a specific time if given, otherwise infinite.\n`,
@@ -997,7 +1000,28 @@ function loadCommands() {
 		}
 	});
 	new command({
-		name: 'cw_remove', exeFunc: function(message){commandWhitelistRemove(message)},
+		name: 'cw_remove', exeFunc: function(message){
+			let executionStartTime = new Date();
+			process.send({
+				function: 'unicast',
+				module: 'log',
+				message: {
+					function: 'log',
+					logObj: {
+						logInfoArray: [{
+							function: 'cw_remove',
+							vars: {
+								args: message.args,
+								executionStartTime: executionStartTime,
+								executionEndTime: new Date(),
+								whitelisted_object: commandWhitelistRemove(message)
+							}
+						}],
+						logTo: message.logTo
+					}
+				}
+			})
+		},
 		description: {
 			grouping: 'Command',
 			summary: `Removes given whitelisted commands from a discord role or user.`,
@@ -1040,7 +1064,28 @@ function loadCommands() {
 		}
 	}),
 	new command({
-		name: 'cw_removeall', exeFunc: function(message){commandWhitelistRemove(message)},
+		name: 'cw_removeall', exeFunc: function(message){
+			let executionStartTime = new Date();
+			process.send({
+				function: 'unicast',
+				module: 'log',
+				message: {
+					function: 'log',
+					logObj: {
+						logInfoArray: [{
+							function: 'cw_removeall',
+							vars: {
+								args: message.args,
+								executionStartTime: executionStartTime,
+								executionEndTime: new Date(),
+								whitelisted_object: commandWhitelistRemove(message)
+							}
+						}],
+						logTo: message.logTo
+					}
+				}
+			})
+		},
 		description: {
 			grouping: 'Command',
 			summary: `Removes all whitelisted commands from a discord role or user.`,
@@ -1405,7 +1450,7 @@ function loadCommands() {
 		},
 		description: {
 			grouping: 'Minecraft',
-			summary: ``,
+			summary: `Gets given server property.`,
 			console: `${sS.c['white'].c}Gets given server property. ${sS.c['brightWhite'].c}\nExample: ${sS.c['yellow'].c}~getProperty server-port${sS.c['reset'].c}`,
 			minecraft: [{
 				"text": `Gets given server property.\n`,
