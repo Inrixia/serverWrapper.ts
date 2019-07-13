@@ -189,8 +189,8 @@
           "level-seed": null,
           "prevent-proxy-connections": false,
           "use-native-transport": true,
-          "motd": "A Minecraft Server",
-          "enable-rcon": false
+          "enable-rcon": false,
+          "motd": "A Minecraft Server"
         }
       }
     }
