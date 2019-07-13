@@ -75,7 +75,7 @@
     },
     "backup": {
       "file": "backup.js",
-      "enabled": true,
+      "enabled": false,
       "color": "brightRed",
       "import": false,
       "description": "Runs server backups.",
