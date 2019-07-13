@@ -57,7 +57,7 @@ function sendStatsUpdate() {
 	process.stdout.write(`${String.fromCharCode(27)}]0;${serverStats.serverName} - ${serverStats.status}  |  PID: ${serverStats.pid}  |  Mem: ${Math.round(serverStats.mem/1024/1024)}MB  |  CPU: ${Math.round(serverStats.cpu/8)}%  |  Uptime: ${Math.round(serverStats.uptime/1000/60)} Min  |${serverStats.timeSinceLastBackup ? `  Last Backup: ${serverStats.timeSinceLastBackup}, Took: ${serverStats.lastBackupDuration}  |`: ''}  Next Backup: ${serverStats.timeToNextBackup}${String.fromCharCode(7)}`);
 };
 
-function getPidUsage() { // Get info for a running server from its PID
+function getPidUsage() { // Get process info for a running server from its PID
 	pidusage(serverStats.pid, function (err, stats) {
 		serverStats.cpu = (stats||{}).cpu;
 		serverStats.mem = (stats||{}).memory;
