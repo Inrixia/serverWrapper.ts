@@ -24,8 +24,7 @@ process.on('message', message => {
 			mS = sS.modules['log'].settings;
 			break;
 	}
-});
-
+}); 
 /*
 / Discord embed object
 / https://anidiots.guide/first-bot/using-embeds-in-messages
