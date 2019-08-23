@@ -81,7 +81,7 @@
       "description": "Runs server backups.",
       "settings": {
         "serverWorldFolder": "Cookies",
-        "rootBackupDir": "/mnt/redlive/LiveArchives/",
+        "rootBackupDir": "/home/hotpink/_LiveArchives/",
         "overrideBackupDir": "",
         "backupIntervalInHours": 0.5,
         "threads": 1
@@ -208,8 +208,8 @@
           "level-seed": null,
           "prevent-proxy-connections": false,
           "use-native-transport": true,
-          "motd": "A Minecraft Server",
-          "enable-rcon": false
+          "enable-rcon": false,
+          "motd": "A Minecraft Server"
         }
       }
     }
@@ -320,6 +320,12 @@
     "discordBlue": {
       "c": "",
       "h": "7289da",
+      "m": "",
+      "mc": ""
+    },
+    "orange": {
+      "c": "\u001b[38;5;208m",
+      "h": "e77c02",
       "m": "",
       "mc": ""
     },

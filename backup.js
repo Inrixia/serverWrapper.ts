@@ -212,7 +212,7 @@ function runBackup() {
 		{}, (err, info) => {
 		children.exec(`rsync-snapshot --src ${sS.server_dir} --shell ssh --dst administrator@10.0.0.5:${backupDir} --setRsyncArg exclude='*.log' --setRsyncArg exclude='*.zip' --setRsyncArg exclude='*.rar' --setRsyncArg exclude='*node_modules*' --maxSnapshots 100000`,
 			{}, (err, info) => {
-			children.exec('ssh administrator@10.0.0.5 "ls /mnt/redlive/LiveArchives/ForgeTest"', {}, (err, info) => {
+			children.exec(`ssh administrator@10.0.0.5 "ls /mnt/redlive/LiveArchives/${sS.serverName}"`, {}, (err, info) => {
 				let latestFolder = info.split(/\r?\n/).slice(-3, -2)[0];
 				//console.log(`ln -s ${backupDir}/${latestFolder}/${sS.serverName}/${sS.modules['properties'].settings.p['level-name']} /mnt/redlive/PublicFTP/LiveArchives/${sS.serverName}/${latestFolder} && ln -s ${backupDir}/latest/${sS.serverName}/${sS.modules['properties'].settings.p['level-name']} /mnt/redlive/PublicFTP/LiveArchives/${sS.serverName}/latest`)
 				children.exec(`ssh administrator@10.0.0.5 "ln -s ${backupDir}/${latestFolder}/${sS.serverName}/${sS.modules['properties'].settings.p['level-name']} /mnt/redlive/PublicFTP/LiveArchives/${sS.serverName}/${latestFolder} && ln -s ${backupDir}/latest/${sS.serverName}/${sS.modules['properties'].settings.p['level-name']} /mnt/redlive/PublicFTP/LiveArchives/${sS.serverName}/latest"`,
