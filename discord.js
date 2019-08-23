@@ -12,6 +12,10 @@ var management_channel = null; // This will be assigned the management channel w
 var discordData = "";
 var previousMessage = "";
 
+process.on('uncaughtException', function (exception) {
+	logError(exception);
+});
+
 // Module command handling
 process.on('message', message => {
 	switch (message.function) {
@@ -183,3 +187,25 @@ Object.defineProperty(Error.prototype, 'toJSON', {
     configurable: true,
     writable: true
 });
+
+function logError(err, name='') {
+	process.send({
+		function: 'unicast',
+		module: 'log',
+		message: {
+			function: 'log',
+			logObj: {
+				logInfoArray: [{
+					function: 'error',
+					lets: {
+						niceName: name,
+						err: {
+							message: err.message,
+							stack: err.stack
+						}
+					}
+				}]
+			}
+		}
+	});
+}

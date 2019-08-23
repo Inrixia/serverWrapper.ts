@@ -10,6 +10,7 @@
     "moment": "^2.24.0",
     "node-nbt": "^1.0.0",
     "pidusage": "^2.0.17",
+    "prismarine-nbt": "^1.2.1",
     "properties": "^1.2.1",
     "zlib": "^1.0.5"
   },

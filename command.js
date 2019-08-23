@@ -361,6 +361,64 @@ function loadCommands() {
 		'Utility': sS.modules['math'].color||'brightMagenta'
 	}
 	new command({
+		name: 'tpo', exeFunc: function(message){ process.send({ function: 'unicast', module: 'nbt', message: {function: 'tpo', args: {username: message.args[1], x: message.args[2], y: message.args[3], z: message.args[4]}, logTo: message.logTo} }) },
+		description: {
+			grouping: 'Minecraft',
+			summary: `Changes a players coordinates in playerdata.`,
+			console: `${sS.c['brightWhite'].c}Set the coordinates of a given player in their playerdata to the coordinates specified. ${sS.c['reset'].c}\nExample: ${sS.c['yellow'].c}~tpo ${sS.c['brightBlue'].c}Username ${sS.c['orange'].c}0 ${sS.c['white'].c}100 ${sS.c['brightBlue'].c}0${sS.c['reset'].c}`,
+			minecraft: [{
+				"text": `Teleports player to given chunk coords.\n`,
+				"color": sS.c['brightWhite'].m
+			}, {
+				"text": 'Example: ',
+				"color": sS.c['white'].m
+			}, {
+				"text": '~tpo ',
+				"color": sS.c['brightYellow'].m
+			}, {
+				"text": 'Username ',
+				"color": sS.c['brightBlue'].m
+			}, {
+				"text": '0 ',
+				"color": sS.c['orange'].m
+			}, {
+				"text": '100 ',
+				"color": sS.c['white'].m
+			}, {
+				"text": '0 ',
+				"color": sS.c['brightBlue'].m
+			}, {
+				"text": "sets user coords to ",
+				"color": sS.c['white'].m
+			}, {
+				"text": '160 ',
+				"color": sS.c['orange'].m
+			}, {
+				"text": '100 ',
+				"color": sS.c['white'].m
+			}, {
+				"text": '160',
+				"color": sS.c['brightBlue'].m
+			}],
+			discord: {
+				string: null,
+				embed: {
+					title: "Set a offline player's coords",
+					description: "~tpo",
+					color: parseInt(sS.c['orange'].h, 16),
+					timestamp: new Date(),
+					fields: [{
+						name: "Description",
+						value: "Takes Username, x, y and z coords given, and sets the player's playerdata coords to them."
+					}, {
+						name: "Example",
+						value: "**~tpo** Username 10 0 10 set player's coords to 10 0 10"
+					}]
+				}
+			}
+		}
+	});
+	new command({
 		name: 'help',
 		exeFunc: function(message) {
 			if (message.args[1]) commands[message.args[1].toLowerCase()].help(message);

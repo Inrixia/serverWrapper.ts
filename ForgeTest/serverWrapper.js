@@ -4,6 +4,18 @@
 const fs = require('fs')
 const stdin = process.openStdin();
 const children = require('child_process');
+const readline = require('readline');
+
+process.stdin.setRawMode(true);
+
+// Setup console handling
+const consoleReadline = readline.createInterface({
+	input: process.stdin,
+	output: process.stdout,
+	terminal: true,
+	historySize: 10000,
+	prompt: ''
+});
 
 // On exception log it and continue
 /*process.on('uncaughtException', function (exception) {
@@ -14,15 +26,15 @@ const children = require('child_process');
 // Colours Reference ^^
 
 // Init
-var server = null;
-var sSFile = './serverSettings.json'
-var sS = require(sSFile);
-var loadedModules = {};
-var serverStartVars = Object.assign([], sS.serverStartVars);
+let server = null;
+let sSFile = './serverSettings.json'
+let sS = require(sSFile);
+let loadedModules = {};
+let serverStartVars = Object.assign([], sS.serverStartVars);
 serverStartVars.push("-Xms"+sS.minRamAllocation, "-Xmx"+sS.maxRamAllocation, "-jar", sS.jar)
 serverStartVars = serverStartVars.concat(sS.serverPostfixVars);
 sS.server_dir = __dirname;
-var consoleTimeout = true;
+let consoleTimeout = true;
 
 if (((sS.modules['discord']||{}).settings||{}).discord_token == "" && fs.existsSync('./config/Chikachi/DiscordIntegration.json')) {
 	sS.modules['discord'].settings.discord_token = fs.readFileSync('./config/Chikachi/DiscordIntegration.json', 'utf8').slice(31, 90);
@@ -31,6 +43,16 @@ if (((sS.modules['discord']||{}).settings||{}).discord_token == "") {
 		sS.modules['discord'].enabled = false;
 		process.stdout.write(`${sS.c['brightRed'].c}Disabled Module${sS.c['reset'].c}: ${sS.modules['discord'].color.c}discord.js${sS.c['reset'].c}, No Token Found!\n`);
 }
+
+let cleanExit = () => { 
+	if (server.process) server.process.kill('SIGKILL');
+	Object.keys(loadedModules).forEach(moduleName => {
+		loadedModules[moduleName].kill();
+	});
+};
+process.on('SIGINT', cleanExit); // catch ctrl-c
+process.on('SIGTERM', cleanExit); // catch term
+
 /*
 / Module class definition
 */
@@ -51,13 +73,13 @@ class wrapperModule {
 			this.process = children.fork(sS.modulesDir+sS.modules[this.name].file); // Spawn the modules childprocess
 			this.process.send({function: 'init', sS: sS, server: server, color: this.color }) // Run the modules init funciton
 
-			this.process.addListener('close', function(data){
-				Object.keys(loadedModules).forEach(function(moduleName) {
-					var thisModule = loadedModules[moduleName];
+			this.process.addListener('close', (data) => {
+				Object.keys(loadedModules).forEach(moduleName => {
+					let thisModule = loadedModules[moduleName];
 					if (thisModule.process && !thisModule.process.channel) {
 						thisModule.crashCount += 1;
 						delete thisModule.process;
-						setTimeout(function(){
+						setTimeout(() => {
 							thisModule.crashCount -= 1;
 						}, 10000)
 						if (thisModule.crashCount < 3) {
@@ -71,17 +93,43 @@ class wrapperModule {
 			});
 
 			this.process.on('message', message => {
-				if (this.process)	{
+				if (this.process) {
 					let logInfoArray = null;
 					if (message.function == 'broadcast') wrapperModule.broadcast(message.message);
-					else if (message.function == 'unicast' && (loadedModules[message.module]||{}).process) loadedModules[message.module].process.send(message.message)
-					else if (message.function == 'serverStdin' && server) {
+					else if (message.function == 'unicast') {
+						if (loadedModules[message.module]){
+							if (loadedModules[message.module].process) loadedModules[message.module].process.send(message.message)
+							else wrapperModule.sendLog({logInfoArray: [{
+								function: 'error',
+								vars: {
+									niceName: 'Unicast message to offline module!',
+									err: {
+										message: '',
+										stack: JSON.stringify(message),
+									},
+									executionStartTime: executionStartTime,
+									executionEndTime: new Date()
+								}
+							}]})
+						} else wrapperModule.sendLog({logInfoArray: [{
+							function: 'error',
+							vars: {
+								niceName: 'Unicast message to undefined module!',
+								err: {
+									message: '',
+									stack: JSON.stringify(message),
+								},
+								executionStartTime: executionStartTime,
+								executionEndTime: new Date()
+							}
+						}]})
+					} else if (message.function == 'serverStdin' && server) {
 						console.log(message.string)
 						server.stdin.write(message.string);
 					}
 					else if (message.function == 'backupSettings') logInfoArray = backupSettings();
 					else if (message.function == 'loadSettings') {
-						var executionStartTime = new Date();
+						let executionStartTime = new Date();
 						logInfoArray = loadSettings();
 					} else if (message.function == 'saveSettings') {
 						sS = message.sS;
@@ -135,7 +183,7 @@ class wrapperModule {
 	}
 
 	reload() {
-		var logInfoArray = this.kill();
+		let logInfoArray = this.kill();
 		if (this.import) logInfoArray.concat(this.loadFunctions());
 		if (this.enabled) logInfoArray.concat(this.start());
 		return logInfoArray;
@@ -261,8 +309,8 @@ function loadModules() { // Loads in modules from server settings
 }
 
 function unloadAllModules() {
-	var logInfoArray = [];
-	var logInfoArray = [].concat.apply(
+	let logInfoArray = [];
+	logInfoArray = [].concat.apply(
 		[],
 		Object.keys(loadedModules).map(function(moduleName) {
   		return loadedModules[moduleName].kill();
@@ -291,7 +339,7 @@ function startEnabledModules() {
 }
 
 function reloadModules() {
-	var logInfoArray = unloadAllModules();
+	let logInfoArray = unloadAllModules();
 	loadModules().then(startEnabledModules());
 	return logInfoArray;
 }
@@ -299,7 +347,7 @@ function reloadModules() {
 function restartAllModules() {
 	return [].concat.apply(
 		[],
-		Object.keys(loadedModules).map(function(moduleName) {
+		Object.keys(loadedModules).map(moduleName => {
   		if (loadedModules[moduleName].enabled) return loadedModules[moduleName].restart()
 		})
 	);
@@ -394,8 +442,7 @@ function backupSettings(callback) {
 function startServer() {
 	server = children.spawn('java', serverStartVars); // This will be assigned the server server when it starts
 	server.stdin.write('list\n'); // Write list to the console so we can know when the server has finished starting
-
-	server.stdout.on('data', function (string) { // On server data out
+	server.stdout.on('data', string => { // On server data out
 		if (!consoleTimeout) wrapperModule.broadcast({function: 'serverStdout', string: string.toString() });
 		process.stdout.write(string); // Write line to wrapper console
 		if (string.indexOf("players online") > -1) { // "list" command has completed, server is now online
@@ -418,9 +465,13 @@ function startServer() {
 	// Server shutdown handling
 	server.on('exit', function (code) {
 		if ((loadedModules['stats']||{}).process) loadedModules['stats'].process.send({ function: 'pushStats', serverStats: {status: "Closed"} });  // If stats is enabled update the server status to enabled
-	    console.log(`Server closed with exit code: ${code}\nRestarting wrapper...`);
+		console.log(`Server closed with exit code: ${code}\nKilling modules...`);
+		Object.keys(loadedModules).forEach(moduleName => {
+			loadedModules[moduleName].kill();
+		});
+		console.log('Wrapper shutdown finished... Exiting');
 	    process.exit();
-			//restartWrapper();
+		//restartWrapper();
 	});
 
 	// Server error handling
@@ -432,9 +483,9 @@ function startServer() {
 	/*
 	/ Wrapper Console Handling
 	*/
-	stdin.addListener("data", function(string) {
-		wrapperModule.broadcast({function: 'consoleStdout', string: string.toString().trim() })
-		if (string.toString().trim()[0] != '~' && string.toString().trim()[0] != '?') server.stdin.write(string.toString().trim()+'\n')
+	consoleReadline.on('line', string => {
+		wrapperModule.broadcast({function: 'consoleStdout', string: string.toString().trim() });
+		if (string.toString().trim()[0] != '~' && string.toString().trim()[0] != '?') server.stdin.write(string.toString().trim()+'\n');
 	});
 }
 
@@ -469,7 +520,7 @@ function debug(stringOut) {
 if (!('toJSON' in Error.prototype))
 Object.defineProperty(Error.prototype, 'toJSON', {
     value: function () {
-        var alt = {};
+        let alt = {};
 
         Object.getOwnPropertyNames(this).forEach(function (key) {
             alt[key] = this[key];

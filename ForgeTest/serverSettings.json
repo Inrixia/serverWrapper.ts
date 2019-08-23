@@ -26,6 +26,14 @@
   ],
   "modulesDir": "../",
   "modules": {
+    "mineapi": {
+      "file": "mineapi.js",
+      "enabled": true,
+      "color": "orange",
+      "import": false,
+      "description": "Fetches data from mojangs api's...",
+      "settings": {}
+    },
     "nbt": {
       "file": "nbt.js",
       "enabled": true,
@@ -208,8 +216,8 @@
           "level-seed": null,
           "prevent-proxy-connections": false,
           "use-native-transport": true,
-          "enable-rcon": false,
-          "motd": "A Minecraft Server"
+          "motd": "A Minecraft Server",
+          "enable-rcon": false
         }
       }
     }
@@ -320,12 +328,6 @@
     "discordBlue": {
       "c": "",
       "h": "7289da",
-      "m": "",
-      "mc": ""
-    },
-    "orange": {
-      "c": "\u001b[38;5;208m",
-      "h": "e77c02",
       "m": "",
       "mc": ""
     },

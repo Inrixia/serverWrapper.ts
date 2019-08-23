@@ -38,12 +38,17 @@ function parseDuration(startTime, endTime) {
 }
 
 function logOut(logObj) {
-	if (!logObj.logTo) logObj.logTo = { console: true, discord: false, minecraft: false }
+	logObj.logTo = { 
+		console: ((logObj||{}).logTo||{}).console||true,
+		discord: ((logObj||{}).logTo||{}).discord||false,
+		minecraft: ((logObj||{}).logTo||{}).minecraft||false
+	}
 	for (logInfo in logObj.logInfoArray) {
 		logInfo = logObj.logInfoArray[logInfo]
 		if (!logInfo || !logInfo.function) debug(`Invalid logInfo passed!! ${logInfo}`)
 		else if (!logFunctions[logInfo.function]) debug(`Missing logging function for ${logInfo.function}!!`)
 		else {
+			logInfo.vars = logInfo.vars||{};
 			logInfo.vars.user = logObj.logTo.user;
 			var logStrings = logFunctions[logInfo.function](logInfo.vars);
 			logStrings.forEach(function(logString) {
@@ -105,7 +110,8 @@ const logFunctions = {
 		}]
 	},
 	error: function(vars) {
-		return [{
+		if (!vars.err) console.log(`Error Error! What even is this!?`, vars);
+		else return [{
 			console: `${vars.niceName ? `${sS.c['brightRed'].c}${vars.niceName}${sS.c['reset'].c} ` : ''}${vars.err.message}\n${vars.err.stack}`,
 			minecraft: `tellraw ${vars.user} ${JSON.stringify(
 				[{
@@ -129,6 +135,47 @@ const logFunctions = {
 				}
 			}
 		}]
+		return []
+	},
+	tpo: function(vars) {
+		// vars.username, vars.x, vars.y, vars.z, vars.executionStartTime, vars.executionEndTime
+		return [{
+			// Set inrix's position to 100 50 100
+			console: `${sS.c['white'].c}Set ${sS.c['brightBlue'].c}${vars.username}${sS.c['white'].c}'s postion to ${sS.c['orange'].c}${vars.x} ${sS.c['red'].c}${vars.y} ${sS.c['brightBlue'].c}${vars.z} ${sS.c['reset'].c}`,
+			minecraft: `tellraw ${vars.user} ${JSON.stringify(
+				[{
+					"text": `Set `,
+					"color": "white"
+				}, {
+					"text": `${vars.username}`,
+					"color": "brightBlue"
+				}, {
+					"text": `'s postion to `,
+					"color": "white"
+				}, {
+					"text": `${vars.x} `,
+					"color": "orange"
+				}, {
+					"text": `${vars.y} `,
+					"color": "red"
+				}, {
+					"text": `${vars.z}`,
+					"color": "brightBlue"
+				}]
+			)}\n`,
+			discord : {
+				string: null,
+				embed: {
+					color: parseInt(sS.c[sS.modules['nbt'].discordColor||sS.modules['nbt'].color].h, 16),
+					title: `Set ${vars.username}'s postion to ${vars.x} ${vars.y} ${vars.z}`,
+					description: null,
+					timestamp: new Date(),
+					footer: {
+						text: `Executed in ${parseDuration(moment(vars.executionStartTime), moment(vars.executionEndTime))}`
+					}
+				}
+			}
+		}]
 	},
 	tpc: function(vars) {
 		return [{
@@ -140,8 +187,9 @@ const logFunctions = {
 			minecraft: `tp ${vars.user} ${vars.args[1]*512} 100 ${vars.args[2]*512}\n`
 		}]
 	},
-	qm: function(vars) {
+	qm: function(vars) {8
 		return [{
+			console: `${sS.c['white'].c}}${vars.question}'s ${sS.c['gold'].c}=> ${sS.c['aqua'].c}${vars.awnser} ${sS.c['reset'].c}`,
 			minecraft: `tellraw ${vars.user} ${JSON.stringify(
 				[{
 					"text": vars.question,
@@ -153,7 +201,19 @@ const logFunctions = {
 					"text": vars.answer,
 					"color": "aqua"
 				}]
-			)}\n`
+			)}\n`,
+			discord : {
+				string: null,
+				embed: {
+					color: parseInt(sS.c[sS.modules['nbt'].discordColor||sS.modules['nbt'].color].h, 16),
+					title: `${vars.question} => ${vars.awnser}`,
+					description: null,
+					timestamp: new Date(),
+					footer: {
+						text: `Executed in ${parseDuration(moment(vars.executionStartTime), moment(vars.executionEndTime))}`
+					}
+				}
+			}
 		}]
 	},
 	getSpawn: function(vars) {
