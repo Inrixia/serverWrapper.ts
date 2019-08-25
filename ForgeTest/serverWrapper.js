@@ -2,7 +2,6 @@
 
 // Import core packages
 const fs = require('fs')
-const stdin = process.openStdin();
 const children = require('child_process');
 const readline = require('readline');
 
@@ -34,7 +33,6 @@ let serverStartVars = Object.assign([], sS.serverStartVars);
 serverStartVars.push("-Xms"+sS.minRamAllocation, "-Xmx"+sS.maxRamAllocation, "-jar", sS.jar)
 serverStartVars = serverStartVars.concat(sS.serverPostfixVars);
 sS.server_dir = __dirname;
-let consoleTimeout = true;
 
 if (((sS.modules['discord']||{}).settings||{}).discord_token == "" && fs.existsSync('./config/Chikachi/DiscordIntegration.json')) {
 	sS.modules['discord'].settings.discord_token = fs.readFileSync('./config/Chikachi/DiscordIntegration.json', 'utf8').slice(31, 90);
@@ -53,6 +51,30 @@ let cleanExit = () => {
 process.on('SIGINT', cleanExit); // catch ctrl-c
 process.on('SIGTERM', cleanExit); // catch term
 
+const util = require(sS.modulesDir+'util.js')
+
+let fn = { // Object holding callable functions for modules
+	'enableModule':  async data => await loadedModules[data.module].enable(data.args).catch(err => {throw Err}),
+	'disableModule':  async data => await loadedModules[data.module].disable(data.args).catch(err => {throw Err}),
+	'killModule':  async data => await loadedModules[data.module].kill(data.args).catch(err => {throw Err}),
+	'startModule':  async data => await loadedModules[data.module].start(data.args).catch(err => {throw Err}),
+	'restartModule': async data => await loadedModules[data.module].restart(data.args).catch(err => {throw Err}),
+	'reloadModule':  async data => await loadedModules[data.module].reload(data.args).catch(err => {throw Err}),
+	'loadModuleFunctions':  async data => await loadedModules[data.module].loadFunctions(data.args).catch(err => {throw Err}),
+	'restartAllModules': restartAllModules,
+	'unloadAllModules': unloadAllModules,
+	'reloadModules': reloadModules,
+	'listModules': listModules,
+	'backupSettings': backupSettings,
+	'loadSettings': loadSettings,
+	'saveSettings': async data => {
+		sS = data.sS;
+		await wrapperModule.broadcast({function: 'pushSettings', sS: sS })
+		.catch(err => lErr(err, `Failed to broadcast settings update.`));
+		return await saveSettings().catch(err => {throw err});
+	}
+}
+
 /*
 / Module class definition
 */
@@ -65,16 +87,15 @@ class wrapperModule {
 		if (this.name == 'stats' && !this.enabled) process.stdout.write(`${String.fromCharCode(27)}]0;${sS.serverName}  |  Stats Module Disabled${String.fromCharCode(7)}`);
 	}
 
-	start() {
-		let executionStartTime = new Date();
+	async start() {
 		if (!this.functions && this.import) this.functions = require(sS.modulesDir+sS.modules[this.name].file);
 		if (!this.process) {
 			if (!loadedModules[this.name]) loadedModules[this.name] = this;
 			this.process = children.fork(sS.modulesDir+sS.modules[this.name].file); // Spawn the modules childprocess
-			this.process.send({function: 'init', sS: sS, server: server, color: this.color }) // Run the modules init funciton
-
+			// Run the modules init funciton
+			await pSend(this.process, {function: 'init', sS: sS, server: server, color: this.color }).catch(err => lErr(err, `Failed to send init for module ${this.name}!`))
 			this.process.addListener('close', (data) => {
-				Object.keys(loadedModules).forEach(moduleName => {
+				Object.keys(loadedModules).forEach(async moduleName => {
 					let thisModule = loadedModules[moduleName];
 					if (thisModule.process && !thisModule.process.channel) {
 						thisModule.crashCount += 1;
@@ -84,215 +105,193 @@ class wrapperModule {
 						}, 10000)
 						if (thisModule.crashCount < 3) {
 							process.stdout.write(`${sS.c['red'].c}Module Crashed: ${thisModule.color.c}${thisModule.name}${sS.c['reset'].c} Restarting!\n`);
-							thisModule.start();
+							await thisModule.start();
 						} else {
 							process.stdout.write(`${sS.c['red'].c}Module Crashed Repeatidly: ${thisModule.color.c}${thisModule.name}${sS.c['reset'].c} Disabling!\n`);
 						}
 					}
 				})
 			});
-
-			this.process.on('message', message => {
-				if (this.process) {
-					let logInfoArray = null;
-					if (message.function == 'broadcast') wrapperModule.broadcast(message.message);
-					else if (message.function == 'unicast') {
-						if (loadedModules[message.module]){
-							if (loadedModules[message.module].process) loadedModules[message.module].process.send(message.message)
-							else wrapperModule.sendLog({logInfoArray: [{
-								function: 'error',
-								vars: {
-									niceName: 'Unicast message to offline module!',
-									err: {
-										message: '',
-										stack: JSON.stringify(message),
-									},
-									executionStartTime: executionStartTime,
-									executionEndTime: new Date()
-								}
-							}]})
-						} else wrapperModule.sendLog({logInfoArray: [{
-							function: 'error',
-							vars: {
-								niceName: 'Unicast message to undefined module!',
-								err: {
-									message: '',
-									stack: JSON.stringify(message),
-								},
-								executionStartTime: executionStartTime,
-								executionEndTime: new Date()
-							}
-						}]})
-					} else if (message.function == 'serverStdin' && server) {
-						console.log(message.string)
-						server.stdin.write(message.string);
-					}
-					else if (message.function == 'backupSettings') logInfoArray = backupSettings();
-					else if (message.function == 'loadSettings') {
-						let executionStartTime = new Date();
-						logInfoArray = loadSettings();
-					} else if (message.function == 'saveSettings') {
-						sS = message.sS;
-						wrapperModule.broadcast({function: 'pushSettings', sS: sS });
-						logInfoArray = saveSettings();
-					}
-					if (logInfoArray) wrapperModule.sendLog({logInfoArray: logInfoArray, logTo: (message.logTo) ? message.logTo : {console: true} })
+			this.process.on('message', async message => {
+				if (message.function == 'broadcast') {
+					await wrapperModule.broadcast(message.message)
+					.catch(err => lErr(err, `Failed to broadcast message "${JSON.stringify(message.message)}"\n`));
+				} else if (message.function == 'unicast') {
+					await wrapperModule.unicast(message.module, message.message)
+					.catch(err => lErr(err, `Failed to unicast message "${JSON.stringify(message.message)} to module ${message.module}"\n`));
+				} else if (message.function == 'serverStdin' && server) {
+					console.log(message.string)
+					server.stdin.write(message.string);
+				} else if (message.function == 'execute') {
+					fn[message.func](message.data)
+					.then(data => wrapperModule.resolve(data, message.promiseId, message.returnModule))
+					.catch(err => wrapperModule.reject(err, message.promiseId, message.returnModule))
 				}
 			})
-			if (this.name == 'command') { // Command handling for wrapperHost specific functions that can only be run within serverWrapper
-				this.process.on('message', message => {
-					let logInfoArray = null;
-					if (message.args && loadedModules[message.args[1]]) {
-						if (message.function == 'enableModule') logInfoArray = loadedModules[message.args[1]].enable(message.args[2]);
-						else if (message.function == 'disableModule') logInfoArray = loadedModules[message.args[1]].disable(message.args[2]);
-						else if (message.function == 'killModule') logInfoArray = loadedModules[message.args[1]].kill();
-						else if (message.function == 'startModule') logInfoArray = loadedModules[message.args[1]].start();
-						else if (message.function == 'restartModule') logInfoArray = loadedModules[message.args[1]].restart();
-						else if (message.function == 'reloadModule') logInfoArray = loadedModules[message.args[1]].reload();
-						else if (message.function == 'loadModuleFunctions') loadedModules[message.args[1]].loadFunctions();
-					} else if (message.function == 'restartAllModules') logInfoArray = restartAllModules();
-					else if (message.function == 'unloadAllModules') logInfoArray = unloadAllModules();
-					else if (message.function == 'reloadModules') logInfoArray = reloadModules();
-					else if (message.function == 'listModules') logInfoArray = listModules();
-					if (logInfoArray) wrapperModule.sendLog({logInfoArray: logInfoArray, logTo: (message.logTo) ? message.logTo : {console: true} })
-				});
-			}
-			return [{
-				function: 'startModule',
-				vars: {
-					color: this.color,
-					name: this.name,
-					executionStartTime: executionStartTime,
-					executionEndTime: new Date()
-				}
-			}];
+			return;
 		}
-		return [{
-			function: 'startModule_alreadyRunning',
-			vars: {
-				color: this.color,
-				name: this.name,
-				executionStartTime: executionStartTime,
-				executionEndTime: new Date()
+		throw new Error(`Cannot start ${this.name} as its already running.`)
+	}
+
+	async resolve(data, promiseId, returnModule) {
+		return pSend({
+			function: 'unicast',
+			module: returnModule,
+			message: {
+				function: 'promiseResolve',
+				promiseID: promiseId,
+				return: data
 			}
-		}];
+		}).cath(err => lErr(err, `Failed to resolve promise ${promiseId}, to module ${returnModule}`));
 	}
 
-	restart() {
-		return (this.kill()).concat(this.start())
+	async reject(data, promiseId, returnModule) {
+		return pSend({
+			function: 'unicast',
+			module: returnModule,
+			message: {
+				function: 'promiseReject',
+				promiseID: promiseId,
+				return: data
+			}
+		}).cath(err => lErr(err, `Failed to reject promise ${promiseId}, to module ${returnModule}`));
 	}
 
-	reload() {
-		let logInfoArray = this.kill();
-		if (this.import) logInfoArray.concat(this.loadFunctions());
-		if (this.enabled) logInfoArray.concat(this.start());
-		return logInfoArray;
+	async unicast(destinationModule, message) {
+		if (loadedModules[message.module]) {
+			if (loadedModules[message.module]||{}.process) {
+				return await pSend(loadedModules[message.module].process, message.message).catch(err => {throw err})
+			} else throw new Error(`Attempted unicast message to offline module ${message.module}!`)
+		} else throw new Error(`Attempted unicast message to undefined module ${message.module}!`)
 	}
 
-	loadFunctions() {
-		let executionStartTime = new Date();
+	async restart() {
+		await this.start().catch(err => {throw err})
+		await this.kill().catch(err => {throw err})
+		return;
+	}
+
+	async reload() {
+		let logInfoArray = await this.kill().catch(err => {throw err});
+		if (this.import) await this.loadFunctions().catch(err => {throw err});
+		if (this.enabled) await this.start().catch(err => {throw err});
+		return;
+	}
+
+	async loadFunctions() {
 		if (this.import) this.functions = require(sS.modulesDir+sS.modules[this.name].file);
-		return [{
-			function: 'loadModuleFunctions',
-			vars: {
-				color: this.color,
-				name: this.name,
-				executionStartTime: executionStartTime,
-				executionEndTime: new Date()
-			}
-		}];
+		return;
+		// return [{
+		// 	function: 'loadModuleFunctions',
+		// 	vars: {
+		// 		color: this.color,
+		// 		name: this.name,
+		// 		executionStartTime: executionStartTime,
+		// 		executionEndTime: new Date()
+		// 	}
+		// }];
 	}
 
-	kill(){
-		let executionStartTime = new Date();
+	async kill(){
 		if (this.process) {
-			this.process.send({function: 'kill'})
+			await pSend(this.process, {function: 'kill'})
 			if (this.name == 'stats') process.stdout.write(`${String.fromCharCode(27)}]0;${sS.serverName}  |  Stats Module Disabled${String.fromCharCode(7)}`);
 			this.process = null;
-			return [{
-				function: 'killModule',
-				vars: {
-					color: this.color,
-					name: this.name,
-					executionStartTime: executionStartTime,
-					executionEndTime: new Date()
-				}
-			}];
+			return;
+			// return [{
+			// 	function: 'killModule',
+			// 	vars: {
+			// 		color: this.color,
+			// 		name: this.name,
+			// 		executionStartTime: executionStartTime,
+			// 		executionEndTime: new Date()
+			// 	}
+			// }];
 		}
-		return [{
-			function: 'killModule_notRunning',
-			vars: {
-				color: this.color,
-				name: this.name,
-				executionStartTime: executionStartTime,
-				executionEndTime: new Date()
-			}
-		}];
+		throw new Error(`Cannot kill ${this.name} as it is not running.`)
+		// return [{
+		// 	function: 'killModule_notRunning',
+		// 	vars: {
+		// 		color: this.color,
+		// 		name: this.name,
+		// 		executionStartTime: executionStartTime,
+		// 		executionEndTime: new Date()
+		// 	}
+		// }];
 	}
 
-	enable(save) {
-		let executionStartTime = new Date();
+	async enable(save) {
 		sS.modules[this.name].enabled = true;
-		if (save) saveSettings();
-		return [{
-			function: 'enableModule',
-			vars: {
-				color: this.color,
-				name: this.name,
-				executionStartTime: executionStartTime,
-				executionEndTime: new Date()
-			}
-		}];
+		if (save) await saveSettings();
+		return;
+		// return [{
+		// 	function: 'enableModule',
+		// 	vars: {
+		// 		color: this.color,
+		// 		name: this.name,
+		// 		executionStartTime: executionStartTime,
+		// 		executionEndTime: new Date()
+		// 	}
+		// }];
 	}
 
-	disable(save) {
-		let executionStartTime = new Date();
+	async disable(save) {
 		sS.modules[this.name].enabled = false;
-		if (save) saveSettings();
-		return [{
-			function: 'disableModule',
-			vars: {
-				color: this.color,
-				name: this.name,
-				executionStartTime: executionStartTime,
-				executionEndTime: new Date()
-			}
-		}];
+		if (save) await saveSettings();
+		return;
+		// return [{
+		// 	function: 'disableModule',
+		// 	vars: {
+		// 		color: this.color,
+		// 		name: this.name,
+		// 		executionStartTime: executionStartTime,
+		// 		executionEndTime: new Date()
+		// 	}
+		// }];
 	}
 
-	static broadcast(message) {
-		Object.keys(loadedModules).forEach(function(moduleName) {
-			if ((loadedModules[moduleName]||{}).process) loadedModules[moduleName].process.send(message);
+	static async broadcast(message) {
+		Object.keys(loadedModules).forEach(moduleName => {
+			if ((loadedModules[moduleName]||{}).process) pSend(loadedModules[moduleName].process, message).catch(err => lErr(err, `Failed to broadcast to ${moduleName}.`));
 		})
 	}
 
-	static sendLog(logObj) {
-		if ((loadedModules['log']||{}).process) loadedModules['log'].process.send({function: 'log', logObj: logObj})
+	static async log(logObj) {
+		if ((loadedModules['log']||{}).process) {
+			return await pSend(loadedModules['log'].process, {function: 'log', logObj: logObj})
+			.catch(err => {throw err})
+		}
 	}
 
 	get enabled() { return sS.modules[this.name].enabled }
 	set enabled(enable) {
 		sS.modules[this.name].enabled = enable;
-		wrapperModule.broadcast({function: 'pushSettings', sS: sS });
+		wrapperModule.broadcast({function: 'pushSettings', sS: sS })
+		.catch(err => lErr(err, `Failed to broadcast ${this.name} enabled: ${enable} update.`));
 	}
 
 	get description() { return sS.modules[this.name].description }
 	set description(descriptionString) {
 		sS.modules[this.name].description = descriptionString;
-		wrapperModule.broadcast({function: 'pushSettings', sS: sS });
+		wrapperModule.broadcast({function: 'pushSettings', sS: sS })
+		.catch(err => lErr(err, `Failed to broadcast ${this.name} description: ${descriptionString} update.`));
 	}
 
 	get color() { return sS.c[sS.modules[this.name].color] };
 	set color(moduleColor) {
 		if (moduleColor in sS.c) {
 			sS.modules[this.name].color = moduleColor;
-			wrapperModule.broadcast({function: 'pushSettings', sS: sS });
-		} else debug(`"${this.name}.color = ${moduleColor}" Invalid Colour.`);
+			wrapperModule.broadcast({function: 'pushSettings', sS: sS })
+			.catch(err => lErr(err, `Failed to broadcast ${this.name} color: ${moduleColor} update.`));
+		} else util.debug(`"${this.name}.color = ${moduleColor}" Invalid Colour.`);
 	}
 }
 
-backupSettings();
-loadModules().then(startEnabledModules()).then(startServer());
+(async () => {
+	backupSettings().catch(err => lErr(err, 'Failed to backup settings on launch.'));
+	loadModules().then(startEnabledModules).then(startServer)
+	.catch(err => lErr(err, 'Failed to load and start modules and launch server.'));
+})();
 
 /*
 / Module management functions
@@ -333,7 +332,7 @@ function startEnabledModules() {
 		Object.keys(loadedModules).forEach(function(moduleName) {
 			if (loadedModules[moduleName].enabled) loadedModules[moduleName].start();
 		})
-		wrapperModule.sendLog({logInfoArray: listModules(), logTo: { console: true } });
+		wrapperModule.log({logInfoArray: listModules(), logTo: { console: true } });
 		resolve();
 	})
 }
@@ -348,7 +347,7 @@ function restartAllModules() {
 	return [].concat.apply(
 		[],
 		Object.keys(loadedModules).map(moduleName => {
-  		if (loadedModules[moduleName].enabled) return loadedModules[moduleName].restart()
+  			if (loadedModules[moduleName].enabled) return loadedModules[moduleName].restart()
 		})
 	);
 }
@@ -368,103 +367,73 @@ function listModules() {
 /*
 / Settings functions
 */
-function loadSettings(callback) {
-	let executionStartTime = new Date();
-	try {
-		sS = JSON.parse(fs.readFileSync(sSFile, 'utf8'));
-		wrapperModule.broadcast({function: 'pushSettings', sS: sS });
-	}	catch (err) {
-		return [{
-			function: 'error',
-			vars: {
-				niceName: 'Error loading settings!',
-				err: JSON.parse(JSON.stringify(err)),
-				executionStartTime: executionStartTime,
-				executionEndTime: new Date()
-			}
-		}]
-	}
-	return [{
-		function: 'loadSettings',
-		vars: {
-			executionStartTime: executionStartTime,
-			executionEndTime: new Date()
-		}
-	}]
+function loadSettings() {
+	return new Promise((resolve, reject) => {
+		fs.readFile(sSFile, 'utf8', (err, data) => {
+			if (err) reject(err);
+			sS = JSON.parse();
+			wrapperModule.broadcast({function: 'pushSettings', sS: sS })
+			.catch(err => lErr(err, 'Failed to broadcast new settings to modules.'))
+			resolve();
+		})
+	})
 }
 
 function saveSettings() {
-	let executionStartTime = new Date();
-	try { fs.writeFileSync(sSFile, JSON.stringify(sS, null, 2), 'utf8'); }
-	catch (err) {
-		return [{
-			function: 'error',
-			vars: {
-				niceName: 'Error saving settings!',
-				err: JSON.parse(JSON.stringify(err)),
-				executionStartTime: executionStartTime,
-				executionEndTime: new Date()
-			}
-		}]
-	}
-	return [{
-		function: 'saveSettings',
-		vars: {
-			executionStartTime: executionStartTime,
-			executionEndTime: new Date()
-		}
-	}]
+	return new Promise((resolve, reject) => {
+		fs.writeFile(sSFile, JSON.stringify(sS, null, 2), 'utf8', (err) => {
+			if (err) reject(err);
+			else resolve();
+		})
+	})
 }
 
-function backupSettings(callback) {
-	let executionStartTime = new Date();
-	try { fs.writeFileSync(sSFile+'.backup', JSON.stringify(sS, null, 2), 'utf8'); }
-	catch (err) {
-		return [{
-			function: 'error',
-			vars: {
-				niceName: 'Error backing up settings!',
-				err: JSON.parse(JSON.stringify(err)),
-				executionStartTime: executionStartTime,
-				executionEndTime: new Date()
-			}
-		}]
-	}
-	return [{
-		function: 'backupSettings',
-		vars: {
-			executionStartTime: executionStartTime,
-			executionEndTime: new Date()
-		}
-	}]
+function backupSettings() {
+	return new Promise((resolve, reject) => {
+		fs.writeFile(sSFile+'.backup', JSON.stringify(sS, null, 2), 'utf8', (err) => {
+			if (err) reject(err);
+			else resolve();
+		})
+	})
 }
 
 function startServer() {
-	server = children.spawn('java', serverStartVars); // This will be assigned the server server when it starts
+	server = children.spawn('java', serverStartVars, { detached : false }); // This will be assigned the server server when it starts
 	server.stdin.write('list\n'); // Write list to the console so we can know when the server has finished starting
-	server.stdout.on('data', string => { // On server data out
-		if (!consoleTimeout) wrapperModule.broadcast({function: 'serverStdout', string: string.toString() });
+
+	let postConsoleTimeout = (string) => { 
+		wrapperModule.broadcast({ function: 'serverStdout', string: string.toString() }) 
+		.catch(err => lErr(err, 'Failed to broadcast serverStdout.'));
+	};
+	let sStdoutHandler = (string) => {
 		process.stdout.write(string); // Write line to wrapper console
 		if (string.indexOf("players online") > -1) { // "list" command has completed, server is now online
-			consoleTimeout = false;
-			if ((loadedModules['stats']||{}).process) loadedModules['stats'].process.send({ function: 'pushStats', serverStats: {status: "Running"} });  // If stats is enabled update the server status to enabled
+			sStdoutHandler = postConsoleTimeout;
+			if ((loadedModules['stats']||{}).process) { // If stats is enabled update the server status to enabled
+				pSend(loadedModules['stats'].process, { function: 'pushStats', serverStats: {status: "Running"} })
+				.catch(err => lErr(err, 'Failed to send server started status update.'));
+			}
 		}
-	})
+	}
+	server.stdout.on('data', string => sStdoutHandler(string))
 
 	if ((loadedModules['stats']||{}).process) { // If stats is enabled push a update
-		loadedModules['stats'].process.send({
+		pSend(loadedModules['stats'].process, {
 			function: 'startStatsInterval',
 			sS: sS,
 			serverPID: server.pid,
 			serverStats: {
 				status: 'Starting...'
 			}
-		});
+		}).catch(err => lErr(err, 'Failed to send starting message to stats module.'));
 	}
 
 	// Server shutdown handling
-	server.on('exit', function (code) {
-		if ((loadedModules['stats']||{}).process) loadedModules['stats'].process.send({ function: 'pushStats', serverStats: {status: "Closed"} });  // If stats is enabled update the server status to enabled
+	server.on('exit', (code) => {
+		if ((loadedModules['stats']||{}).process) {
+			pSend(loadedModules['stats'].process, { function: 'pushStats', serverStats: {status: "Closed"} })
+			.catch(err => lErr(err, 'Failed to send server close message to stats module.'));  // If stats is enabled update the server status to enabled
+		}
 		console.log(`Server closed with exit code: ${code}\nKilling modules...`);
 		Object.keys(loadedModules).forEach(moduleName => {
 			loadedModules[moduleName].kill();
@@ -475,23 +444,17 @@ function startServer() {
 	});
 
 	// Server error handling
-	server.on('error', function (error) {
-	    console.log(`Server encountered a error!\n${error}`);
-	});
+	server.on('error', (err) => lErr(err, `Server encountered a error.`));
 
 
 	/*
 	/ Wrapper Console Handling
 	*/
 	consoleReadline.on('line', string => {
-		wrapperModule.broadcast({function: 'consoleStdout', string: string.toString().trim() });
+		wrapperModule.broadcast({function: 'consoleStdout', string: string.toString().trim() }).catch(err => lErr(err, 'Failed to broadcast consoleStdout.'));
 		if (string.toString().trim()[0] != '~' && string.toString().trim()[0] != '?') server.stdin.write(string.toString().trim()+'\n');
 	});
 }
-
-/*
-/ Util Functions
-*/
 
 function restartWrapper() {
 	// Spawn a new process of the wrapper and pipe the output to the current cmd window
@@ -505,29 +468,17 @@ function restartWrapper() {
 	if (!newProcess) process.exit();
 }
 
-function debug(stringOut) {
-	try {
-		if (typeof stringOut === 'string') process.stdout.write(`\n\u001b[41mDEBUG>${sS.c['reset'].c} ${stringOut}\n\n`)
-		else {
-			process.stdout.write(`\n\u001b[41mDEBUG>${sS.c['reset'].c}`);
-			console.log(stringOut);
-		}
-	} catch (e) {
-		process.stdout.write(`\n\u001b[41mDEBUG>${sS.c['reset'].c} ${stringOut}\n\n`);
-	}
+/*
+/ Private Util Functions
+*/
+async function lErr(err, name='') {
+	console.log(`${sS.c['brightRed'].c}ERROR: ${sS.c['reset'].c}${name ? `${name}` : ''}${err.message}\n${err.stack}`,)
 }
-
-if (!('toJSON' in Error.prototype))
-Object.defineProperty(Error.prototype, 'toJSON', {
-    value: function () {
-        let alt = {};
-
-        Object.getOwnPropertyNames(this).forEach(function (key) {
-            alt[key] = this[key];
-        }, this);
-
-        return alt;
-    },
-    configurable: true,
-    writable: true
-});
+async function pSend(dstProcess, message) {
+	return new Promise((resolve, reject) => {
+		dstProcess.send(message, (err, data) => {
+			if (err) reject(err);
+			resolve(data);
+		});
+	})
+}

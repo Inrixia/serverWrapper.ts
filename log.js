@@ -112,7 +112,8 @@ const logFunctions = {
 	error: function(vars) {
 		if (!vars.err) console.log(`Error Error! What even is this!?`, vars);
 		else return [{
-			console: `${vars.niceName ? `${sS.c['brightRed'].c}${vars.niceName}${sS.c['reset'].c} ` : ''}${vars.err.message}\n${vars.err.stack}`,
+			// Error handling for console is no longer piped to log, check util.js and serverWrapper.js
+			//console: `${sS.c['brightRed'].c}ERROR: ${sS.c['reset'].c}${vars.niceName ? `${vars.niceName}` : ''}${vars.err.message}\n${vars.err.stack}`,
 			minecraft: `tellraw ${vars.user} ${JSON.stringify(
 				[{
 					"text": `${vars.niceName||''}\n`,

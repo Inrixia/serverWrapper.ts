@@ -1,34 +1,34 @@
 // Import core packages
 const moment = require("moment");
-const fs = require("fs")
+const fs = require("fs");
+const util = require("./util.js");
 
 // Set defaults
-var sS = {} // serverSettings
-var mS = {} // moduleSettings
-var server = null;
-var authErr = null;
-var commands = {};
-var commandGroupings = {};
+let sS = {} // serverSettings
+let mS = {} // moduleSettings
+let authErr = null;
+let commands = {};
+let commandGroupings = {};
 
 // Module command handling
-process.on('message', message => {
+process.on('message', async message => {
 	switch (message.function) {
 		case 'init':
 			sS = message.sS;
 			mS = sS.modules['command'].settings;
-			loadCommands();
+			loadCommands().catch(err => util.lErr);
 			break;
 		case 'kill':
 			process.exit();
 			break;
 		case 'discordMessage':
-			processDiscordMessage(message.message);
+			processDiscordMessage(message.message).catch(err => util.lErr);
 			break;
 		case 'consoleStdout':
-			processCommand(message);
+			processCommand(message).catch(err => util.lErr);
 			break;
 		case 'serverStdout':
-			processServerMessage(message);
+			processServerMessage(message).catch(err => util.lErr);
 			break;
 		case 'pushSettings':
 			sS = message.sS;
@@ -37,7 +37,7 @@ process.on('message', message => {
 	}
 });
 
-function checkCommandAuth(allowedCommands, message) {
+async function checkCommandAuth(allowedCommands, message) {
 	for (command in allowedCommands) {
 		if (!allowedCommands[command.toLowerCase()].expired && (allowedCommands[command.toLowerCase()].expiresAt === false || new Date(allowedCommands[command.toLowerCase()].expiresAt) > new Date())) { // If permission has not expired
 			if (command == "*") return true;
@@ -48,7 +48,7 @@ function checkCommandAuth(allowedCommands, message) {
 			if (allowedCommands[command.toLowerCase()].expired && (message.string.slice(0, command.length) == command)) authErr = 'Allowed use of this command has expired.';
 			if (!allowedCommands[command.toLowerCase()].expired) {
 				allowedCommands[command.toLowerCase()].expired = true;
-				saveSettings();
+				await util.saveSettings(null, 'command', sS).catch(err => util.lErr);
 			}
 		}
 	};
@@ -57,47 +57,47 @@ function checkCommandAuth(allowedCommands, message) {
 }
 
 
-function checkDiscordAuth(message) {
+async function checkDiscordAuth(message) {
 	if (mS.whitelisted_discord_users[message.author.id]) { // If user matches a whitelisted user
-		var whitelisted_user = mS.whitelisted_discord_users[message.author.id];
+		let whitelisted_user = mS.whitelisted_discord_users[message.author.id];
 		if (whitelisted_user['Username'] != message.author.username) {
 			whitelisted_user['Username'] = message.author.username;
-			saveSettings();
+			util.saveSettings(null, 'command', sS).catch(err => util.lErr);
 		}
-		if (checkCommandAuth(whitelisted_user.allowedCommands, message)) return true;
+		if (await checkCommandAuth(whitelisted_user.allowedCommands, message).catch(err => util.lErr)) return true;
 	}
 	for (role_index in message.member.roles) {
 		discord_role = message.member.roles[role_index];
 		if (discord_role.id in mS.whitelisted_discord_roles) { // If user has a whitelisted role
-			var whitelisted_role = mS.whitelisted_discord_roles[discord_role.id];
+			let whitelisted_role = mS.whitelisted_discord_roles[discord_role.id];
 			if (whitelisted_role['Name'] != discord_role.name) {
 				whitelisted_role['Name'] = discord_role.name;
-				saveSettings();
+				util.saveSettings(null, 'command', sS).catch(err => util.lErr);
 			}
-			if (checkCommandAuth(whitelisted_role.allowedCommands, message)) return true;
+			if (await checkCommandAuth(whitelisted_role.allowedCommands, message).catch(err => util.lErr)) return true;
 		};
 	}
 	if (!authErr) authErr = 'User not whitelisted.';
-	process.send({
+	util.pSend(process, {
 		function: 'unicast',
 		module: 'discord',
 		message: { function: 'discordStdin', string: authErr+"\n" }
-	});
+	}).catch(err => util.lErr);
 	authErr = null;
 	return false;
 }
 
-function processDiscordMessage(message) {
+async function processDiscordMessage(message) {
 	// "Mod" role id: 344286675691896832
 	// "Admin" role id: 278046497789181954
-	if ((message.string[0] == '~' || message.string[0] == '!' || message.string[0] == '?') && checkDiscordAuth(message)) { // User is allowed to run this command
+	if ((message.string[0] == '~' || message.string[0] == '!' || message.string[0] == '?') && checkDiscordAuth(message).catch(err => util.lErr)) { // User is allowed to run this command
 		process.stdout.write(`[${sS.c['brightCyan'].c}${message.author.username}${sS.c['reset'].c}]: ${message.string.trim()}\n`);
-		if (message.string[0] == '~' || message.string[0] == '?') processCommand(message) // Message is a wrapperCommand or helpCommand
-		else if (message.string[0] == '!') process.send({ function: 'serverStdin', string: message.string.slice(1,message.length).trim()+'\n' }) // Message is a serverCommand
+		if (message.string[0] == '~' || message.string[0] == '?') processCommand(message).catch(err => util.lErr) // Message is a wrapperCommand or helpCommand
+		else if (message.string[0] == '!') util.pSend(process, { function: 'serverStdin', string: message.string.slice(1,message.length).trim()+'\n' }).catch(err => util.lErr) // Message is a serverCommand
 	}
 }
 
-function processServerMessage(message) {
+async function processServerMessage(message) {
 	message.string = message.string.replace('\n', '');
 	let commandString = null;
 	let user = null;
@@ -108,16 +108,15 @@ function processServerMessage(message) {
 	else return;
 	commandString = message.string.slice(message.string.indexOf('> '+commandType)+2, message.string.length)
 	user = message.string.slice(message.string.indexOf('<')+1, message.string.indexOf('> '+commandType))
-	fs.readFile('./ops.json', null, function(err, ops) {
-		if (err) debug(err);
+	fs.readFile('./ops.json', null, async (err, ops) => {
+		if (err) util.lErr(err, 'Error reading server ops.json file!');
 		else {
 			ops = JSON.parse(ops);
-			if (getObj(ops, 'name', user)) {
+			if (await util.getObj(ops, 'name', user).catch(err => util.lErr)) {
 				processCommand({ string: commandString, minecraft: true, user: user })
 			}
 		}
 	})
-
 }
 
 class command {
@@ -129,19 +128,19 @@ class command {
 		commands[this.name.toLowerCase()] = this;
 	}
 
-	execute(message) {
+	async execute(message) {
 		if (message.string[0] == '~') {
-			var logInfoArray = this.exeFunc(message);
-			if (logInfoArray) process.send({
+			let logInfoArray = this.exeFunc(message)
+			if (logInfoArray) util.pSend(process, {
 				function: 'unicast',
 				module: 'log',
 				message: { function: 'log', logObj: { logInfoArray: logInfoArray, logTo: message.logTo } }
-			});
-		} else if (message.string[0] == '?') this.help(message);
+			})
+		} else if (message.string[0] == '?') this.help(message)
 	}
 
-	help(message) { // Outputs help info for a command
-		process.send({
+	async help(message) { // Outputs help info for a command
+		util.pSend(process, {
 			function: 'unicast',
 			module: 'log',
 			message: {
@@ -154,10 +153,10 @@ class command {
 					logTo: message.logTo
 				}
 			}
-		})
+		}).catch(err => util.lErr(err, 'Help Failed', message.logTo))
 	}
 
-	helpAll(message) { // Outputs list of enabled commands
+	async helpAll(message) { // Outputs list of enabled commands
 		let	helpSummary = {
 			console: ``,
 			minecraft: [],
@@ -197,7 +196,7 @@ class command {
 				value: groupSummary[g].discord
 			})
 		});
-		process.send({
+		util.pSend(process, {
 			function: 'unicast',
 			module: 'log',
 			message: {
@@ -214,14 +213,14 @@ class command {
 	}
 
 	static toWrapper() {
-		return function(message) {
+		return async function(message) {
 			message.function = this.name;
-			process.send(message)
+			return util.pSend(process, message)
 		}
 	}
 }
 
-function processCommand(message) {
+async function processCommand(message) {
 	let executionStartTime = new Date();
 	message.string = message.string.replace(/\s\s+/g, ' '); // Compact multiple spaces/tabs down to one
 	message.logTo = {
@@ -230,14 +229,14 @@ function processCommand(message) {
 		minecraft: message.minecraft,
 		user: message.user
 	};
-	message.args = getCommandArgs(message.string);
-	if(!Object.keys(commands).some(function (commandName) {
+	message.args = await getCommandArgs(message.string);
+	if(!Object.keys(commands).some((commandName) => {
 		if (commandMatch(message.string.slice(1, message.string.length), commandName)) {
 			commands[commandName.toLowerCase()].execute(message);
 			return true;
 		}
 		return false;
-	}) && message.string[0] == '~' || message.string[0] == '!') process.send({
+	}) && message.string[0] == '~' || message.string[0] == '!') util.pSend(process, {
 		function: 'unicast',
 		module: 'log',
 		message: {
@@ -257,7 +256,7 @@ function processCommand(message) {
 	})
 }
 
-function getCommandArgs(string) {
+async function getCommandArgs(string) {
 	return string.split(" ")||string;
 }
 
@@ -268,14 +267,14 @@ function commandMatch(string, commandString) {
 	return false;
 }
 
-function commandWhitelistAdd(message) {
+async function commandWhitelistAdd(message) {
 	// ~commandwhitelist add !list @Inrix 1 hour
 	// ~commandwhitelist remove !list @Inrix 1 hour
 	if (message.mentions.users[0].id) {
-		var whitelisted_object = mS.whitelisted_discord_users[message.mentions.users[0].id];
+		let whitelisted_object = mS.whitelisted_discord_users[message.mentions.users[0].id];
 		whitelisted_object.Username = message.mentions.users[0].username;
 	} else if (message.mentions.roles[0].id) {
-		var whitelisted_object = mS.whitelisted_discord_roles[message.mentions.roles[0].id];
+		let whitelisted_object = mS.whitelisted_discord_roles[message.mentions.roles[0].id];
 		whitelisted_object.Name = message.mentions.roles[0].name;
 	}
 	if (!whitelisted_object.allowAllCommands) whitelisted_object.allowAllCommands = false;
@@ -291,68 +290,32 @@ function commandWhitelistAdd(message) {
 		"expiresAt": expiresin, // If the user specifies a expiery time set it, otherwise use infinite
 		"expired": false
 	}
-	saveSettings();
+	util.saveSettings(null, 'command', sS);
 	return { wo: whitelisted_object, expiresin: expiresin };
 }
 
-function commandWhitelistRemove(message) {
+async function commandWhitelistRemove(message) {
 	if (message.args[0] == "~cw_removeall") {
 		let whitelisted_object = mS.whitelisted_discord_users[message.mentions.users[0].id];
 		if (message.mentions.users[0].id) delete mS.whitelisted_discord_users[message.mentions.users[0].id];
 		else if (message.mentions.roles[0].id) delete mS.whitelisted_discord_roles[message.mentions.roles[0].id];
-		saveSettings();
+		util.saveSettings(null, 'command', sS);
 		return whitelisted_object
 	} else {
 		let whitelisted_object = mS.whitelisted_discord_users[message.mentions.users[0].id].allowedCommands[message.args[1].toLowerCase()];
 		if (message.mentions.users[0].id) delete mS.whitelisted_discord_users[message.mentions.users[0].id].allowedCommands[message.args[1].toLowerCase()];
 		else if (message.mentions.roles[0].id) delete mS.whitelisted_discord_roles[message.mentions.roles[0].id].allowedCommands[message.args[1].toLowerCase()];
-		saveSettings();
+		util.saveSettings(null, 'command', sS);
 		return whitelisted_object
 	}
 }
 
-/*
-/ Util Functions
-*/
-
-function debug(stringOut) {
-	try {
-		if (typeof stringOut === 'string') process.stdout.write(`\n\u001b[41mDEBUG>${sS.c['reset'].c} ${stringOut}\n\n`)
-		else {
-			process.stdout.write(`\n\u001b[41mDEBUG>${sS.c['reset'].c}`);
-			console.log(stringOut);
-		}
-	} catch (e) {
-		process.stdout.write(`\n\u001b[41mDEBUG>${sS.c['reset'].c} ${stringOut}\n\n`);
-	}
-}
-
-function saveSettings(logTo) {
-	sS.modules['command'].settings = mS;
-	process.send({ function: 'saveSettings', sS: sS, logTo: logTo })
-}
-
-if (!('toJSON' in Error.prototype)) Object.defineProperty(Error.prototype, 'toJSON', {
-    value: function () {
-        var alt = {};
-        Object.getOwnPropertyNames(this).forEach(function (key) {
-            alt[key] = this[key];
-        }, this);
-        return alt;
-    },
-    configurable: true,
-    writable: true
-});
-
-function getObj(parentObject, childObjectProperty, childObjectValue) {
-	return parentObject.find(function(childObject) { return childObject[childObjectProperty] === childObjectValue; })
-}
 
 /*
 /	Begin command definitions
 */
 
-function loadCommands() {
+async function loadCommands() {
 	commandGroupings = {
 		'Wrapper Core': 'cyan',
 		'Command': sS.modules['command'].color||'brightGreen',
@@ -361,7 +324,7 @@ function loadCommands() {
 		'Utility': sS.modules['math'].color||'brightMagenta'
 	}
 	new command({
-		name: 'tpo', exeFunc: function(message){ process.send({ function: 'unicast', module: 'nbt', message: {function: 'tpo', args: {username: message.args[1], x: message.args[2], y: message.args[3], z: message.args[4]}, logTo: message.logTo} }) },
+		name: 'tpo', exeFunc: function(message){ util.pSend(process, { function: 'unicast', module: 'nbt', message: {function: 'tpo', args: {username: message.args[1], x: message.args[2], y: message.args[3], z: message.args[4]}, logTo: message.logTo} }) },
 		description: {
 			grouping: 'Minecraft',
 			summary: `Changes a players coordinates in playerdata.`,
@@ -930,7 +893,7 @@ function loadCommands() {
 		}
 	});
 	new command({
-		name: 'saveSettings', exeFunc: function(message){saveSettings(message.logTo)},
+		name: 'saveSettings', exeFunc: function(message){saveSettings(message.logTo, 'command', sS)},
 		description: {
 			grouping: 'Wrapper Core',
 			summary: `Saves current wrapper settings.`,
@@ -966,7 +929,7 @@ function loadCommands() {
 	new command({
 		name: 'cw_add', exeFunc: function(message){
 			let executionStartTime = new Date();
-			process.send({
+			util.pSend(process, {
 				function: 'unicast',
 				module: 'log',
 				message: {
@@ -1060,7 +1023,7 @@ function loadCommands() {
 	new command({
 		name: 'cw_remove', exeFunc: function(message){
 			let executionStartTime = new Date();
-			process.send({
+			util.pSend(process, {
 				function: 'unicast',
 				module: 'log',
 				message: {
@@ -1124,7 +1087,7 @@ function loadCommands() {
 	new command({
 		name: 'cw_removeall', exeFunc: function(message){
 			let executionStartTime = new Date();
-			process.send({
+			util.pSend(process, {
 				function: 'unicast',
 				module: 'log',
 				message: {
@@ -1190,7 +1153,7 @@ function loadCommands() {
 	new command({
 		name: 'backup',
 		exeFunc: function(message){
-			process.send({
+			util.pSend(process, {
 				function: 'unicast',
 				module: 'backup',
 				message: {
@@ -1233,7 +1196,7 @@ function loadCommands() {
 	}),
 	new command({
 		name: 'startBackupInterval',
-		exeFunc: function(message){ process.send({ function: 'unicast', module: 'backup', message: {function: 'startBackupInterval', logTo: message.logTo} }) },
+		exeFunc: function(message){ util.pSend(process, { function: 'unicast', module: 'backup', message: {function: 'startBackupInterval', logTo: message.logTo} }) },
 		description: {
 			grouping: 'Backups',
 			summary: `Starts automatic backups.`,
@@ -1269,7 +1232,7 @@ function loadCommands() {
 	new command({
 		name: 'clearBackupInterval',
 		exeFunc: function(message){
-			process.send({ function: 'unicast', module: 'backup', message: {function: 'clearBackupInterval', logTo: message.logTo} })
+			util.pSend(process, { function: 'unicast', module: 'backup', message: {function: 'clearBackupInterval', logTo: message.logTo} })
 		},
 		description: {
 			grouping: 'Backups',
@@ -1306,7 +1269,7 @@ function loadCommands() {
 	new command({
 		name: 'setBackupInterval',
 		exeFunc: function(message){
-			process.send({
+			util.pSend(process, {
 				function: 'unicast',
 				module: 'backup',
 				message: {
@@ -1350,10 +1313,10 @@ function loadCommands() {
 		}
 	}),
 
-	//new command({ name: 'backupdir_set', exeFunc: function(message){ process.send({ function: 'unicast', module: 'backup', message: {function: 'setBackupDir', backupDir: message.args[1],save: message.args[2], logTo: message.logTo} }) } });
+	//new command({ name: 'backupdir_set', exeFunc: function(message){ util.pSend(process, { function: 'unicast', module: 'backup', message: {function: 'setBackupDir', backupDir: message.args[1],save: message.args[2], logTo: message.logTo} }) } });
 	new command({
 		name: 'backupDir',
-		exeFunc: function(message){ process.send({ function: 'unicast', module: 'backup', message: {function: 'getBackupDir', logTo: message.logTo} }) },
+		exeFunc: function(message){ util.pSend(process, { function: 'unicast', module: 'backup', message: {function: 'getBackupDir', logTo: message.logTo} }) },
 		description: {
 			grouping: 'Backups',
 			summary: `Gets backup directory.`,
@@ -1388,7 +1351,7 @@ function loadCommands() {
 	}),
 	new command({
 		name: 'nextBackup',
-		exeFunc: function(message){ process.send({ function: 'unicast', module: 'backup', message: {function: 'nextBackup', logTo: message.logTo} }) },
+		exeFunc: function(message){ util.pSend(process, { function: 'unicast', module: 'backup', message: {function: 'nextBackup', logTo: message.logTo} }) },
 		description: {
 			grouping: 'Backups',
 			summary: `Gets time to next backup.`,
@@ -1423,7 +1386,7 @@ function loadCommands() {
 	}),
 	new command({
 		name: 'lastBackup',
-		exeFunc: function(message){ process.send({ function: 'unicast', module: 'backup', message: {function: 'lastBackup', logTo: message.logTo} }) },
+		exeFunc: function(message){ util.pSend(process, { function: 'unicast', module: 'backup', message: {function: 'lastBackup', logTo: message.logTo} }) },
 		description: {
 			grouping: 'Minecraft',
 			summary: `Gets last backup info.`,
@@ -1460,7 +1423,7 @@ function loadCommands() {
 	// nbt commands
 	new command({
 		name: 'getSpawn',
-		exeFunc: function(message){ process.send({ function: 'unicast', module: 'nbt', message: {function: 'getSpawn', logTo: message.logTo} }) },
+		exeFunc: function(message){ util.pSend(process, { function: 'unicast', module: 'nbt', message: {function: 'getSpawn', logTo: message.logTo} }) },
 		description: {
 			grouping: 'Minecraft',
 			summary: `Gets server spawn coords.`,
@@ -1498,7 +1461,7 @@ function loadCommands() {
 	new command({
 		name: 'getProperty',
 		exeFunc: function(message){
-			process.send({
+			util.pSend(process, {
 				function: 'unicast',
 				module: 'properties',
 				message: {function: 'getProperty',
@@ -1540,7 +1503,7 @@ function loadCommands() {
 	});
 	new command({
 		name: 'getProperties',
-		exeFunc: function(message){ process.send({ function: 'unicast', module: 'properties', message: {function: 'getProperties', logTo: message.logTo} }) },
+		exeFunc: function(message){ util.pSend(process, { function: 'unicast', module: 'properties', message: {function: 'getProperties', logTo: message.logTo} }) },
 		description: {
 			grouping: 'Minecraft',
 			summary: `Gets server.properties file contents.`,
@@ -1578,7 +1541,7 @@ function loadCommands() {
 	new command({
 		name: 'tpc',
 		exeFunc: function(message) {
-			process.send({
+			util.pSend(process, {
 				function: 'unicast',
 				module: 'log',
 				message: {
@@ -1648,7 +1611,7 @@ function loadCommands() {
 	new command({
 		name: 'tpr',
 		exeFunc: function(message) {
-			process.send({
+			util.pSend(process, {
 				function: 'unicast',
 				module: 'log',
 				message: {
@@ -1718,7 +1681,7 @@ function loadCommands() {
 	new command({
 		name: 'qm',
 		exeFunc: function(message) {
-			process.send({
+			util.pSend(process, {
 				function: 'unicast',
 				module: 'math',
 				message: {

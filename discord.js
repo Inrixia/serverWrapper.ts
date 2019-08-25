@@ -1,28 +1,25 @@
 // Import core packages
 const properties = require('properties');
 const discordjs = require("discord.js");
+const util = require("./util.js");
 
 // Set defaults
 const discord = new discordjs.Client();
-var sS = {} // serverSettings
-var mS = {} // moduleSettings
-var server = null;
-var discord_token = null;
-var management_channel = null; // This will be assigned the management channel when the server starts
-var discordData = "";
-var previousMessage = "";
-
-process.on('uncaughtException', function (exception) {
-	logError(exception);
-});
+let sS = {} // serverSettings
+let mS = {} // moduleSettings
+let managementChannel = null; // This will be assigned the management channel when the server starts
+let chatChannel = null; 
+let discordData = "";
+let previousMessage = "";
+let serverStarted = true;
 
 // Module command handling
-process.on('message', message => {
+process.on('message', async message => {
 	switch (message.function) {
 		case 'init':
 			sS = message.sS;
 			mS = sS.modules['discord'].settings;
-			openDiscord();
+			buildMatches().then(openDiscord);
 			break;
 		case 'kill':
 			process.exit();
@@ -31,10 +28,10 @@ process.on('message', message => {
 			serverStdout(message.string);
 			break;
 		case 'consoleStdout':
-			if (management_channel) management_channel.send(`[BOX] > ${message.string}\n`, { split: true })
+			if (managementChannel) managementChannel.send(`[BOX] > ${message.string}\n`, { split: true })
 			break;
 		case 'discordStdin':
-			var channel = management_channel;
+			let channel = managementChannel;
 			if (message.channel) channel = discord.guilds.get('155507830076604416').channels.get(message.channel)
 			else if (message.userID) channel = discord.users.get(message.userID);
 
@@ -44,28 +41,30 @@ process.on('message', message => {
 		case 'pushSettings':
 			sS = message.sS;
 			mS = sS.modules['discord'].settings;
+			buildMatches();
 			break;
 	}
 });
 
-function openDiscord() {
-	// Fetch discord_token to use and display it at launch
-	console.log(`Using Discord Token: ${sS.c[sS.modules['discord'].color].c}${mS.discord_token}${sS.c['reset'].c}`);
-	discord.login(mS.discord_token);
+async function openDiscord() {
+	// Fetch discordToken to use and display it at launch
+	console.log(`Using Discord Token: ${sS.c[sS.modules['discord'].color].c}${mS.discordToken}${sS.c['reset'].c}`);
+	discord.login(mS.discordToken);
 }
 
 // On discord client login
 discord.on('ready', () => {
-	management_channel = discord.guilds.get('155507830076604416').channels.get(mS.management_channel_id);
-	properties.parse('./server.properties', {path: true}, function(err, properties) {
-		if (err) console.log(err)
+	managementChannel = discord.guilds.get('155507830076604416').channels.get(mS.managementChannelId);
+	if(mS.chatLink.chatChannelId) chatChannel = discord.guilds.get('155507830076604416').channels.get(mS.chatLink.chatChannelId);
+	properties.parse('./server.properties', {path: true}, (err, properties) => {
+		if (err) util.lErr(err);
 		else discord.user.setActivity(properties.motd.replace(/§./g, '').replace(/\n.*/g, '').replace('// Von Spookelton - ', '').replace(' \\\\', ''), { type: 'WATCHING' })
 	});
 })
 
 // On receive message from discord server
-discord.on('message', message => {
-	var discordMessage = {
+discord.on('message', async message => {
+	let discordMessage = {
 		channel : {
 			id: ((message.channel||{}).id||null),
 			name: ((message.channel||{}).name||null),
@@ -114,14 +113,20 @@ discord.on('message', message => {
 		}
 	}
 	if (message.isMemberMentioned(discord.user)) discordMessage.string = message.toString().trim().slice(message.toString().trim().indexOf(' ')+1, message.toString().trim().length)
-	else if (message.channel.id == mS.management_channel_id && message.author.id != discord.user.id) discordMessage.string = message.toString().trim();
-	if (discordMessage.string) process.send({
+	else if (message.channel.id == mS.managementChannelId && message.author.id != discord.user.id) discordMessage.string = message.toString().trim();
+	if (discordMessage.string) util.pSend(process, {
 		function: 'broadcast',
 		message: {
 			function: 'discordMessage',
 			message: discordMessage
 		}
 	});
+	if(chatChannel && discordMessage.channel.id === mS.chatLink.chatChannelId) {
+		// util.pSend(process, {
+		// 	function: 'serverStdin',
+		// 	string: `/say ${discordMessage.user.username}: ${discordMessage.string}`
+		// });
+	}
 	/*if (message.toString() == '^') {
 		message.channel.send(`
 		${"```"}javascript
@@ -133,7 +138,7 @@ discord.on('message', message => {
 			responseMessage.react('⬆');
 			responseMessage.react('⬇');
 
-			var reactFilter = (reaction, user) => reaction.emoji.name === '⬆' || ;
+			let reactFilter = (reaction, user) => reaction.emoji.name === '⬆' || ;
 			responseMessage.awaitReactions(reactFilter, {time: 5000}).then(reactions => {
 				debug((reactions.first().name == '⬆') + 'up')
 				debug((reactions.first().name == '⬇') + 'down')
@@ -142,70 +147,69 @@ discord.on('message', message => {
 	}*/
 })
 
-function serverStdout(string) {
+async function sendChat(msg) { if (chatChannel) chatChannel.send(msg, { split: true }); }
+async function serverStdout(string) {
 	if (string == previousMessage) return;
 	previousMessage = string;
-	if (string.indexOf('DiscordIntegration') == -1) {
-		discordData += string;
-		setTimeout(function() {
-			if (discordData != "" && management_channel) {
-				management_channel.send(discordData, { split: true })
-				discordData = "";
-			}
-		}, mS.discordMessageFlushRate)
-	}
-}
 
+	// every message we send spawns another stdout, so we don't want to infinite loop
+	if (string.includes('DiscordIntegration')) return;
 
-/*
-/ Util Functions
-*/
-
-function debug(stringOut) {
-	try {
-		if (typeof stringOut === 'string') process.stdout.write(`\n\u001b[41mDEBUG>${sS.c['reset'].c} ${stringOut}\n\n`)
-		else {
-			process.stdout.write(`\n\u001b[41mDEBUG>${sS.c['reset'].c}`);
-			console.log(stringOut);
+	discordData += string;
+	setTimeout(() => {
+		if (discordData != "" && managementChannel) {
+			managementChannel.send(discordData, { split: true })
+			discordData = "";
 		}
-	} catch (e) {
-		process.stdout.write(`\n\u001b[41mDEBUG>${sS.c['reset'].c} ${stringOut}\n\n`);
-	}
-}
+	}, mS.discordMessageFlushRate);
 
-if (!('toJSON' in Error.prototype))
-Object.defineProperty(Error.prototype, 'toJSON', {
-    value: function () {
-        var alt = {};
+	
 
-        Object.getOwnPropertyNames(this).forEach(function (key) {
-            alt[key] = this[key];
-        }, this);
 
-        return alt;
-    },
-    configurable: true,
-    writable: true
-});
-
-function logError(err, name='') {
-	process.send({
-		function: 'unicast',
-		module: 'log',
-		message: {
-			function: 'log',
-			logObj: {
-				logInfoArray: [{
-					function: 'error',
-					lets: {
-						niceName: name,
-						err: {
-							message: err.message,
-							stack: err.stack
+	if(!serverStarted) {
+		serverStarted = true;
+		sendChat("Server Started");
+	} else {
+		for (let eventKey in mS.chatLink.eventTranslation) {
+			let event = mS.chatLink.eventTranslation[eventKey];
+			if (event.match != false) {
+				if (string.search(event.matchRegex) > -1 && (string.indexOf('>') == -1 || eventKey == "PlayerMessage")) {
+					let match = Array.from(string.match(event.matchRegex));
+					let content = event.content;
+					event.matchRelation.forEach(async (matchedWord, i) => {
+						if (event.send.content) content = content.replace(matchedWord, match[i+1]);
+						if (event.send.embed) {
+							for (key in event.embed) {
+								if (typeof event.embed[key] == "object") { 
+									for (childKey in event.embed[key]) {
+										if (typeof event.embed[key][childKey] == "object") {
+											for (granChildKey in event.embed[key][childKey]) {
+												if (typeof event.embed[key][childKey] != "object") event.embed[key][childKey][granChildKey].replace(matchedWord, match[i+1])
+											}
+										} else event.embed[key][childKey] = event.embed[key][childKey].replace(matchedWord, match[i+1])
+									}
+								} else event.embed[key] = event.embed[key].replace(matchedWord, match[i+1])
+							}
 						}
-					}
-				}]
+					})
+					console.log(event.embed)
+					// let msg = {
+					// 	embed: event.send.embed?embed:'',
+					// 	content: event.send.content?content:''
+					// }
+					break;
+				}
 			}
 		}
-	});
+	}
+}
+
+async function buildMatches() {
+	for (key in mS.chatLink.eventTranslation) {
+		if (mS.chatLink.eventTranslation[key].match) {
+			mS.chatLink.eventTranslation[key].matchRelation = mS.chatLink.eventTranslation[key].match.match(/\%(.*?)\%/g);
+			mS.chatLink.eventTranslation[key].matchRegex = '.* '+mS.chatLink.eventTranslation[key].match.replace(/\%(.*?)\%/g, '(.*?)')+'\\n$';
+		}
+	}
+	return;
 }
