@@ -1,9 +1,28 @@
 const children = require('child_process');
 const request = require('request');
+const fs = require('fs');
 
 /*
 / Util Functions
 */
+
+module.exports.pReadFile = function pReadFile(...args) {
+	return new Promise((resolve, reject) => {
+		fs.readFile(args, (err, data) => {
+			if (err) reject(err);
+			else resolve(data);
+		})
+	})
+}
+
+module.exports.pWriteFile = function pWriteFile(...args) {
+	return new Promise((resolve, reject) => {
+		fs.writeFile(args, (err) => {
+			if (err) reject(err);
+			else resolve();
+		})
+	})
+}
 
 module.exports.log = async function log(logObj, logTo=null) {
 	return await this.pSend(process, {
@@ -11,13 +30,12 @@ module.exports.log = async function log(logObj, logTo=null) {
 		module: 'log',
 		message: {
 			function: 'log',
-			logObj: logObj,
-			logTo: logTo
+			logObj: logObj
 		}
-	}).catch(err => {throw err});
+	})
 }
 
-module.exports.pExec = async function pExec(args) {
+module.exports.pExec = function pExec(args) {
 	return new Promise((resolve, reject) => {
 		children.exec(args, (err, data) => {
 			if (err) reject(err);
@@ -26,7 +44,7 @@ module.exports.pExec = async function pExec(args) {
 	})
 }
 
-module.exports.pRequestGet = async function pRequestGet(requestObj) {
+module.exports.pRequestGet = function pRequestGet(requestObj) {
 	return new Promise((resolve, reject) => {
 		request.get(requestObj, (err, res, data) => {
 			if (err) reject(err);
@@ -36,7 +54,7 @@ module.exports.pRequestGet = async function pRequestGet(requestObj) {
 }
 
 module.exports.lErr = async function lErr(err, name='', logTo=null) {
-	console.log(`${sS.c['brightRed'].c}ERROR: ${sS.c['reset'].c}${name ? `${name}` : ''}${err.message}\n${err.stack}`,)
+	console.log(`${sS.c['brightRed'].c}ERROR: ${sS.c['reset'].c}${name ? `${name}` : ''} ${err.message}\n${err.stack}`,)
 	if (logTo) return await this.pSend(process, {
 		function: 'unicast',
 		module: 'log',
@@ -54,7 +72,7 @@ module.exports.lErr = async function lErr(err, name='', logTo=null) {
 			},
 			logTo: logTo
 		}
-	}).catch(err => {throw err});
+	})
 	else return;
 }
 
@@ -77,7 +95,7 @@ module.exports.saveSettings = async function saveSettings(logTo, thisModuleName,
 	.catch(err => {throw err})
 }
 
-module.exports.pSend = async function pSend(dstProcess, message) {
+module.exports.pSend = function pSend(dstProcess, message) {
 	return new Promise((resolve, reject) => {
 		dstProcess.send(message, (err, data) => {
 			if (err) reject(err);
@@ -86,11 +104,15 @@ module.exports.pSend = async function pSend(dstProcess, message) {
 	})
 }
 
+module.exports.getObj = async function getObj(parentObject, childObjectProperty, childObjectValue) {
+	return await parentObject.find((childObject) => { return childObject[childObjectProperty] === childObjectValue; })
+}
+
 if (!('toJSON' in Error.prototype))
 Object.defineProperty(Error.prototype, 'toJSON', {
-    value: () => {
-        let alt = {};
-        Object.getOwnPropertyNames(this).forEach((key) => {
+    value: function () {
+        var alt = {};
+        Object.getOwnPropertyNames(this).forEach(function (key) {
             alt[key] = this[key];
         }, this);
         return alt;
@@ -98,7 +120,3 @@ Object.defineProperty(Error.prototype, 'toJSON', {
     configurable: true,
     writable: true
 });
-
-module.exports.getObj = async function getObj(parentObject, childObjectProperty, childObjectValue) {
-	return await parentObject.find((childObject) => { return childObject[childObjectProperty] === childObjectValue; })
-}

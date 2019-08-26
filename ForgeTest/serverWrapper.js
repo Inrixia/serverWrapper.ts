@@ -42,11 +42,9 @@ if (((sS.modules['discord']||{}).settings||{}).discord_token == "") {
 		process.stdout.write(`${sS.c['brightRed'].c}Disabled Module${sS.c['reset'].c}: ${sS.modules['discord'].color.c}discord.js${sS.c['reset'].c}, No Token Found!\n`);
 }
 
-let cleanExit = () => { 
-	if (server.process) server.process.kill('SIGKILL');
-	Object.keys(loadedModules).forEach(moduleName => {
-		loadedModules[moduleName].kill();
-	});
+const cleanExit = () => {
+	server.process.kill();
+	process.kill();
 };
 process.on('SIGINT', cleanExit); // catch ctrl-c
 process.on('SIGTERM', cleanExit); // catch term
@@ -54,26 +52,49 @@ process.on('SIGTERM', cleanExit); // catch term
 const util = require(sS.modulesDir+'util.js')
 
 let fn = { // Object holding callable functions for modules
-	'enableModule':  async data => await loadedModules[data.module].enable(data.args).catch(err => {throw Err}),
-	'disableModule':  async data => await loadedModules[data.module].disable(data.args).catch(err => {throw Err}),
-	'killModule':  async data => await loadedModules[data.module].kill(data.args).catch(err => {throw Err}),
-	'startModule':  async data => await loadedModules[data.module].start(data.args).catch(err => {throw Err}),
-	'restartModule': async data => await loadedModules[data.module].restart(data.args).catch(err => {throw Err}),
-	'reloadModule':  async data => await loadedModules[data.module].reload(data.args).catch(err => {throw Err}),
-	'loadModuleFunctions':  async data => await loadedModules[data.module].loadFunctions(data.args).catch(err => {throw Err}),
-	'restartAllModules': restartAllModules,
-	'unloadAllModules': unloadAllModules,
+	'enableModule': async data => { 
+		if (!loadedModules[data.args[1]]) throw new Error(`Module ${data.args[1]} is not loaded.`)
+		return await loadedModules[data.args[1]].enable(data.args[2])
+	},
+	'disableModule': async data => { 
+		if (!loadedModules[data.args[1]]) throw new Error(`Module ${data.args[1]} is not loaded.`)
+		return await loadedModules[data.args[1]].disable(data.args[2])
+	},
+	'killModule': async data => { 
+		if (!loadedModules[data.args[1]]) throw new Error(`Module ${data.args[1]} is not loaded.`)
+		return await loadedModules[data.args[1]].kill()
+	},
+	'startModule': async data => { 
+		if (!loadedModules[data.args[1]]) throw new Error(`Module ${data.args[1]} is not loaded.`)
+		return await loadedModules[data.args[1]].start()
+	},
+	'restartModule':async data => { 
+		if (!loadedModules[data.args[1]]) throw new Error(`Module ${data.args[1]} is not loaded.`)
+		return await loadedModules[data.args[1]].restart()
+	},
+	'reloadModule': async data => { 
+		if (!loadedModules[data.args[1]]) throw new Error(`Module ${data.args[1]} is not loaded.`)
+		return await loadedModules[data.args[1]].reload()
+	},
+	'loadModuleFunctions': async data => { 
+		if (!loadedModules[data.args[1]]) throw new Error(`Module ${data.args[1]} is not loaded.`)
+		return await loadedModules[data.args[1]].loadFunctions() 
+	},
+	'restartModules': restartModules,
+	'unloadModules': unloadModules,
 	'reloadModules': reloadModules,
-	'listModules': listModules,
+	'listModules': async data => {
+		return loadedModules
+	},
 	'backupSettings': backupSettings,
 	'loadSettings': loadSettings,
 	'saveSettings': async data => {
 		sS = data.sS;
 		await wrapperModule.broadcast({function: 'pushSettings', sS: sS })
-		.catch(err => lErr(err, `Failed to broadcast settings update.`));
-		return await saveSettings().catch(err => {throw err});
+		return await saveSettings();
 	}
 }
+
 
 /*
 / Module class definition
@@ -91,10 +112,10 @@ class wrapperModule {
 		if (!this.functions && this.import) this.functions = require(sS.modulesDir+sS.modules[this.name].file);
 		if (!this.process) {
 			if (!loadedModules[this.name]) loadedModules[this.name] = this;
-			this.process = children.fork(sS.modulesDir+sS.modules[this.name].file); // Spawn the modules childprocess
+			this.process = children.fork(sS.modulesDir+sS.modules[this.name].file, [], { detached: false }); // Spawn the modules childprocess
 			// Run the modules init funciton
-			await pSend(this.process, {function: 'init', sS: sS, server: server, color: this.color }).catch(err => lErr(err, `Failed to send init for module ${this.name}!`))
-			this.process.addListener('close', (data) => {
+			await pSend(this.process, {function: 'init', sS: sS, color: this.color, commands: this.name=='command'?commands:null }).catch(err => lErr(err, `Failed to send init for module ${this.name}!`))
+			this.process.addListener('close', () => {
 				Object.keys(loadedModules).forEach(async moduleName => {
 					let thisModule = loadedModules[moduleName];
 					if (thisModule.process && !thisModule.process.channel) {
@@ -114,153 +135,110 @@ class wrapperModule {
 			});
 			this.process.on('message', async message => {
 				if (message.function == 'broadcast') {
+					message.message.sourceModule = this.name;
 					await wrapperModule.broadcast(message.message)
 					.catch(err => lErr(err, `Failed to broadcast message "${JSON.stringify(message.message)}"\n`));
 				} else if (message.function == 'unicast') {
+					message.message.sourceModule = this.name;
 					await wrapperModule.unicast(message.module, message.message)
 					.catch(err => lErr(err, `Failed to unicast message "${JSON.stringify(message.message)} to module ${message.module}"\n`));
 				} else if (message.function == 'serverStdin' && server) {
 					console.log(message.string)
 					server.stdin.write(message.string);
 				} else if (message.function == 'execute') {
-					fn[message.func](message.data)
-					.then(data => wrapperModule.resolve(data, message.promiseId, message.returnModule))
-					.catch(err => wrapperModule.reject(err, message.promiseId, message.returnModule))
+					fn[message.func](message.data).then(data => {
+						wrapperModule.resolve(data, message.promiseId, message.returnModule)
+						.catch(err => {
+							lErr(err, `Failed to resolve promise ${message.promiseId}, to module ${message.returnModule}`)
+						});
+					}).catch(error => {
+						wrapperModule.reject(error, message.promiseId, message.returnModule)
+						.catch(err => {
+							lErr(error)
+							lErr(err, `Failed to reject promise ${message.promiseId}, to module ${message.returnModule}`)
+						})
+					})
 				}
 			})
-			return;
-		}
-		throw new Error(`Cannot start ${this.name} as its already running.`)
+			return [{ event: 'moduleStarted', moduleName: this.name }]
+		} else return [{ event: 'moduleAlreadyStarted', moduleName: this.name}]
 	}
 
-	async resolve(data, promiseId, returnModule) {
-		return pSend({
-			function: 'unicast',
-			module: returnModule,
-			message: {
-				function: 'promiseResolve',
-				promiseID: promiseId,
-				return: data
-			}
-		}).cath(err => lErr(err, `Failed to resolve promise ${promiseId}, to module ${returnModule}`));
+	static async resolve(data, promiseId, returnModule) {
+		if (loadedModules[returnModule]||{}.process) return await pSend(loadedModules[returnModule].process, {
+			function: 'promiseResolve',
+			promiseID: promiseId,
+			return: data
+		})
+		else throw new Error(`Cannot resolve promise ${promiseId} to ${returnModule} module not running.`)
 	}
-
-	async reject(data, promiseId, returnModule) {
-		return pSend({
-			function: 'unicast',
-			module: returnModule,
-			message: {
-				function: 'promiseReject',
-				promiseID: promiseId,
-				return: data
-			}
-		}).cath(err => lErr(err, `Failed to reject promise ${promiseId}, to module ${returnModule}`));
-	}
-
-	async unicast(destinationModule, message) {
-		if (loadedModules[message.module]) {
-			if (loadedModules[message.module]||{}.process) {
-				return await pSend(loadedModules[message.module].process, message.message).catch(err => {throw err})
-			} else throw new Error(`Attempted unicast message to offline module ${message.module}!`)
-		} else throw new Error(`Attempted unicast message to undefined module ${message.module}!`)
+	static async reject(err, promiseId, returnModule) {
+		if (loadedModules[returnModule]||{}.process) return await pSend(loadedModules[returnModule].process, {
+			function: 'promiseReject',
+			promiseID: promiseId,
+			return: err
+		})
+		else throw new Error(`Cannot reject promise ${promiseId} to ${returnModule} module not running.`)
 	}
 
 	async restart() {
-		await this.start().catch(err => {throw err})
-		await this.kill().catch(err => {throw err})
-		return;
+		return [].concat(await this.kill(), await this.start())
 	}
 
 	async reload() {
-		let logInfoArray = await this.kill().catch(err => {throw err});
-		if (this.import) await this.loadFunctions().catch(err => {throw err});
-		if (this.enabled) await this.start().catch(err => {throw err});
-		return;
+		return [].concat(await this.kill(), this.enabled?(await this.start()):[], this.import?(await this.loadFunctions()):[])
 	}
 
 	async loadFunctions() {
 		if (this.import) this.functions = require(sS.modulesDir+sS.modules[this.name].file);
-		return;
-		// return [{
-		// 	function: 'loadModuleFunctions',
-		// 	vars: {
-		// 		color: this.color,
-		// 		name: this.name,
-		// 		executionStartTime: executionStartTime,
-		// 		executionEndTime: new Date()
-		// 	}
-		// }];
+		return [{ event: 'moduleFunctionsLoaded', moduleName: this.name }]
 	}
 
-	async kill(){
+	async kill() {
 		if (this.process) {
-			await pSend(this.process, {function: 'kill'})
+			const moduleDeath = [{ event: 'moduleKilled', moduleName: this.name, exitInfo: await pSend(this.process, { function: 'kill' }) }]
 			if (this.name == 'stats') process.stdout.write(`${String.fromCharCode(27)}]0;${sS.serverName}  |  Stats Module Disabled${String.fromCharCode(7)}`);
-			this.process = null;
-			return;
-			// return [{
-			// 	function: 'killModule',
-			// 	vars: {
-			// 		color: this.color,
-			// 		name: this.name,
-			// 		executionStartTime: executionStartTime,
-			// 		executionEndTime: new Date()
-			// 	}
-			// }];
+			if ((sS.modules['command']||{}).enabled && this.name == 'command') {
+				delete loadedModules['command'];
+				loadedModules['command'] = new wrapperModule('command');
+				return [].concat(moduleDeath, await loadedModules['command'].start());
+			} else if ((sS.modules['log']||{}).enabled && this.name == 'log') {
+				delete loadedModules['log'];
+				loadedModules['log'] = new wrapperModule('log');
+				return [].concat(moduleDeath, await loadedModules['log'].start());
+			} else {
+				this.process = null;
+				return moduleDeath;
+			}
+			
 		}
-		throw new Error(`Cannot kill ${this.name} as it is not running.`)
-		// return [{
-		// 	function: 'killModule_notRunning',
-		// 	vars: {
-		// 		color: this.color,
-		// 		name: this.name,
-		// 		executionStartTime: executionStartTime,
-		// 		executionEndTime: new Date()
-		// 	}
-		// }];
+		else throw new Error(`Cannot kill ${this.name} as it is not running.`)
 	}
 
 	async enable(save) {
 		sS.modules[this.name].enabled = true;
 		if (save) await saveSettings();
-		return;
-		// return [{
-		// 	function: 'enableModule',
-		// 	vars: {
-		// 		color: this.color,
-		// 		name: this.name,
-		// 		executionStartTime: executionStartTime,
-		// 		executionEndTime: new Date()
-		// 	}
-		// }];
+		return [{ event: 'moduleEnabled', moduleName: this.name }]
 	}
 
 	async disable(save) {
 		sS.modules[this.name].enabled = false;
 		if (save) await saveSettings();
-		return;
-		// return [{
-		// 	function: 'disableModule',
-		// 	vars: {
-		// 		color: this.color,
-		// 		name: this.name,
-		// 		executionStartTime: executionStartTime,
-		// 		executionEndTime: new Date()
-		// 	}
-		// }];
+		return [{ event: 'moduleDisabled', moduleName: this.name }]
 	}
 
 	static async broadcast(message) {
-		Object.keys(loadedModules).forEach(moduleName => {
-			if ((loadedModules[moduleName]||{}).process) pSend(loadedModules[moduleName].process, message).catch(err => lErr(err, `Failed to broadcast to ${moduleName}.`));
-		})
+		return Promise.all(Object.keys(loadedModules).map(async moduleName => {
+			if ((loadedModules[moduleName]||{}).process) return await pSend(loadedModules[moduleName].process, message);
+		}))
 	}
 
-	static async log(logObj) {
-		if ((loadedModules['log']||{}).process) {
-			return await pSend(loadedModules['log'].process, {function: 'log', logObj: logObj})
-			.catch(err => {throw err})
-		}
+	static async unicast(destinationModule, message) {
+		if (loadedModules[destinationModule]) {
+			if (loadedModules[destinationModule]||{}.process) {
+				return await pSend(loadedModules[destinationModule].process, message)
+			} else throw new Error(`Attempted unicast message to offline module ${destinationModule}!`)
+		} else throw new Error(`Attempted unicast message to undefined module ${destinationModule}!`)
 	}
 
 	get enabled() { return sS.modules[this.name].enabled }
@@ -283,85 +261,50 @@ class wrapperModule {
 			sS.modules[this.name].color = moduleColor;
 			wrapperModule.broadcast({function: 'pushSettings', sS: sS })
 			.catch(err => lErr(err, `Failed to broadcast ${this.name} color: ${moduleColor} update.`));
-		} else util.debug(`"${this.name}.color = ${moduleColor}" Invalid Colour.`);
+		} else throw new Error(`"${this.name}.color = ${moduleColor}" Invalid Colour.`);
 	}
 }
 
 (async () => {
 	backupSettings().catch(err => lErr(err, 'Failed to backup settings on launch.'));
 	loadModules().then(startEnabledModules).then(startServer)
-	.catch(err => lErr(err, 'Failed to load and start modules and launch server.'));
+	.catch(err => lErr(err, 'Failed to start modules and launch server.'));
 })();
 
 /*
 / Module management functions
 */
-function loadModules() { // Loads in modules from server settings
-	return new Promise(function(resolve, reject) {
-		Object.keys(sS.modules).forEach(function(moduleName) {
-			if (moduleName != undefined && !loadedModules[moduleName]) {
-				loadedModules[moduleName] = new wrapperModule(moduleName);
-			}
-		})
-		resolve();
+async function loadModules() { // Loads in modules from server settings
+	return [null].concat(Object.keys(sS.modules)).reduce(async (returnArray, moduleName) => {
+		if (moduleName != undefined && !loadedModules[moduleName]) {
+			loadedModules[moduleName] = new wrapperModule(moduleName);
+			return [].concat(await returnArray, [{ event: 'moduleLoaded', moduleName: moduleName }])
+		} else return returnArray;
 	})
 }
 
-function unloadAllModules() {
-	let logInfoArray = [];
-	logInfoArray = [].concat.apply(
-		[],
-		Object.keys(loadedModules).map(function(moduleName) {
-  		return loadedModules[moduleName].kill();
-		})
-	);
-	loadedModules = {};
-	if ((sS.modules['command']||{}).enabled) {
-		loadedModules['command'] = new wrapperModule('command');
-		loadedModules['command'].start();
-	}
-	if ((sS.modules['log']||{}).enabled) {
-		loadedModules['log'] = new wrapperModule('log');
-		loadedModules['log'].start();
-	}
-	return logInfoArray;
-}
-
-function startEnabledModules() {
-	return new Promise(function(resolve, reject) {
-		Object.keys(loadedModules).forEach(function(moduleName) {
-			if (loadedModules[moduleName].enabled) loadedModules[moduleName].start();
-		})
-		wrapperModule.log({logInfoArray: listModules(), logTo: { console: true } });
-		resolve();
+async function unloadModules() {
+	return [null].concat(Object.keys(loadedModules)).reduce(async (returnArray, moduleName) => {
+		const moduleDeath = loadedModules[moduleName].kill();
+		delete loadedModules[moduleName];
+		return [].concat(await returnArray, await moduleDeath)
 	})
 }
 
-function reloadModules() {
-	let logInfoArray = unloadAllModules();
-	loadModules().then(startEnabledModules());
-	return logInfoArray;
+async function startEnabledModules() {
+	return [null].concat(Object.keys(loadedModules)).reduce(async (returnArray, moduleName) => {
+		if (loadedModules[moduleName].enabled && !loadedModules[moduleName].process) return [].concat(await returnArray, await loadedModules[moduleName].start())
+	})
 }
 
-function restartAllModules() {
-	return [].concat.apply(
-		[],
-		Object.keys(loadedModules).map(moduleName => {
-  			if (loadedModules[moduleName].enabled) return loadedModules[moduleName].restart()
-		})
-	);
+async function reloadModules() {
+	return [].concat(await unloadModules(), await loadModules(), await startEnabledModules())
 }
 
-function listModules() {
-	return [{
-		function: 'listModules',
-		vars: {
-			loadedModules: loadedModules,
-			seperator: " | ",
-			executionStartTime: new Date(),
-			executionEndTime: new Date()
-		}
-	}];
+async function restartModules() {
+	return [null].concat(Object.keys(loadedModules)).reduce(async (returnArray, moduleName) => {
+		if (loadedModules[moduleName].enabled) return [].concat(await returnArray, await loadedModules[moduleName].restart())
+	})
 }
 
 /*
@@ -397,11 +340,12 @@ function backupSettings() {
 	})
 }
 
-function startServer() {
+async function startServer() {
 	server = children.spawn('java', serverStartVars, { detached : false }); // This will be assigned the server server when it starts
 	server.stdin.write('list\n'); // Write list to the console so we can know when the server has finished starting
 
 	let postConsoleTimeout = (string) => { 
+		process.stdout.write(string); // Write line to wrapper console
 		wrapperModule.broadcast({ function: 'serverStdout', string: string.toString() }) 
 		.catch(err => lErr(err, 'Failed to broadcast serverStdout.'));
 	};
@@ -409,12 +353,20 @@ function startServer() {
 		process.stdout.write(string); // Write line to wrapper console
 		if (string.indexOf("players online") > -1) { // "list" command has completed, server is now online
 			sStdoutHandler = postConsoleTimeout;
-			if ((loadedModules['stats']||{}).process) { // If stats is enabled update the server status to enabled
-				pSend(loadedModules['stats'].process, { function: 'pushStats', serverStats: {status: "Running"} })
-				.catch(err => lErr(err, 'Failed to send server started status update.'));
-			}
+			started();
 		}
 	}
+	let started = () => {
+		if ((loadedModules['stats']||{}).process) { // If stats is enabled update the server status to enabled
+			pSend(loadedModules['stats'].process, { function: 'pushStats', serverStats: {status: "Running"} })
+			.catch(err => lErr(err, 'Failed to send server started status update.'));
+		}
+	}
+
+	setTimeout(() => {
+		sStdoutHandler = postConsoleTimeout;
+		started();
+	}, 120*1000) // Enable console broadcasting after 120 seconds if the check fails
 	server.stdout.on('data', string => sStdoutHandler(string))
 
 	if ((loadedModules['stats']||{}).process) { // If stats is enabled push a update
@@ -472,9 +424,10 @@ function restartWrapper() {
 / Private Util Functions
 */
 async function lErr(err, name='') {
-	console.log(`${sS.c['brightRed'].c}ERROR: ${sS.c['reset'].c}${name ? `${name}` : ''}${err.message}\n${err.stack}`,)
+	console.log(`${sS.c['brightRed'].c}ERROR: ${sS.c['reset'].c}${name ? `${name}` : ''} ${err.message}\n${err.stack}`,)
 }
-async function pSend(dstProcess, message) {
+
+function pSend(dstProcess, message) {
 	return new Promise((resolve, reject) => {
 		dstProcess.send(message, (err, data) => {
 			if (err) reject(err);
@@ -482,3 +435,529 @@ async function pSend(dstProcess, message) {
 		});
 	})
 }
+
+
+if (!('toJSON' in Error.prototype))
+Object.defineProperty(Error.prototype, 'toJSON', {
+    value: function () {
+        var alt = {};
+        Object.getOwnPropertyNames(this).forEach(function (key) {
+            alt[key] = this[key];
+        }, this);
+        return alt;
+    },
+    configurable: true,
+    writable: true
+});
+
+const commands = [
+	{
+		name: 'restartModules', 
+		exeFunc: 'restartModules',
+		module: 'serverWrapper',
+		description: {
+			summary: `Restarts all modules`,
+			console: `${sS.c['brightWhite'].c}Restarts all modules. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~restartModules${sS.c['reset'].c}`,
+			minecraft: [{
+				"text": `Restarts all modules. `,
+				"color": sS.c['brightWhite'].m
+			}, {
+				"text": `Example: `,
+				"color": sS.c['white'].m
+				}, {
+				"text": `~restartModules`,
+				"color": sS.c['yellow'].m
+			}],
+			discord: {
+				string: null,
+				embed: {
+					title: "Restart All Modules",
+					description: "~restartModules",
+					color: parseInt(sS.c['orange'].h, 16),
+					timestamp: new Date(),
+					fields: [{
+						name: "Description",
+						value: "Restarts all modules."
+					}, {
+						name: "Example",
+						value: "**~restartModules**"
+					}]
+				}
+			}
+		}
+	}, {
+		name: 'unloadModules', 
+		exeFunc: 'unloadModules',
+		module: 'serverWrapper',
+		description: {
+			summary: `Stops and unloads all modules.`,
+			console: `${sS.c['brightWhite'].c}Stops and unloads all modules except command and log. ${sS.c['reset'].c}\nExample: ${sS.c['yellow'].c}~unloadModules${sS.c['reset'].c}`,
+			minecraft: [{
+				"text": `Stops and unloads all modules except command and log.\n`,
+				"color": sS.c['brightWhite'].m
+			}, {
+				"text": `Example: `,
+				"color": sS.c['white'].m
+				}, {
+				"text": `~unloadModules`,
+				"color": sS.c['yellow'].m
+			}],
+			discord: {
+				string: null,
+				embed: {
+					title: "Unload All Modules",
+					description: "~unloadModules",
+					color: parseInt(sS.c['orange'].h, 16),
+					timestamp: new Date(),
+					fields: [{
+						name: "Description",
+						value: "Stops and unloads all modules except command and log."
+					}, {
+						name: "Example",
+						value: "**~unloadModules**"
+					}]
+				}
+			}
+		}
+	}, {
+		name: 'reloadModules', 
+		exeFunc: 'reloadModules',
+		module: 'serverWrapper',
+		description: {
+			summary: `Reloads and restarts all modules.`,
+			console: `${sS.c['brightWhite'].c}Reloads and restarts all modules. Will load and run any changes to modules. ${sS.c['reset'].c}\nExample: ${sS.c['yellow'].c}~reloadModules${sS.c['reset'].c}`,
+			minecraft: [{
+					"text": `Reloads and restarts all modules. `,
+					"color": sS.c['brightWhite'].m
+				}, {
+					"text": `Example: `,
+					"color": sS.c['white'].m
+					}, {
+					"text": `~reloadModules`,
+					"color": sS.c['yellow'].m
+				}],
+			discord: {
+				string: null,
+				embed: {
+					title: "Reload Modules",
+					description: "~reloadModules",
+					color: parseInt(sS.c['orange'].h, 16),
+					timestamp: new Date(),
+					fields: [{
+						name: "Description",
+						value: "Reloads and restarts all modules. Will load and run any changes to modules."
+					}, {
+						name: "Example",
+						value: "**~reloadModules**"
+					}]
+				}
+			}
+		}
+	}, {
+		name: 'listModules', 
+		exeFunc: 'listModules',
+		module: 'serverWrapper',
+		description: {
+			grouping: 'Wrapper Core',
+			summary: `Gets status of all modules currently installed in the wrapper.`,
+			console: `${sS.c['brightWhite'].c}Gets status of all modules currently installed. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~listModules${sS.c['reset'].c}`,
+			minecraft: [{
+				"text": `Gets status of all modules currently insalled. `,
+				"color": sS.c['brightWhite'].m
+			}, {
+				"text": `Example: `,
+				"color": sS.c['white'].m
+				}, {
+				"text": `~listModules`,
+				"color": sS.c['yellow'].m
+			}],
+			discord: {
+				string: null,
+				embed: {
+					title: "List Modules",
+					description: "~listModules",
+					color: parseInt(sS.c['orange'].h, 16),
+					timestamp: new Date(),
+					fields: [{
+						name: "Description",
+						value: "Gets status of all modules currently installed."
+					}, {
+						name: "Example",
+						value: "**~listModules**"
+						}]
+					}
+				}
+			}
+	}, {
+		name: 'enableModule', 
+		exeFunc: 'enableModule',
+		module: 'serverWrapper',
+		description: {
+			grouping: 'Wrapper Core',
+			summary: `Enables any given module.`,
+			console: `${sS.c['brightWhite'].c}Enables any given module and saves settings if true. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~enableModule ${sS.c['brightBlue'].c}discord ${sS.c['orange'].c}true${sS.c['reset'].c}`,
+			minecraft: [{
+				"text": `Enables any given module and saves settings if true. `,
+				"color": sS.c['brightWhite'].m
+			}, {
+				"text": `Example: `,
+				"color": sS.c['white'].m
+				}, {
+				"text": `~enableModule discord`,
+				"color": sS.c['yellow'].m
+			}],
+			discord: {
+				string: null,
+				embed: {
+					title: "Enable Module",
+					description: "~enableModule",
+					color: parseInt(sS.c['orange'].h, 16),
+					timestamp: new Date(),
+					fields: [{
+						name: "Description",
+						value: "Enables any given module. Excepts an optional parameter (true), Saves the change made to any setting."
+					}, {
+						name: "Example",
+						value: "**~enableModule** discord true"
+					}]
+				}
+			}
+		}
+	}, {
+		name: 'disableModule', 
+		exeFunc: 'disableModule',
+		module: 'serverWrapper',
+		description: {
+			grouping: 'Wrapper Core',
+			summary: `Disables any given module.`,
+			console: `${sS.c['brightWhite'].c}Disables any given module and saves settings if true. ${sS.c['reset'].c}\nExample: ${sS.c['yellow'].c}~disableModule ${sS.c['brightBlue'].c}discord ${sS.c['orange'].c}true${sS.c['reset'].c}`,
+			minecraft: [{
+					"text": `Disables any given module and saves settings if true.\n`,
+					"color": sS.c['brightWhite'].m
+				}, {
+					"text": `Example: `,
+					"color": sS.c['white'].m
+					}, {
+					"text": `~disableModule `,
+					"color": sS.c['yellow'].m
+				}, {
+					"text": `discord `,
+					"color": sS.c['brightBlue'].m
+				}, {
+					"text": `true`,
+					"color": sS.c['yellow'].m
+				}],
+			discord: {
+				string: null,
+				embed: {
+					title: "Disable Module",
+					description: "~disableModule",
+					color: parseInt(sS.c['orange'].h, 16),
+					timestamp: new Date(),
+					fields: [{
+						name: "Description",
+						value: "Disables any given module. Excepts an optional parameter which if true, saves the updated settings."
+					}, {
+						name: "Example",
+						value: "**~disableModule** discord true"
+					}]
+				}
+			}
+		}
+	}, {
+		name: 'reloadModule', 
+		exeFunc: 'reloadModule',
+		module: 'serverWrapper',
+		description: {
+			grouping: 'Wrapper Core',
+			summary: `Reloads any given module.`,
+			console: `${sS.c['brightWhite'].c}Reloads any given module. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~reloadModule ${sS.c['brightBlue'].c}discord${sS.c['reset'].c}`,
+			minecraft: [{
+				"text": `Reloads any given module. `,
+				"color": sS.c['brightWhite'].m
+			}, {
+				"text": `Example: `,
+				"color": sS.c['white'].m
+				}, {
+				"text": `~reloadModule `,
+				"color": sS.c['yellow'].m
+			}, {
+				"text": `discord`,
+				"color": sS.c['brightBlue'].m
+			}],
+			discord: {
+				string: null,
+				embed: {
+					title: "Reload Module",
+					description: "~reloadModule",
+					color: parseInt(sS.c['orange'].h, 16),
+					timestamp: new Date(),
+					fields: [{
+						name: "Description",
+						value: "Reloads any given module."
+					}, {
+						name: "Example",
+						value: "**~reloadModule** discord."
+					}]
+				}
+			}
+		}
+	}, {
+		name: 'killModule', 
+		exeFunc: 'killModule',
+		module: 'serverWrapper',
+		description: {
+			grouping: 'Wrapper Core',
+			summary: `Stops any given module.`,
+			console: `${sS.c['brightWhite'].c}Stops any given module. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~killModule ${sS.c['brightBlue'].c}discord${sS.c['reset'].c}`,
+			minecraft: [{
+				"text": `Stops any given module. `,
+				"color": sS.c['brightWhite'].m
+			}, {
+				"text": `Example: `,
+				"color": sS.c['white'].m
+			}, {
+				"text": `~killModule `,
+				"color": sS.c['yellow'].m
+			}, {
+				"text": `discord`,
+				"color": sS.c['brightBlue'].m
+			}],
+			discord: {
+				string: null,
+				embed: {
+					title: "Kill Module",
+					description: "~killModule",
+					color: parseInt(sS.c['orange'].h, 16),
+					timestamp: new Date(),
+					fields: [{
+						name: "Description",
+						value: "Stops any given module."
+					}, {
+						name: "Example",
+						value: "**~killModule** discord"
+					}]
+				}
+			}
+		}
+	}, {
+		name: 'startModule', 
+		exeFunc: 'startModule',
+		module: 'serverWrapper',
+		description: {
+			grouping: 'Wrapper Core',
+			summary: `Starts any given module.`,
+			console: `${sS.c['brightWhite'].c}Starts any given module. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~startModule ${sS.c['brightBlue'].c}discord${sS.c['reset'].c}`,
+			minecraft: [{
+				"text": `Starts any given module. `,
+				"color": sS.c['brightWhite'].m
+			}, {
+				"text": `Example: `,
+				"color": sS.c['white'].m
+				}, {
+				"text": `~startModule `,
+				"color": sS.c['yellow'].m
+			}, {
+				"text": `discord`,
+				"color": sS.c['brightBlue'].m
+			}],
+			discord: {
+				string: null,
+				embed: {
+					title: "Start Module",
+					description: "~startModule",
+					color: parseInt(sS.c['orange'].h, 16),
+					timestamp: new Date(),
+					fields: [{
+						name: "Description",
+						value: "Starts any given module."
+					}, {
+						name: "Example",
+						value: "**~startModule** discord"
+					}]
+				}
+			}
+		}
+	}, {
+		name: 'restartModule', 
+		exeFunc: 'restartModule',
+		module: 'serverWrapper',
+		description: {
+			grouping: 'Wrapper Core',
+			summary: `Restarts any given module`,
+			console: `${sS.c['brightWhite'].c}Restarts any given module. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~restartModule ${sS.c['brightBlue'].c}discord${sS.c['reset'].c}`,
+			minecraft: [{
+				"text": `Restarts any given module. `,
+				"color": sS.c['brightWhite'].m
+			}, {
+				"text": `Example: `,
+				"color": sS.c['white'].m
+				}, {
+				"text": `~restartModule `,
+				"color": sS.c['yellow'].m
+			}, {
+				"text": `discord`,
+				"color": sS.c['brightBlue'].m
+			}],
+			discord: {
+				string: null,
+				embed: {
+					title: "Restart Module",
+					description: "~restartModule",
+					color: parseInt(sS.c['orange'].h, 16),
+					timestamp: new Date(),
+					fields: [{
+						name: "Description",
+						value: "Restarts any given module."
+					}, {
+						name: "Example",
+						value: "**~restartModule** discord"
+					}]
+				}
+			}
+		}
+	}, {
+		name: 'loadModuleFunctions', 
+		exeFunc: 'loadModuleFunctions',
+		module: 'serverWrapper',
+		description: {
+			grouping: 'Wrapper Core',
+			summary: `Loads any given modules functions.`,
+			console: `${sS.c['brightWhite'].c}Loads any given modules functions. ${sS.c['reset'].c}\nExample: ${sS.c['yellow'].c}~loadModuleFunctions ${sS.c['brightBlue'].c}discord${sS.c['reset'].c}`,
+			minecraft: [{
+				"text": `Loads any given module functions.\n`,
+				"color": sS.c['brightWhite'].m
+			}, {
+				"text": `Example: `,
+				"color": sS.c['white'].m
+				}, {
+				"text": `~loadModuleFunctions `,
+				"color": sS.c['yellow'].m
+			}, {
+				"text": `discord`,
+				"color": sS.c['brightBlue'].m
+			}],
+			discord: {
+				string: null,
+				embed: {
+					title: "Load Module",
+					description: "~loadModuleFunctions",
+					color: parseInt(sS.c['orange'].h, 16),
+					timestamp: new Date(),
+					fields: [{
+						name: "Description",
+						value: "Loads any given modules functions."
+					}, {
+						name: "Example",
+						value: "**~loadModuleFunctions** discord"
+					}]
+				}
+			}
+		}
+	}, {
+		name: 'loadSettings', 
+		exeFunc: 'loadSettings',
+		module: 'serverWrapper',
+		description: {
+			grouping: 'Wrapper Core',
+			summary: `Loads wrapper settings file.`,
+			console: `${sS.c['brightWhite'].c}Loads wrapper settings file. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~loadSettings${sS.c['reset'].c}`,
+			minecraft: [{
+				"text": `Loads wrapper settings file. `,
+				"color": sS.c['brightWhite'].m
+			}, {
+				"text": `Example: `,
+				"color": sS.c['white'].m
+				}, {
+				"text": `~loadSettings`,
+				"color": sS.c['yellow'].m
+			}],
+			discord: {
+				string: null,
+				embed: {
+					title: "Load Settings",
+					description: "~loadSettings",
+					color: parseInt(sS.c['orange'].h, 16),
+					timestamp: new Date(),
+					fields: [{
+							name: "Description",
+							value: "Loads wrapper settings file."
+						}, {
+							name: "Example",
+							value: "**~loadSettings**"
+					}]
+				}
+			}
+		}
+	}, {
+		name: 'backupSettings', 
+		exeFunc: 'backupSettings',
+		module: 'serverWrapper',
+		description: {
+			grouping: 'Wrapper Core',
+			summary: `Backups all settings.`,
+			console: `${sS.c['brightWhite'].c}Backups current wrapper settings. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~backupSettings${sS.c['reset'].c}`,
+			minecraft: [{
+				"text": `Backups current wrapper settings. `,
+				"color": sS.c['brightWhite'].m
+			}, {
+				"text": `Example: `,
+				"color": sS.c['white'].m
+				}, {
+				"text": `~backupSettings`,
+				"color": sS.c['yellow'].m
+			}],
+			discord: {
+				string: null,
+				embed: {
+					title: "Backup Settings",
+					description: "~backupSettings",
+					color: parseInt(sS.c['orange'].h, 16),
+					timestamp: new Date(),
+					fields: [{
+						name: "Description",
+						value: "Backups current wrapper settings."
+					}, {
+						name: "Example",
+						value: "**~backupSettings**"
+					}]
+				}
+			}
+		}
+	}, {
+		name: 'saveSettings', 
+		exeFunc: 'saveSettings',
+		module: 'serverWrapper',
+		description: {
+			grouping: 'Wrapper Core',
+			summary: `Saves current wrapper settings.`,
+			console: `${sS.c['brightWhite'].c}Saves current wrapper settings. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~saveSettings${sS.c['reset'].c}`,
+			minecraft: [{
+				"text": `Saves current wrapper settings. `,
+				"color": sS.c['brightWhite'].m
+			}, {
+				"text": `Example: `,
+				"color": sS.c['white'].m
+				}, {
+				"text": `~saveSettings`,
+				"color": sS.c['yellow'].m
+			}],
+			discord: {
+				string: null,
+				embed: {
+					title: "Save Settings",
+					description: "~saveSettings",
+					color: parseInt(sS.c['orange'].h, 16),
+					timestamp: new Date(),
+					fields: [{
+						name: "Description",
+						value: "Saves current wrapper settings."
+					}, {
+						name: "Example",
+						value: "**~saveSettings**"
+					}]
+				}
+			}
+		}
+	}
+]

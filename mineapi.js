@@ -1,6 +1,6 @@
 // Import core packages
 const util = require('./util.js');
-const modul = require('./module.js');
+const modul = require('./modul.js');
 
 const thisModule = 'mineapi';
 

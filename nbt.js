@@ -4,7 +4,7 @@ const zlib = require('zlib');
 const NbtReader = require('node-nbt').NbtReader;
 const NbtWriter = require('node-nbt').NbtWriter;
 
-const modul = require('./module.js');
+const modul = require('./modul.js');
 const util = require('./util.js');
 
 const thisModule = 'nbt';

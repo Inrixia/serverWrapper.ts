@@ -192,7 +192,7 @@ async function serverStdout(string) {
 							}
 						}
 					})
-					console.log(event.embed)
+					//console.log(event.embed)
 					// let msg = {
 					// 	embed: event.send.embed?embed:'',
 					// 	content: event.send.content?content:''

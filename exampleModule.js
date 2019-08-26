@@ -1,4 +1,8 @@
 // Import core packages
+const modul = require("./modul.js")
+
+const thisModule = 'command';
+const fn = {}
 
 // Set defaults
 var sS = {} // serverSettings
@@ -8,28 +12,24 @@ var mS = {} // moduleSettings
 process.on('message', message => {
 	switch (message.function) {
 		case 'init':
-			sS = message.sS;
-			mS = sS.modules['nbt'].settings;
+			[sS, mS] = modul.init(message, thisModule)
 			break;
 		case 'kill':
-			process.exit();
+			modul.kill(message);
 			break;
 		case 'pushSettings':
-			sS = message.sS;
-			mS = sS.modules['nbt'].settings;
+			[sS, mS] = modul.pushSettings(message, thisModule)
+			break;
+		case 'promiseResolve':
+			modul.promiseResolve(message);
+			break;
+		case 'promiseReject':
+			modul.promiseReject(message);
+			break;
+		case 'execute':
+			fn[message.func](message.data)
+			.then(data => modul.resolve(data, message.promiseId, message.returnModule))
+			.catch(err => modul.reject(err, message.promiseId, message.returnModule))
 			break;
 	}
 });
-
-
-function debug(stringOut) {
-	try {
-		if (typeof stringOut === 'string') process.stdout.write(`\n\u001b[41mDEBUG>${sS.c['reset'].c} ${stringOut}\n\n`)
-		else {
-			process.stdout.write(`\n\u001b[41mDEBUG>${sS.c['reset'].c}`);
-			console.log(stringOut);
-		}
-	} catch (e) {
-		process.stdout.write(`\n\u001b[41mDEBUG>${sS.c['reset'].c} ${stringOut}\n\n`);
-	}
-}
