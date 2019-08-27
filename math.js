@@ -1,13 +1,10 @@
 // Import core packages
 const math = require('mathjs')
 const modul = require("./modul.js")
+const util = require("./util/time.js")
 
 const thisModule = 'math';
-const fn = {
-	qm: async (message) => {
-		return math.evaluate(message.args.slice(1, message.args.length).join(' ')).toString()
-	}
-}
+let fn = {}
 
 // Set defaults
 var sS = {} // serverSettings
@@ -32,6 +29,39 @@ process.on('message', message => {
 			break;
 		case 'init':
 				[sS, mS] = modul.init(message, thisModule)
+				fn = {
+					qm: async (message) => {
+						let question = message.args.slice(1, message.args.length).join(' ');
+						let answer = math.evaluate(question).toString()
+						return await modul.logg({
+							console: `${sS.c['white'].c}${question}'s ${sS.c['yellow'].c}=> ${sS.c['brightCyan'].c}${answer} ${sS.c['reset'].c}`,
+							minecraft: `tellraw ${message.logTo.user} ${JSON.stringify(
+								[{
+									"text": question,
+									"color": "white"
+								}, {
+									"text": " => ",
+									"color": "gold"
+								}, {
+									"text": answer,
+									"color": "aqua"
+								}]
+							)}\n`,
+							discord : {
+								string: null,
+								embed: {
+									color: parseInt(sS.c[sS.modules['nbt'].discordColor||sS.modules['nbt'].color].h, 16),
+									title: `${question} => ${answer}`,
+									description: null,
+									timestamp: new Date(),
+									footer: {
+										text: `Executed in ${util.getDuration(message.exeStart, new Date())}`
+									}
+								}
+							}
+						}, message.logTo)
+					}
+				}
 				modul.send('command', 'importCommands', [
 					{
 						name: 'qm',
@@ -102,7 +132,7 @@ process.on('message', message => {
 						}
 					}
 				], thisModule)
-				.catch(err => lErr(err, `Command module failed to import modules for ${thisModule}`))
+				.catch(err => lErr(err, `Command module failed to import coommands for ${thisModule}`))
 				break;
 	}
 });

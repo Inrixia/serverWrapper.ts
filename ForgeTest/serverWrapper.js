@@ -29,7 +29,7 @@ let server = null;
 let sSFile = './serverSettings.json'
 let sS = require(sSFile);
 let loadedModules = {};
-let serverStartVars = Object.assign([], sS.serverStartVars);
+let serverStartVars = Object.assign([], [`-D${sS.serverName}`].concat(sS.serverStartVars));
 serverStartVars.push("-Xms"+sS.minRamAllocation, "-Xmx"+sS.maxRamAllocation, "-jar", sS.jar)
 serverStartVars = serverStartVars.concat(sS.serverPostfixVars);
 sS.server_dir = __dirname;
@@ -43,7 +43,7 @@ if (((sS.modules['discord']||{}).settings||{}).discord_token == "") {
 }
 
 const cleanExit = () => {
-	server.process.kill();
+	if (server && server.process) server.process.kill();
 	process.kill();
 };
 process.on('SIGINT', cleanExit); // catch ctrl-c

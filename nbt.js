@@ -5,14 +5,12 @@ const NbtReader = require('node-nbt').NbtReader;
 const NbtWriter = require('node-nbt').NbtWriter;
 
 const modul = require('./modul.js');
-const util = require('./util.js');
 
 const thisModule = 'nbt';
 
 // Set defaults
 let sS = {} // serverSettings
 let mS = {} // moduleSettings
-let crossModulePromises = {}; // Object Array of cross module promises
 
 // Module command handling
 process.on('message', message => {
@@ -35,7 +33,7 @@ process.on('message', message => {
 		case 'tpo':
 			modul.send('mineapi', 'getPlayer', 'inrix', thisModule).then(data => {
 				console.log(data);
-			}).catch(err => util.lErr(err))
+			}).catch(err => modul.lErr(err))
 			// let executionStartTime = new Date();
 			// if (message.logTo) tpo(message.args).then(args => {
 			// 	process.send({

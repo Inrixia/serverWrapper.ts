@@ -11,14 +11,10 @@ var mS = {} // moduleSettings
 // Module command handling
 process.on('message', message => {
 	switch (message.function) {
-		case 'init':
-			[sS, mS] = modul.init(message, thisModule)
-			break;
-		case 'kill':
-			modul.kill(message);
-			break;
-		case 'pushSettings':
-			[sS, mS] = modul.pushSettings(message, thisModule)
+		case 'execute':
+			fn[message.func](message.data)
+			.then(data => modul.resolve(data, message.promiseId, message.returnModule))
+			.catch(err => modul.reject(err, message.promiseId, message.returnModule))
 			break;
 		case 'promiseResolve':
 			modul.promiseResolve(message);
@@ -26,10 +22,14 @@ process.on('message', message => {
 		case 'promiseReject':
 			modul.promiseReject(message);
 			break;
-		case 'execute':
-			fn[message.func](message.data)
-			.then(data => modul.resolve(data, message.promiseId, message.returnModule))
-			.catch(err => modul.reject(err, message.promiseId, message.returnModule))
+		case 'pushSettings':
+			[sS, mS] = modul.pushSettings(message, thisModule)
+			break;
+		case 'init':
+			[sS, mS] = modul.init(message, thisModule)
+			break;
+		case 'kill':
+			modul.kill(message);
 			break;
 	}
 });

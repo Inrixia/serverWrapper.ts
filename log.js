@@ -1,43 +1,39 @@
 // Import core packages
-const moment = require("moment");
+const modul = require("./modul.js")
+
+const thisModule = 'log'
 
 // Set defaults
-var sS = {} // serverSettings
-var mS = {} // moduleSettings
+let sS = {} // serverSettings
+let mS = {} // moduleSettings
 
 // Module command handling
 process.on('message', message => {
 	switch (message.function) {
-		case 'init':
-			sS = message.sS;
-			mS = sS.modules['log'].settings;
-			break;
-		case 'kill':
-			process.exit();
-			break;
 		case 'log':
 			logOut(message.logObj);
 			break;
-		case 'pushSettings':
-			sS = message.sS;
-			mS = sS.modules['log'].settings;
+		case 'execute':
+			fn[message.func](message.data)
+			.then(data => modul.resolve(data, message.promiseId, message.returnModule))
+			.catch(err => modul.reject(err, message.promiseId, message.returnModule))
+			break;
+		case 'kill':
+			modul.kill(message);
+			break;
+		case 'promiseResolve':
+			modul.promiseResolve(message);
+			break;
+		case 'promiseReject':
+			modul.promiseReject(message);
+			break;
+		case 'init':
+			[sS, mS] = modul.init(message, thisModule)
 			break;
 	}
 });
 
-function parseDuration(startTime, endTime) {
-	let duration = moment.duration(endTime.diff(startTime));
-	let t = {
-		ms: duration.milliseconds(),
-		s: duration.seconds(),
-		m: duration.minutes(),
-		h: duration.hours()
-	}
-	t.ms = t.ms||1; // Make sure we dont have no time passed
-	return `${(t.m>0) ? `${t.m}min, ` : ''}${(t.s>0) ? `${t.s}sec, ` : ''}${(t.ms>0) ? `${t.ms}ms` : ''}`;
-}
-
-function logOut(logObj) {
+async function logOut(logObj) {
 	logObj.logTo = { 
 		console: ((logObj||{}).logTo||{}).console||true,
 		discord: ((logObj||{}).logTo||{}).discord||false,
@@ -50,7 +46,7 @@ function logOut(logObj) {
 		else {
 			logInfo.vars = logInfo.vars||{};
 			logInfo.vars.user = logObj.logTo.user;
-			var logStrings = logFunctions[logInfo.function](logInfo.vars);
+			let logStrings = logFunctions[logInfo.function](logInfo.vars);
 			logStrings.forEach(function(logString) {
 				if (logObj.logTo.console && logString.console) process.stdout.write(logString.console+'\n');
 				if (logObj.logTo.minecraft && logString.minecraft) process.send({ function: 'serverStdin', string: logString.minecraft });
@@ -65,37 +61,6 @@ function logOut(logObj) {
 }
 
 /*
-/ Util Functions
-*/
-
-function debug(stringOut) {
-	try {
-		if (typeof stringOut === 'string') process.stdout.write(`\n\u001b[41mDEBUG>${sS.c['reset'].c} ${stringOut}\n\n`)
-		else {
-			process.stdout.write(`\n\u001b[41mDEBUG>${sS.c['reset'].c}`);
-			console.log(stringOut);
-		}
-	} catch (e) {
-		process.stdout.write(`\n\u001b[41mDEBUG>${sS.c['reset'].c} ${stringOut}\n\n`);
-	}
-}
-
-if (!('toJSON' in Error.prototype))
-Object.defineProperty(Error.prototype, 'toJSON', {
-    value: function () {
-        var alt = {};
-
-        Object.getOwnPropertyNames(this).forEach(function (key) {
-            alt[key] = this[key];
-        }, this);
-
-        return alt;
-    },
-    configurable: true,
-    writable: true
-});
-
-/*
 / Discord embed object
 / https://anidiots.guide/first-bot/using-embeds-in-messages
 / https://discordapp.com/developers/docs/resources/channel#embed-object-embed-structure
@@ -108,34 +73,6 @@ const logFunctions = {
 			minecraft: `tellraw ${vars.user} ${JSON.stringify(vars.minecraft)}\n`,
 			discord: vars.discord
 		}]
-	},
-	error: function(vars) {
-		if (!vars.err) console.log(`Error Error! What even is this!?`, vars);
-		else return [{
-			console: `${vars.niceName ? `${sS.c['brightRed'].c}${vars.niceName}${sS.c['reset'].c} ` : ''}${vars.err.message}\n${vars.err.stack}`,
-			minecraft: `tellraw ${vars.user} ${JSON.stringify(
-				[{
-					"text": `${vars.niceName||''}\n`,
-					"color": sS.c['brightRed'].m
-				}, {
-					"text": `${vars.err.message}\n${vars.err.stack}`,
-					"color": "white"
-				}]
-			)}\n`,
-			discord: {
-				string: null,
-				embed: {
-					color: parseInt(sS.c['red'].h, 16),
-					title: `${vars.niceName ? `${vars.niceName} ` : ''}${vars.err.message}`,
-					description: vars.err.stack,
-					timestamp: new Date(),
-					footer: {
-						text: `Executed in ${parseDuration(moment(vars.executionStartTime), moment(vars.executionEndTime))}`
-					}
-				}
-			}
-		}]
-		return []
 	},
 	tpo: function(vars) {
 		// vars.username, vars.x, vars.y, vars.z, vars.executionStartTime, vars.executionEndTime
@@ -185,35 +122,6 @@ const logFunctions = {
 	tpr: function(vars) {
 		return [{
 			minecraft: `tp ${vars.user} ${vars.args[1]*512} 100 ${vars.args[2]*512}\n`
-		}]
-	},
-	qm: function(vars) {8
-		return [{
-			console: `${sS.c['white'].c}}${vars.question}'s ${sS.c['gold'].c}=> ${sS.c['aqua'].c}${vars.awnser} ${sS.c['reset'].c}`,
-			minecraft: `tellraw ${vars.user} ${JSON.stringify(
-				[{
-					"text": vars.question,
-					"color": "white"
-				}, {
-					"text": " => ",
-					"color": "gold"
-				}, {
-					"text": vars.answer,
-					"color": "aqua"
-				}]
-			)}\n`,
-			discord : {
-				string: null,
-				embed: {
-					color: parseInt(sS.c[sS.modules['nbt'].discordColor||sS.modules['nbt'].color].h, 16),
-					title: `${vars.question} => ${vars.awnser}`,
-					description: null,
-					timestamp: new Date(),
-					footer: {
-						text: `Executed in ${parseDuration(moment(vars.executionStartTime), moment(vars.executionEndTime))}`
-					}
-				}
-			}
 		}]
 	},
 	getSpawn: function(vars) {

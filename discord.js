@@ -1,7 +1,9 @@
 // Import core packages
 const properties = require('properties');
 const discordjs = require("discord.js");
-const util = require("./util.js");
+const modul = require("./modul.js")
+
+const thisModule = 'discord'
 
 // Set defaults
 const discord = new discordjs.Client();
@@ -13,35 +15,46 @@ let discordData = "";
 let previousMessage = "";
 let serverStarted = true;
 
+const fn = {
+	discordStdin: async (message) => {
+		console.log(message.msg)
+		let channel = managementChannel;
+		if (message.channel) channel = discord.guilds.get('155507830076604416').channels.get(message.channel)
+		else if (message.userID) channel = discord.users.get(message.userID);
+		await channel.send(message.msg)
+	}
+}
+
 // Module command handling
 process.on('message', async message => {
 	switch (message.function) {
-		case 'init':
-			sS = message.sS;
-			mS = sS.modules['discord'].settings;
-			buildMatches().then(openDiscord);
-			break;
-		case 'kill':
-			process.exit();
-			break;
 		case 'serverStdout':
 			serverStdout(message.string);
 			break;
 		case 'consoleStdout':
 			if (managementChannel) managementChannel.send(`[BOX] > ${message.string}\n`, { split: true })
 			break;
-		case 'discordStdin':
-			let channel = managementChannel;
-			if (message.channel) channel = discord.guilds.get('155507830076604416').channels.get(message.channel)
-			else if (message.userID) channel = discord.users.get(message.userID);
-
-			if (channel && message.embed) channel.send({embed: message.embed});
-			else if (channel && message.string) channel.send(message.string, { split: true });
+		case 'execute':
+			fn[message.func](message.data)
+			.then(data => modul.resolve(data, message.promiseId, message.returnModule))
+			.catch(err => modul.reject(err, message.promiseId, message.returnModule))
+			break;
+		case 'promiseResolve':
+			modul.promiseResolve(message);
+			break;
+		case 'promiseReject':
+			modul.promiseReject(message);
 			break;
 		case 'pushSettings':
-			sS = message.sS;
-			mS = sS.modules['discord'].settings;
+			[sS, mS] = modul.pushSettings(message, thisModule)
 			buildMatches();
+			break;
+		case 'init':
+			[sS, mS] = modul.init(message, thisModule)
+			buildMatches().then(openDiscord);
+			break;
+		case 'kill':
+			modul.kill(message);
 			break;
 	}
 });
@@ -57,7 +70,7 @@ discord.on('ready', () => {
 	managementChannel = discord.guilds.get('155507830076604416').channels.get(mS.managementChannelId);
 	if(mS.chatLink.chatChannelId) chatChannel = discord.guilds.get('155507830076604416').channels.get(mS.chatLink.chatChannelId);
 	properties.parse('./server.properties', {path: true}, (err, properties) => {
-		if (err) util.lErr(err);
+		if (err) modul.lErr(err);
 		else discord.user.setActivity(properties.motd.replace(/§./g, '').replace(/\n.*/g, '').replace('// Von Spookelton - ', '').replace(' \\\\', ''), { type: 'WATCHING' })
 	});
 })
@@ -114,7 +127,7 @@ discord.on('message', async message => {
 	}
 	if (message.isMemberMentioned(discord.user)) discordMessage.string = message.toString().trim().slice(message.toString().trim().indexOf(' ')+1, message.toString().trim().length)
 	else if (message.channel.id == mS.managementChannelId && message.author.id != discord.user.id) discordMessage.string = message.toString().trim();
-	if (discordMessage.string) util.pSend(process, {
+	if (discordMessage.string) modul.pSend(process, {
 		function: 'broadcast',
 		message: {
 			function: 'discordMessage',
@@ -122,7 +135,7 @@ discord.on('message', async message => {
 		}
 	});
 	if(chatChannel && discordMessage.channel.id === mS.chatLink.chatChannelId) {
-		// util.pSend(process, {
+		// modul.pSend(process, {
 		// 	function: 'serverStdin',
 		// 	string: `/say ${discordMessage.user.username}: ${discordMessage.string}`
 		// });

@@ -1,3 +1,7 @@
+example = require('./example.js');
+
+example.whatsMyName();
+
 async function errOne() {
 	return Promise.all([1, 2, 3].map(async number => {
 		return await a(number)

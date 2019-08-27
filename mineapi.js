@@ -1,5 +1,5 @@
 // Import core packages
-const util = require('./util.js');
+const util = require('./util/request.js');
 const modul = require('./modul.js');
 
 const thisModule = 'mineapi';
@@ -72,7 +72,7 @@ class Player {
 			const data = await util.pRequestGet({
 				url: `https://api.mojang.com/users/profiles/minecraft/${this._username}`,
 				json: true,
-			}).catch(err => util.lErr)
+			}).catch(err => modul.lErr)
 			this._uuid = data.id;
 			this._username = data.name;
 			return this._uuid;
@@ -87,7 +87,7 @@ class Player {
 			const data = await util.pRequestGet({
 				url: `https://api.mojang.com/user/profiles/${this._uuid}/names`,
 				json: true,
-			}).catch(err => util.lErr)
+			}).catch(err => modul.lErr)
 			this._username = data[data.length-1].name;
 			this._history = data;
 			return this._history;
@@ -102,7 +102,7 @@ class Player {
 			const data = await util.pRequestGet({
 				url: `https://api.mojang.com/user/profiles/${this._uuid}/names`,
 				json: true,
-			}).catch(err => util.lErr)
+			}).catch(err => modul.lErr)
 			this._username = data[data.length-1].name;
 			this._history = data;
 			return this._username;
@@ -112,7 +112,7 @@ class Player {
 	// Returns a uuid seperated by dashes
 	async makeDirtyUUID (uuid) {
 		if (!uuid) throw new Error('No uuid specified!');
-		uuid = await this.cleanUUID(uuid).catch(err => util.lErr)
+		uuid = await this.cleanUUID(uuid).catch(err => modul.lErr)
 		return uuid = [uuid.slice(0, 8), '-', uuid.slice(8, 12), '-', uuid.slice(12, 16), '-', uuid.slice(16, 20), '-', uuid.slice(20)].join('')
 	}
 

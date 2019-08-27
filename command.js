@@ -1,7 +1,6 @@
 // Import core packages
 const moment = require("moment");
-const fs = require("fs");
-const util = require("./util.js");
+const util = require("./util/fs.js")
 const modul = require("./modul.js")
 
 const thisModule = 'command';
@@ -43,13 +42,13 @@ process.on('message', message => {
 			.catch(err => modul.reject(err, message.promiseId, message.returnModule))
 			break;
 		case 'discordMessage':
-			processDiscordMessage(message.message).catch(err => util.lErr);
+			processDiscordMessage(message.message).catch(err => modul.lErr);
 			break;
 		case 'consoleStdout':
-			processCommand(message).catch(err => util.lErr);
+			processCommand(message).catch(err => modul.lErr);
 			break;
 		case 'serverStdout':
-			processServerMessage(message).catch(err => util.lErr);
+			processServerMessage(message).catch(err => modul.lErr);
 			break;
 	}
 });
@@ -65,7 +64,7 @@ async function checkCommandAuth(allowedCommands, message) {
 			if (allowedCommands[command.toLowerCase()].expired && (message.string.slice(0, command.length) == command)) throw new Error('Allowed use of this command has expired.');
 			if (!allowedCommands[command.toLowerCase()].expired) {
 				allowedCommands[command.toLowerCase()].expired = true;
-				await util.saveSettings(null, 'command', sS)
+				await modul.saveSettings(null, 'command', sS)
 			}
 		}
 	};
@@ -78,7 +77,7 @@ async function checkDiscordAuth(message) {
 		let whitelisted_user = mS.whitelisted_discord_users[message.author.id];
 		if (whitelisted_user['Username'] != message.author.username) {
 			whitelisted_user['Username'] = message.author.username;
-			util.saveSettings(null, 'command', sS)
+			modul.saveSettings(null, 'command', sS)
 		}
 		if (await checkCommandAuth(whitelisted_user.allowedCommands, message)) return true;
 	}
@@ -88,7 +87,7 @@ async function checkDiscordAuth(message) {
 			let whitelisted_role = mS.whitelisted_discord_roles[discord_role.id];
 			if (whitelisted_role['Name'] != discord_role.name) {
 				whitelisted_role['Name'] = discord_role.name;
-				util.saveSettings(null, 'command', sS)
+				modul.saveSettings(null, 'command', sS)
 			}
 			if (await checkCommandAuth(whitelisted_role.allowedCommands, message)) return true;
 		};
@@ -118,11 +117,10 @@ async function processServerMessage(message) {
 	commandString = message.string.slice(message.string.indexOf('> '+commandType)+2, message.string.length)
 	user = message.string.slice(message.string.indexOf('<')+1, message.string.indexOf('> '+commandType))
 	let ops = JSON.parse(await util.pReadFile('./ops.json', null))
-	if (await util.getObj(ops, 'name', user)) await processCommand({ string: commandString, minecraft: true, user: user })
+	if (await modul.getObj(ops, 'name', user)) processCommand({ string: commandString, minecraft: true, user: user })
 }
 
 async function processCommand(message) {
-	let executionStartTime = new Date();
 	message.string = message.string.replace(/\s\s+/g, ' '); // Compact multiple spaces/tabs down to one
 	message.logTo = {
 		console: true,
@@ -138,7 +136,11 @@ async function processCommand(message) {
 		}
 	});
 	if (commandName == null) throw new Error('Command not found.');
-	let result = await commands[commandName.toLowerCase()].execute(message).catch(err => console.log(err));
+	message.exeStart = new Date();
+	let result = await commands[commandName.toLowerCase()].execute(message)
+	.catch(err => {
+		modul.lErr(err, `Error while executing command "${message.string}"`, message.logTo)
+	});
 	console.log('CommandResult:', result)
 }
 
@@ -168,7 +170,7 @@ class command {
 	}
 
 	async help(message) { // Outputs help info for a command
-		util.log({
+		modul.logg({
 			logInfoArray: [{
 				function: 'help',
 				vars: this.description
@@ -264,7 +266,7 @@ async function commandWhitelistAdd(message) {
 		"expiresAt": expiresin, // If the user specifies a expiery time set it, otherwise use infinite
 		"expired": false
 	}
-	await util.saveSettings(null, 'command', sS);
+	await modul.saveSettings(null, 'command', sS);
 	return { wo: whitelisted_object, expiresin: expiresin };
 }
 
@@ -273,13 +275,13 @@ async function commandWhitelistRemove(message) {
 		let whitelisted_object = mS.whitelisted_discord_users[message.mentions.users[0].id];
 		if (message.mentions.users[0].id) delete mS.whitelisted_discord_users[message.mentions.users[0].id];
 		else if (message.mentions.roles[0].id) delete mS.whitelisted_discord_roles[message.mentions.roles[0].id];
-		await util.saveSettings(null, 'command', sS);
+		await modul.saveSettings(null, 'command', sS);
 		return whitelisted_object
 	} else {
 		let whitelisted_object = mS.whitelisted_discord_users[message.mentions.users[0].id].allowedCommands[message.args[1].toLowerCase()];
 		if (message.mentions.users[0].id) delete mS.whitelisted_discord_users[message.mentions.users[0].id].allowedCommands[message.args[1].toLowerCase()];
 		else if (message.mentions.roles[0].id) delete mS.whitelisted_discord_roles[message.mentions.roles[0].id].allowedCommands[message.args[1].toLowerCase()];
-		await util.saveSettings(null, 'command', sS);
+		await modul.saveSettings(null, 'command', sS);
 		return whitelisted_object
 	}
 }

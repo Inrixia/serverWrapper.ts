@@ -1,28 +1,10 @@
-const children = require('child_process');
-const request = require('request');
-const fs = require('fs');
+
 
 /*
 / Util Functions
 */
 
-module.exports.pReadFile = function pReadFile(...args) {
-	return new Promise((resolve, reject) => {
-		fs.readFile(args, (err, data) => {
-			if (err) reject(err);
-			else resolve(data);
-		})
-	})
-}
 
-module.exports.pWriteFile = function pWriteFile(...args) {
-	return new Promise((resolve, reject) => {
-		fs.writeFile(args, (err) => {
-			if (err) reject(err);
-			else resolve();
-		})
-	})
-}
 
 module.exports.log = async function log(logObj, logTo=null) {
 	return await this.pSend(process, {
@@ -32,24 +14,6 @@ module.exports.log = async function log(logObj, logTo=null) {
 			function: 'log',
 			logObj: logObj
 		}
-	})
-}
-
-module.exports.pExec = function pExec(args) {
-	return new Promise((resolve, reject) => {
-		children.exec(args, (err, data) => {
-			if (err) reject(err);
-			resolve(data);
-		});
-	})
-}
-
-module.exports.pRequestGet = function pRequestGet(requestObj) {
-	return new Promise((resolve, reject) => {
-		request.get(requestObj, (err, res, data) => {
-			if (err) reject(err);
-			resolve(data);
-		})
 	})
 }
 

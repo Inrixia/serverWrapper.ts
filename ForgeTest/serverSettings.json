@@ -77,20 +77,364 @@
       "description": "Handles all things discord.",
       "settings": {
         "messageFlushRate": 100,
-        "discord_token": "NDg3ODExOTkwNTMwNTU1OTA0.XSQ-uQ.0lUQcpbDT2la13756Tf65iijgrs",
-        "management_channel_id": "475502976656736257"
+        "discordToken": "NDg3ODExOTkwNTMwNTU1OTA0.XSQ-uQ.0lUQcpbDT2la13756Tf65iijgrs",
+        "managementChannelId": "475502976656736257",
+        "chatLink": {
+          "chatChannelId": "614637977502744576",
+          "eventTranslation": {
+            "Started": {
+              "match": false,
+              "content": "**Server Started**",
+              "embed": {
+                "description": "Server Started"
+              },
+              "send": {
+                "embed": true,
+                "content": false
+              }
+            },
+            "PlayerMessage": {
+              "match": "<%username%> %message%",
+              "content": "**<%username%>** %message%",
+              "embed": {
+                "description": "%message%",
+                "author": {
+                  "name": "%username%",
+                  "icon_url": "%img_username%"
+                }
+              },
+              "send": {
+                "embed": true,
+                "content": false
+              }
+            },
+            "Stopped": {
+              "match": "Stopping the server",
+              "content": "**Server stopping...**",
+              "embed": {
+                "description": "**Server stopping...**"
+              },
+              "send": {
+                "embed": true,
+                "content": false
+              }
+            },
+            "PlayerJoined": {
+              "match": "%username% joined the game",
+              "content": "**<%username%>** joined the server!",
+              "embed": {
+                "description": "**%username%** joined the game!",
+                "author": {
+                  "name": "%username%",
+                  "icon_url": "%img_username%"
+                }
+              },
+              "send": {
+                "embed": true,
+                "content": false
+              }
+            },
+            "PlayerLeft": {
+              "match": "%username% left the game",
+              "content": "**<%username%>** left the server!",
+              "embed": {
+                "description": "**%username%** left the game!",
+                "author": {
+                  "name": "%username%",
+                  "icon_url": "%img_username%"
+                }
+              },
+              "send": {
+                "embed": true,
+                "content": false
+              }
+            },
+            "PlayerAdvancement": {
+              "match": "%username% has made the advancement [%advancement%]",
+              "content": "**<%username%>** gained the achievement **%advancement%**!",
+              "embed": {
+                "author": {
+                  "name": "%username% has made the advancement %advancement%",
+                  "icon_url": "%img_username%"
+                }
+              },
+              "send": {
+                "embed": true,
+                "content": false
+              }
+            },
+            "PlayerGoal": {
+              "match": "%username% has reached the goal [%goal%]",
+              "content": "**<%username%>** reached the goal **%goal%**!",
+              "embed": {
+                "author": {
+                  "name": "%username% has reached the goal %goal%",
+                  "icon_url": "%img_username%"
+                }
+              },
+              "send": {
+                "embed": true,
+                "content": false
+              }
+            },
+            "KilledInFire": {
+              "match": "%entity% went up in flames",
+              "content": "**<%entity%>** went up in flames",
+              "embed": {
+                "author": {
+                  "name": "%entity% went up in flames",
+                  "icon_url": "%img_entity%"
+                }
+              },
+              "send": {
+                "embed": true,
+                "content": false
+              }
+            },
+            "DiedOnFire": {
+              "match": "%entity% burned to death",
+              "content": "**<%entity%>** burned to death",
+              "embed": {
+                "author": {
+                  "name": "%entity% burned to death",
+                  "icon_url": "%img_entity%"
+                }
+              },
+              "send": {
+                "embed": true,
+                "content": false
+              }
+            },
+            "DiedInLava": {
+              "match": "%entity% tried to swim in lava",
+              "content": "**<%entity%>** tried to swim in lava",
+              "embed": {
+                "author": {
+                  "name": "%entity% tried to swim in lava",
+                  "icon_url": "%img_entity%"
+                }
+              },
+              "send": {
+                "embed": true,
+                "content": false
+              }
+            },
+            "DiedInWall": {
+              "match": "%entity% suffocated in a wall",
+              "content": "**<%entity%>** suffocated in a wall",
+              "embed": {
+                "author": {
+                  "name": "%entity% suffocated in a wall",
+                  "icon_url": "%img_entity%"
+                }
+              },
+              "send": {
+                "embed": true,
+                "content": false
+              }
+            },
+            "Drowned": {
+              "match": "%entity% drowned",
+              "content": "**<%entity%>** drowned",
+              "embed": {
+                "author": {
+                  "name": "%entity% drowned",
+                  "icon_url": "%img_entity%"
+                }
+              },
+              "send": {
+                "embed": true,
+                "content": false
+              }
+            },
+            "Starved": {
+              "match": "%entity% starved to death",
+              "content": "**<%entity%>** starved to death",
+              "embed": {
+                "author": {
+                  "name": "%entity% starved to death",
+                  "icon_url": "%img_entity%"
+                }
+              },
+              "send": {
+                "embed": true,
+                "content": false
+              }
+            },
+            "Pricked": {
+              "match": "%entity% was pricked to death",
+              "content": "**<%entity%>** was pricked to death",
+              "embed": {
+                "author": {
+                  "name": "%entity% was pricked to death",
+                  "icon_url": "%img_entity%"
+                }
+              },
+              "send": {
+                "embed": true,
+                "content": false
+              }
+            },
+            "DiedFalling": {
+              "match": "%entity% hit the ground too hard",
+              "content": "**<%entity%>** hit the ground too hard",
+              "embed": {
+                "author": {
+                  "name": "%entity% hit the ground too hard",
+                  "icon_url": "%img_entity%"
+                }
+              },
+              "send": {
+                "embed": true,
+                "content": false
+              }
+            },
+            "DiedOutOfWorld": {
+              "match": "%entity% fell out of the world",
+              "content": "**<%entity%>** fell out of the world",
+              "embed": {
+                "author": {
+                  "name": "%entity% fell out of the world",
+                  "icon_url": "%img_entity%"
+                }
+              },
+              "send": {
+                "embed": true,
+                "content": false
+              }
+            },
+            "Died": {
+              "match": "%entity% died",
+              "content": "**<%entity%>** died",
+              "embed": {
+                "author": {
+                  "name": "%entity% died",
+                  "icon_url": "%img_entity%"
+                }
+              },
+              "send": {
+                "embed": true,
+                "content": false
+              }
+            },
+            "Exploded": {
+              "match": "%entity% blew up",
+              "content": "**<%entity%>** blew up",
+              "embed": {
+                "author": {
+                  "name": "%entity% blew up",
+                  "icon_url": "%img_entity%"
+                }
+              },
+              "send": {
+                "embed": true,
+                "content": false
+              }
+            },
+            "KilledByMagic": {
+              "match": "%entity% was killed by magic",
+              "content": "**<%entity%>** was killed by magic",
+              "embed": {
+                "author": {
+                  "name": "%entity% was killed by magic",
+                  "icon_url": "%img_entity%"
+                }
+              },
+              "send": {
+                "embed": true,
+                "content": false
+              }
+            },
+            "SlainBy": {
+              "match": "%entityA% was slain by %entityB%",
+              "content": "**<%entityA%>** was slain by **%entityB%**",
+              "embed": {
+                "author": {
+                  "name": "%entityA% was slain by %entityB%",
+                  "icon_url": "%img_entityA%"
+                }
+              },
+              "send": {
+                "embed": true,
+                "content": false
+              }
+            },
+            "ShotBy": {
+              "match": "%entityA% was shot by %entityB%",
+              "content": "**<%entityA%>** was shot by **%entityB%**",
+              "embed": {
+                "author": {
+                  "name": "%entityA% was shot by %entityB%",
+                  "icon_url": "%img_entityA%"
+                }
+              },
+              "send": {
+                "embed": true,
+                "content": false
+              }
+            },
+            "FireballedBy": {
+              "match": "%entityA% was fireballed by %entityB%",
+              "content": "**<%entityA%>** was fireballed by **%entityB%**",
+              "embed": {
+                "author": {
+                  "name": "%entityA% was fireballed by %entityB%",
+                  "icon_url": "%img_entityA%"
+                }
+              },
+              "send": {
+                "embed": true,
+                "content": false
+              }
+            },
+            "PummeledBy": {
+              "match": "%entityA% was pummeled by %entityB%",
+              "content": "**<%entityA%>** was pummeled by **%entityB%**",
+              "embed": {
+                "author": {
+                  "name": "%entityA% was pummeled by %entityB%",
+                  "icon_url": "%img_entityA%"
+                }
+              },
+              "send": {
+                "embed": true,
+                "content": false
+              }
+            },
+            "KilledBy": {
+              "match": "%entityA% was killed by %entityB%",
+              "content": "**<%entityA%>** was killed by **%entityB%**",
+              "embed": {
+                "author": {
+                  "name": "%entityA% was killed by %entityB%",
+                  "icon_url": "%img_entityA%"
+                }
+              },
+              "send": {
+                "embed": true,
+                "content": false
+              }
+            }
+          }
+        }
       }
     },
     "backup": {
       "file": "backup.js",
-      "enabled": false,
+      "enabled": true,
       "color": "brightRed",
       "import": false,
       "description": "Runs server backups.",
       "settings": {
-        "serverWorldFolder": "Cookies",
-        "rootBackupDir": "/home/hotpink/_LiveArchives/",
-        "overrideBackupDir": "",
+        "publicBackupFolders": [
+          "DEFAULT"
+        ],
+        "remoteUser": "administrator",
+        "remoteIP": "10.0.0.5",
+        "remotePort": "22",
+        "remotePublicRootBackupDir": "/mnt/redlive/PublicFTP/LiveArchives/",
+        "remoteRootBackupDir": "/mnt/redlive/LiveArchives/",
+        "overrideRemoteBackupDir": "",
         "backupIntervalInHours": 0.5,
         "threads": 1
       }
@@ -216,8 +560,8 @@
           "level-seed": null,
           "prevent-proxy-connections": false,
           "use-native-transport": true,
-          "motd": "A Minecraft Server",
-          "enable-rcon": false
+          "enable-rcon": false,
+          "motd": "A Minecraft Server"
         }
       }
     }

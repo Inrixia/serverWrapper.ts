@@ -10,6 +10,15 @@ module.exports.kill = (message) => {
 	process.exit();
 }
 
+module.exports.pSend = function pSend(dstProcess, message) {
+	return new Promise((resolve, reject) => {
+		dstProcess.send(message, (err, data) => {
+			if (err) reject(err);
+			resolve(data);
+		});
+	})
+}
+
 module.exports.promiseResolve = function promiseResolve(message) {
 	if (crossModulePromises[message.promiseID] == undefined) console.log(`\u001b[91;1mERROR: \u001b[0mAttempting to resolve undefined promise with message`, message)
 	else {
@@ -83,13 +92,54 @@ module.exports.reject = (data, promiseId, returnModule) => {
 	});
 }
 
-module.exports.pSend = function pSend(dstProcess, message) {
-	return new Promise((resolve, reject) => {
-		dstProcess.send(message, (err, data) => {
-			if (err) reject(err);
-			resolve(data);
-		});
-	})
+module.exports.logg = async function logg(logObj, logTo=null) {
+	logTo = {
+		console: (logTo||{}).console||true,
+		discord: (logTo||{}).discord||false,
+		minecraft: (logTo||{}).minecraft||false
+	}
+	if (logTo.console && logObj.console) process.stdout.write(logObj.console+'\n');
+	if (logTo.minecraft && logObj.minecraft) await this.send('serverWrapper', 'serverStdin', { string: logObj.minecraft }, this.whatsMyParentsName());
+	if (logTo.discord && logObj.discord) await this.send('discord', 'discordStdin', { msg: logObj.discord, channel: logTo.discord.channel||null }, this.whatsMyParentsName())
+	return true;
+}
+
+module.exports.lErr = async function lErr(err, name='', logTo=null) {
+	return await this.logg({
+		console: `${name?`\u001b[91;1m${name}\u001b[0m`:''} ${err.message}\n${err.stack}`,
+		minecraft: `tellraw ${logTo||{}.user} ${JSON.stringify(
+			[{
+				"text": `${name||''}\n`,
+				"color": 'red'
+			}, {
+				"text": `${err.message}\n${err.stack}`,
+				"color": "white"
+			}]
+		)}\n`,
+		discord: {
+			string: null,
+			embed: {
+				color: parseInt(800000, 16),
+				title: `${name ? `${name} ` : ''}${err.message}`,
+				description: err.stack,
+				timestamp: new Date()
+			}
+		}
+	}, logTo).catch(err => console.log(`\u001b[91;1mError logging Error! Look... Shits real fucked if your this deep in errors\u001b[0m ${err.message}\n${err.stack}`))
+}
+
+module.exports.saveSettings = async function saveSettings(logTo, thisModuleName, serverSettings) {
+	serverSettings.modules[thisModuleName].settings = mS;
+	return await this.pSend(process, { function: 'saveSettings', sS: serverSettings, logTo: logTo })
+}
+
+module.exports.getObj = async function getObj(parentObject, childObjectProperty, childObjectValue) {
+	return await parentObject.find((childObject) => { return childObject[childObjectProperty] === childObjectValue; })
+}
+
+module.exports.whatsMyParentsName = function whatsMyParentsName() {
+	let fileName = module.parent.filename;
+	return fileName.slice(fileName.lastIndexOf('/')+1, fileName.indexOf('.'));
 }
 
 if (!('toJSON' in Error.prototype))

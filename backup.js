@@ -1,8 +1,6 @@
 // Import core packages
 const moment = require('moment');
 const children = require('child_process');
-const properties = require('properties');
-const fs = require('fs');
 
 // Set defaults
 var sS = {} // serverSettings
@@ -200,7 +198,7 @@ function runBackup() {
 	lastBackupStartTime = moment();
 	process.send({ function: 'serverStdin', string: 'save-off\n' });
 	process.stdout.write('Starting Backup - World Saving Disabled\n');
-	process.send({ function: 'serverStdin', string: `/title @a actionbar ["",{"text":"~","color":"light_purple"},{"text":" Starting Backup","color":"white"},{"text":" ~","color":"light_purple"}]\n` })
+	process.send({ function: 'serverStdin', string: `title @a actionbar ["",{"text":"~","color":"light_purple"},{"text":" Starting Backup","color":"white"},{"text":" ~","color":"light_purple"}]\n` })
 	process.send({
 		function: 'unicast',
 		module: 'stats',
@@ -229,7 +227,7 @@ function runBackup() {
 						lastBackupDurationString = `${(t.m>0) ? `${t.m}min, ` : ''}${(t.s>0) ? `${t.s}sec, ` : ''}${(t.ms>0) ? `${t.ms}ms` : ''}`;
 						process.send({ function: 'serverStdin', string: 'save-on\n' });
 						process.stdout.write(`Backup Completed in ${lastBackupDurationString} - World Saving Enabled\n`);
-						process.send({ function: 'serverStdin', string: `/title @a actionbar ["",{"text":"~","color":"light_purple"},{"text":" Finished Backup","color":"white"},{"text":" -","color":"light_purple"},{"text":" Took","color":"white"},{"text":" ${lastBackupDurationString}","color":"green"},{"text":" ~","color":"light_purple"}]\n` })
+						process.send({ function: 'serverStdin', string: `title @a actionbar ["",{"text":"~","color":"light_purple"},{"text":" Finished Backup","color":"white"},{"text":" -","color":"light_purple"},{"text":" Took","color":"white"},{"text":" ${lastBackupDurationString}","color":"green"},{"text":" ~","color":"light_purple"}]\n` })
 						pushStats();
 				});
 			})
