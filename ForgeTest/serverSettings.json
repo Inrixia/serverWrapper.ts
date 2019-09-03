@@ -1,5 +1,4 @@
 {
-  "serverName": "ForgeTest",
   "jar": "forge-1.12.2-14.23.5.2814-universal.jar",
   "minRamAllocation": "2G",
   "maxRamAllocation": "2G",
@@ -28,7 +27,7 @@
   "modules": {
     "mineapi": {
       "file": "mineapi.js",
-      "enabled": true,
+      "enabled": false,
       "color": "orange",
       "import": false,
       "description": "Fetches data from mojangs api's...",
@@ -36,7 +35,7 @@
     },
     "nbt": {
       "file": "nbt.js",
-      "enabled": true,
+      "enabled": false,
       "color": "yellow",
       "import": false,
       "description": "Gives the server data files the good touch...",
@@ -50,17 +49,9 @@
       "description": "Handles advaced math problems.",
       "settings": {}
     },
-    "log": {
-      "file": "log.js",
-      "enabled": true,
-      "color": "white",
-      "import": false,
-      "description": "Handles all command output, hey you're using this now!",
-      "settings": {}
-    },
     "stats": {
       "file": "stats.js",
-      "enabled": true,
+      "enabled": false,
       "color": "brightYellow",
       "import": false,
       "description": "Displays server stats on console window.",
@@ -68,9 +59,135 @@
         "pollRate": 2000
       }
     },
+    "backup": {
+      "file": "backup.js",
+      "enabled": false,
+      "color": "brightRed",
+      "import": false,
+      "description": "Runs server backups.",
+      "settings": {
+        "messages": {
+          "backupStarting": {
+              "console": "Starting Backup - World Saving Disabled",
+              "minecraft": "title @a actionbar ['',{'text':'~','color':'light_purple'},{'text':' Starting Backup','color':'white'},{'text':' ~','color':'light_purple'}]"
+          },
+          "backupEnded": {
+            "console": "Backup Completed in %duration% - World Saving Enabled",
+            "minecraft": "title @a actionbar ['',{'text':'~','color':'light_purple'},{'text':' Finished Backup','color':'white'},{'text':' -','color':'light_purple'},{'text':' Took','color':'white'},{'text':' %duration%','color':'green'},{'text':' ~','color':'light_purple'}]"
+          }
+        },
+        "publicBackupFolders": [
+          "DEFAULT"
+        ],
+        "remote": {
+          "user": "administrator",
+          "ip": "11.0.0.5",
+          "port": "22",
+          "publicBackupDir": "/mnt/redlive/PublicFTP/LiveArchives/",
+          "rootBackupDir": "/mnt/redlive/LiveArchives/",
+          "overrideBackupDir": ""
+        },
+        "backupIntervalInHours": 0.5,
+        "threads": 1
+      }
+    },
+    "command": {
+      "file": "command.js",
+      "enabled": true,
+      "color": "brightGreen",
+      "import": false,
+      "description": "Handles all wrapper/server commands and their permissions.",
+      "settings": {}
+    },
+    "auth": {
+      "file": "auth.js",
+      "enabled": true,
+      "color": "white",
+      "import": false,
+      "description": "Handles all wrapper/server commands and their permissions.",
+      "settings": {
+        "whitelisted_discord_roles": {
+          "344286675691896832": {
+            "Name": "Mods",
+            "allowedCommands": {
+              "*": {
+                "assignedAt": "2019-03-25T06:49:08.684Z",
+                "assignedBy": {
+                  "Username": "Sir Inrix | <3",
+                  "discord_id": "155530711326130176"
+                },
+                "expiresAt": false,
+                "expired": false
+              }
+            }
+          }
+        },
+        "whitelisted_discord_users": {
+          "155530711326130176": {
+            "Username": "Sir Inrix | <3",
+            "allowedCommands": {
+              "~cw_add": {
+                "assignedAt": "2019-03-24T05:58:04.891Z",
+                "assignedBy": {
+                  "Username": "Sir Inrix | <3",
+                  "discord_id": "155530711326130176"
+                },
+                "expiresAt": false,
+                "expired": false
+              },
+              "~cw_remove": {
+                "assignedAt": "2019-03-24T05:58:19.998Z",
+                "assignedBy": {
+                  "Username": "Sir Inrix | <3",
+                  "discord_id": "155530711326130176"
+                },
+                "expiresAt": false,
+                "expired": false
+              },
+              "*": {
+                "assignedAt": "2019-03-25T06:49:08.684Z",
+                "assignedBy": {
+                  "Username": "Sir Inrix | <3",
+                  "discord_id": "155530711326130176"
+                },
+                "expiresAt": false,
+                "expired": false
+              },
+              "!list": {
+                "assignedAt": "2019-07-13T11:32:17.482Z",
+                "assignedBy": {
+                  "Username": "Sir Inrix | <3",
+                  "discord_id": "155530711326130176"
+                },
+                "expiresAt": "2019-07-13T11:33:29.482Z",
+                "expired": false
+              },
+              "!kill": {
+                "assignedAt": "2019-07-13T12:18:44.125Z",
+                "assignedBy": {
+                  "Username": "Sir Inrix | <3",
+                  "discord_id": "155530711326130176"
+                },
+                "expiresAt": "2019-07-13T12:19:56.124Z",
+                "expired": false
+              }
+            },
+            "allowAllCommands": false
+          }
+        }
+      }
+    },
+    "properties": {
+      "file": "properties.js",
+      "enabled": false,
+      "color": "cyan",
+      "import": false,
+      "description": "Reads server.properties info",
+      "settings": {}
+    },
     "discord": {
       "file": "discord.js",
-      "enabled": true,
+      "enabled": false,
       "color": "brightBlue",
       "discordColor": "discordBlue",
       "import": false,
@@ -418,152 +535,6 @@
           }
         }
       }
-    },
-    "backup": {
-      "file": "backup.js",
-      "enabled": true,
-      "color": "brightRed",
-      "import": false,
-      "description": "Runs server backups.",
-      "settings": {
-        "publicBackupFolders": [
-          "DEFAULT"
-        ],
-        "remoteUser": "administrator",
-        "remoteIP": "10.0.0.5",
-        "remotePort": "22",
-        "remotePublicRootBackupDir": "/mnt/redlive/PublicFTP/LiveArchives/",
-        "remoteRootBackupDir": "/mnt/redlive/LiveArchives/",
-        "overrideRemoteBackupDir": "",
-        "backupIntervalInHours": 0.5,
-        "threads": 1
-      }
-    },
-    "command": {
-      "file": "command.js",
-      "enabled": true,
-      "color": "brightGreen",
-      "import": false,
-      "description": "Handles all wrapper/server commands and their permissions.",
-      "settings": {
-        "whitelisted_discord_roles": {
-          "344286675691896832": {
-            "Name": "Mods",
-            "allowedCommands": {
-              "*": {
-                "assignedAt": "2019-03-25T06:49:08.684Z",
-                "assignedBy": {
-                  "Username": "Sir Inrix | <3",
-                  "discord_id": "155530711326130176"
-                },
-                "expiresAt": false,
-                "expired": false
-              }
-            }
-          }
-        },
-        "whitelisted_discord_users": {
-          "155530711326130176": {
-            "Username": "Sir Inrix | <3",
-            "allowedCommands": {
-              "~cw_add": {
-                "assignedAt": "2019-03-24T05:58:04.891Z",
-                "assignedBy": {
-                  "Username": "Sir Inrix | <3",
-                  "discord_id": "155530711326130176"
-                },
-                "expiresAt": false,
-                "expired": false
-              },
-              "~cw_remove": {
-                "assignedAt": "2019-03-24T05:58:19.998Z",
-                "assignedBy": {
-                  "Username": "Sir Inrix | <3",
-                  "discord_id": "155530711326130176"
-                },
-                "expiresAt": false,
-                "expired": false
-              },
-              "*": {
-                "assignedAt": "2019-03-25T06:49:08.684Z",
-                "assignedBy": {
-                  "Username": "Sir Inrix | <3",
-                  "discord_id": "155530711326130176"
-                },
-                "expiresAt": false,
-                "expired": false
-              },
-              "!list": {
-                "assignedAt": "2019-07-13T11:32:17.482Z",
-                "assignedBy": {
-                  "Username": "Sir Inrix | <3",
-                  "discord_id": "155530711326130176"
-                },
-                "expiresAt": "2019-07-13T11:33:29.482Z",
-                "expired": false
-              },
-              "!kill": {
-                "assignedAt": "2019-07-13T12:18:44.125Z",
-                "assignedBy": {
-                  "Username": "Sir Inrix | <3",
-                  "discord_id": "155530711326130176"
-                },
-                "expiresAt": "2019-07-13T12:19:56.124Z",
-                "expired": false
-              }
-            },
-            "allowAllCommands": false
-          }
-        }
-      }
-    },
-    "properties": {
-      "file": "properties.js",
-      "enabled": true,
-      "color": "cyan",
-      "import": false,
-      "description": "Reads server.properties info",
-      "settings": {
-        "p": {
-          "max-tick-time": 60000,
-          "generator-settings": null,
-          "force-gamemode": false,
-          "allow-nether": true,
-          "gamemode": 0,
-          "broadcast-console-to-ops": true,
-          "enable-query": false,
-          "player-idle-timeout": 0,
-          "difficulty": 1,
-          "spawn-monsters": true,
-          "op-permission-level": 4,
-          "pvp": true,
-          "snooper-enabled": true,
-          "level-type": "DEFAULT",
-          "hardcore": false,
-          "enable-command-block": true,
-          "max-players": 20,
-          "network-compression-threshold": 256,
-          "resource-pack-sha1": null,
-          "max-world-size": 29999984,
-          "server-port": 25586,
-          "server-ip": null,
-          "spawn-npcs": true,
-          "allow-flight": false,
-          "level-name": "Cookies",
-          "view-distance": 10,
-          "resource-pack": null,
-          "spawn-animals": true,
-          "white-list": false,
-          "generate-structures": true,
-          "online-mode": true,
-          "max-build-height": 256,
-          "level-seed": null,
-          "prevent-proxy-connections": false,
-          "use-native-transport": true,
-          "enable-rcon": false,
-          "motd": "A Minecraft Server"
-        }
-      }
     }
   },
   "c": {
@@ -682,5 +653,6 @@
       "mc": ""
     }
   },
-  "server_dir": "/home/hotpink/wrapperModules/ForgeTest"
+  "server_dir": "/home/hotpink/wrapperModules/ForgeTest",
+  "serverName": "ForgeTest"
 }

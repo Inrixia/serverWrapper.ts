@@ -1,9 +1,11 @@
+const thisModule = 'command';
+
 // Import core packages
 const moment = require("moment");
 const util = require("./util/fs.js")
-const modul = require("./modul.js")
+const modul = new [require('./modul.js')][0](thisModule);
 
-const thisModule = 'command';
+
 const fn = {
 	importCommands: async (commands) => {
 		commands.forEach(async cmd => new command(cmd))
@@ -15,110 +17,25 @@ let sS = {} // serverSettings
 let mS = {} // moduleSettings
 let authErr = null;
 let commands = {};
-let commandGroupings = {};
 
 // Module command handling
-process.on('message', message => {
+process.on('message', async message => {
 	switch (message.function) {
 		case 'init':
-			[sS, mS] = modul.init(message, thisModule)
+			[sS, mS] = modul.loadSettings(message)
 			fn.importCommands(message.commands);
-			break;
-		case 'kill':
-			modul.kill(message);
-			break;
-		case 'pushSettings':
-			[sS, mS] = modul.pushSettings(message, thisModule)
-			break;
-		case 'promiseResolve':
-			modul.promiseResolve(message);
-			break;
-		case 'promiseReject':
-			modul.promiseReject(message);
+			modul.event.on('consoleStdout', message => processCommand({ string: message }).catch(err => modul.lErr))
 			break;
 		case 'execute':
 			fn[message.func](message.data)
 			.then(data => modul.resolve(data, message.promiseId, message.returnModule))
 			.catch(err => modul.reject(err, message.promiseId, message.returnModule))
 			break;
-		case 'discordMessage':
-			processDiscordMessage(message.message).catch(err => modul.lErr);
-			break;
-		case 'consoleStdout':
-			processCommand(message).catch(err => modul.lErr);
-			break;
-		case 'serverStdout':
-			processServerMessage(message).catch(err => modul.lErr);
+		case 'pushSettings':
+			[sS, mS] = modul.loadSettings(message)
 			break;
 	}
 });
-
-async function checkCommandAuth(allowedCommands, message) {
-	for (command in allowedCommands) {
-		if (!allowedCommands[command.toLowerCase()].expired && (allowedCommands[command.toLowerCase()].expiresAt === false || new Date(allowedCommands[command.toLowerCase()].expiresAt) > new Date())) { // If permission has not expired
-			if (command == "*") return true;
-			else if (command == "!*" && message.string.slice(0, 1) == "!") return true;
-			else if (command == "~*" && message.string.slice(0, 1) == "~") return true;
-			if (message.string.slice(0, command.length) == command) return true; // If the command beginning matches return true
-		} else {
-			if (allowedCommands[command.toLowerCase()].expired && (message.string.slice(0, command.length) == command)) throw new Error('Allowed use of this command has expired.');
-			if (!allowedCommands[command.toLowerCase()].expired) {
-				allowedCommands[command.toLowerCase()].expired = true;
-				await modul.saveSettings(null, 'command', sS)
-			}
-		}
-	};
-	if (!authErr) throw new Error('User not allowed to run this command.');
-}
-
-
-async function checkDiscordAuth(message) {
-	if (mS.whitelisted_discord_users[message.author.id]) { // If user matches a whitelisted user
-		let whitelisted_user = mS.whitelisted_discord_users[message.author.id];
-		if (whitelisted_user['Username'] != message.author.username) {
-			whitelisted_user['Username'] = message.author.username;
-			modul.saveSettings(null, 'command', sS)
-		}
-		if (await checkCommandAuth(whitelisted_user.allowedCommands, message)) return true;
-	}
-	for (role_index in message.member.roles) {
-		discord_role = message.member.roles[role_index];
-		if (discord_role.id in mS.whitelisted_discord_roles) { // If user has a whitelisted role
-			let whitelisted_role = mS.whitelisted_discord_roles[discord_role.id];
-			if (whitelisted_role['Name'] != discord_role.name) {
-				whitelisted_role['Name'] = discord_role.name;
-				modul.saveSettings(null, 'command', sS)
-			}
-			if (await checkCommandAuth(whitelisted_role.allowedCommands, message)) return true;
-		};
-	}
-	if (!authErr) throw new Error('User not whitelisted.');
-}
-
-async function processDiscordMessage(message) {
-	// "Mod" role id: 344286675691896832
-	// "Admin" role id: 278046497789181954
-	if ((message.string[0] == '~' || message.string[0] == '!' || message.string[0] == '?') && await checkDiscordAuth(message)) { // User is allowed to run this command
-		process.stdout.write(`[${sS.c['brightCyan'].c}${message.author.username}${sS.c['reset'].c}]: ${message.string.trim()}\n`);
-		if (message.string[0] == '~' || message.string[0] == '?') await processCommand(message) // Message is a wrapperCommand or helpCommand
-		else if (message.string[0] == '!') await modul.pSend(process, { function: 'serverStdin', string: message.string.slice(1,message.length).trim()+'\n' }) // Message is a serverCommand
-	}
-}
-
-async function processServerMessage(message) {
-	message.string = message.string.replace('\n', '');
-	let commandString = null;
-	let user = null;
-	let commandType = '';
-	if (message.string.indexOf('> ~') > -1) commandType = '~';
-	else if (message.string.indexOf('> !') > -1) commandType = '!';
-	else if (message.string.indexOf('> ?') > -1) commandType = '?';
-	else return;
-	commandString = message.string.slice(message.string.indexOf('> '+commandType)+2, message.string.length)
-	user = message.string.slice(message.string.indexOf('<')+1, message.string.indexOf('> '+commandType))
-	let ops = JSON.parse(await util.pReadFile('./ops.json', null))
-	if (await modul.getObj(ops, 'name', user)) processCommand({ string: commandString, minecraft: true, user: user })
-}
 
 async function processCommand(message) {
 	message.string = message.string.replace(/\s\s+/g, ' '); // Compact multiple spaces/tabs down to one
@@ -136,11 +53,16 @@ async function processCommand(message) {
 		}
 	});
 	if (commandName == null) throw new Error('Command not found.');
-	message.exeStart = new Date();
+	let exeStart = new Date();
 	let result = await commands[commandName.toLowerCase()].execute(message)
 	.catch(err => {
 		modul.lErr(err, `Error while executing command "${message.string}"`, message.logTo)
 	});
+	if ((((result||{}).discord||{}).embed||{}).footer == undefined) {
+		(((result||{}).discord||{}).embed||{}).footer = {
+			text: `Executed in ${util.getDuration(exeStart, new Date())}`
+		}
+	}
 	console.log('CommandResult:', result)
 }
 
@@ -165,18 +87,16 @@ class command {
 	}
 
 	async execute(message) {
-		if (message.string[0] == '~') return await modul.send(this.module, this.exeFunc, message, thisModule)
+		if (message.string[0] == '~') return await modul.send(this.module, this.exeFunc, message)
 		else if (message.string[0] == '?') this.help(message)
 	}
 
 	async help(message) { // Outputs help info for a command
-		modul.logg({
-			logInfoArray: [{
-				function: 'help',
-				vars: this.description
-			}],
-			logTo: message.logTo
-		})
+		return await modul.logg({
+			console: this.description.console,
+			minecraft: `tellraw ${this.description.user} ${JSON.stringify(this.description.minecraft)}\n`,
+			discord: this.description.discord
+		}, message.logTo);
 	}
 
 	async helpAll(message) { // Outputs list of enabled commands
@@ -240,49 +160,6 @@ class command {
 			message.function = this.name;
 			return modul.pSend(process, message)
 		})
-	}
-}
-
-async function commandWhitelistAdd(message) {
-	// ~commandwhitelist add !list @Inrix 1 hour
-	// ~commandwhitelist remove !list @Inrix 1 hour
-	if (message.mentions.users[0].id) {
-		let whitelisted_object = mS.whitelisted_discord_users[message.mentions.users[0].id];
-		whitelisted_object.Username = message.mentions.users[0].username;
-	} else if (message.mentions.roles[0].id) {
-		let whitelisted_object = mS.whitelisted_discord_roles[message.mentions.roles[0].id];
-		whitelisted_object.Name = message.mentions.roles[0].name;
-	}
-	if (!whitelisted_object.allowAllCommands) whitelisted_object.allowAllCommands = false;
-
-	if (!whitelisted_object.allowedCommands) whitelisted_object.allowedCommands = {}
-	let expiresin = message.args[3] ? new moment().add(message.args[3], message.args[4]) : false;
-	whitelisted_object.allowedCommands[message.args[1].toLowerCase()] = {
-		"assignedAt": new Date(),
-		"assignedBy": {
-			"Username": message.author.username,
-			"discord_id": message.author.id
-		},
-		"expiresAt": expiresin, // If the user specifies a expiery time set it, otherwise use infinite
-		"expired": false
-	}
-	await modul.saveSettings(null, 'command', sS);
-	return { wo: whitelisted_object, expiresin: expiresin };
-}
-
-async function commandWhitelistRemove(message) {
-	if (message.args[0] == "~cw_removeall") {
-		let whitelisted_object = mS.whitelisted_discord_users[message.mentions.users[0].id];
-		if (message.mentions.users[0].id) delete mS.whitelisted_discord_users[message.mentions.users[0].id];
-		else if (message.mentions.roles[0].id) delete mS.whitelisted_discord_roles[message.mentions.roles[0].id];
-		await modul.saveSettings(null, 'command', sS);
-		return whitelisted_object
-	} else {
-		let whitelisted_object = mS.whitelisted_discord_users[message.mentions.users[0].id].allowedCommands[message.args[1].toLowerCase()];
-		if (message.mentions.users[0].id) delete mS.whitelisted_discord_users[message.mentions.users[0].id].allowedCommands[message.args[1].toLowerCase()];
-		else if (message.mentions.roles[0].id) delete mS.whitelisted_discord_roles[message.mentions.roles[0].id].allowedCommands[message.args[1].toLowerCase()];
-		await modul.saveSettings(null, 'command', sS);
-		return whitelisted_object
 	}
 }
 
@@ -626,277 +503,6 @@ async function loadCommands() {
 			}
 		}
 	}),
-
-	// backup commands
-	new command({
-		name: 'backup',
-		exeFunc: function(message){
-			modul.pSend(process, {
-				function: 'unicast',
-				module: 'backup',
-				message: {
-					function: 'runBackup',
-					logTo: message.logTo
-				}
-			})
-		},
-		description: {
-			grouping: 'Backups',
-			summary: `Starts a backup.`,
-			console: `${sS.c['white'].c}Starts a backup. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~backup${sS.c['reset'].c}`,
-			minecraft: [{
-				"text": `Starts a backup. `,
-				"color": sS.c['brightWhite'].m
-			}, {
-				"text": 'Example: ',
-				"color": sS.c['white'].m
-			}, {
-				"text": '~backup ',
-				"color": sS.c['yellow'].m
-			}],
-			discord: {
-				string: null,
-				embed: {
-					title: "Backup",
-					description: "~backup",
-					color: parseInt(sS.c['orange'].h, 16),
-					timestamp: new Date(),
-					fields: [{
-						name: "Description",
-						value: "Starts a backup."
-					}, {
-						name: "Example",
-						value: "**~backup**"
-					}]
-				}
-			}
-		}
-	}),
-	new command({
-		name: 'startBackupInterval',
-		exeFunc: function(message){ modul.pSend(process, { function: 'unicast', module: 'backup', message: {function: 'startBackupInterval', logTo: message.logTo} }) },
-		description: {
-			grouping: 'Backups',
-			summary: `Starts automatic backups.`,
-			console: `${sS.c['white'].c}Starts automatic backups. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~startBackupInterval${sS.c['reset'].c}`,
-			minecraft: [{
-				"text": `Starts automatic backups. `,
-				"color": sS.c['brightWhite'].m
-			}, {
-				"text": 'Example: ',
-				"color": sS.c['white'].m
-			}, {
-				"text": '~startBackupInterval ',
-				"color": sS.c['yellow'].m
-			}],
-			discord: {
-				string: null,
-				embed: {
-					title: "Start Backup Interval",
-					description: "~startBackupInterval",
-					color: parseInt(sS.c['orange'].h, 16),
-					timestamp: new Date(),
-					fields: [{
-						name: "Description",
-						value: "Starts automatic backups."
-					}, {
-						name: "Example",
-						value: "**~startBackupInterval**"
-					}]
-				}
-			}
-		}
-	}),
-	new command({
-		name: 'clearBackupInterval',
-		exeFunc: function(message){
-			modul.pSend(process, { function: 'unicast', module: 'backup', message: {function: 'clearBackupInterval', logTo: message.logTo} })
-		},
-		description: {
-			grouping: 'Backups',
-			summary: `Stops automatic backups.`,
-			console: `${sS.c['white'].c}Stops automatic backups. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~clearBackupInterval${sS.c['reset'].c}`,
-			minecraft: [{
-				"text": `Stops automatic backups. `,
-				"color": sS.c['brightWhite'].m
-			}, {
-				"text": 'Example: ',
-				"color": sS.c['white'].m
-			}, {
-				"text": '~clearBackupInterval ',
-				"color": sS.c['yellow'].m
-			}],
-			discord: {
-				string: null,
-				embed: {
-					title: "Clear Backup Interval",
-					description: "~clearBackupInterval",
-					color: parseInt(sS.c['orange'].h, 16),
-					timestamp: new Date(),
-					fields: [{
-						name: "Description",
-						value: "Stops automatic backups."
-					}, {
-						name: "Example",
-						value: "**~clearBackupInterval**"
-					}]
-				}
-			}
-		}
-	}),
-	new command({
-		name: 'setBackupInterval',
-		exeFunc: function(message){
-			modul.pSend(process, {
-				function: 'unicast',
-				module: 'backup',
-				message: {
-					function: 'setBackupInterval',
-					backupIntervalInHours: message.args[1],
-					save: message.args[2],
-					logTo: message.logTo
-				}
-			})
-		},
-		description: {
-			grouping: 'Backups',
-			summary: `Sets backup interval.`,
-			console: `${sS.c['white'].c}Sets backup interval. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~setBackupInterval${sS.c['reset'].c}`,
-			minecraft: [{
-				"text": `Sets backup interval. `,
-				"color": sS.c['brightWhite'].m
-			}, {
-				"text": 'Example: ',
-				"color": sS.c['white'].m
-			}, {
-				"text": '~setBackupInterval ',
-				"color": sS.c['yellow'].m
-			}],
-			discord: {
-				string: null,
-				embed: {
-					title: "Set Backup Interval",
-					description: "~setBackupInterval",
-					color: parseInt(sS.c['orange'].h, 16),
-					timestamp: new Date(),
-					fields: [{
-						name: "Description",
-						value: "Sets backup interval."
-					}, {
-						name: "Example",
-						value: "**~setBackupInterval**"
-					}]
-				}
-			}
-		}
-	}),
-
-	//new command({ name: 'backupdir_set', exeFunc: function(message){ modul.pSend(process, { function: 'unicast', module: 'backup', message: {function: 'setBackupDir', backupDir: message.args[1],save: message.args[2], logTo: message.logTo} }) } });
-	new command({
-		name: 'backupDir',
-		exeFunc: function(message){ modul.pSend(process, { function: 'unicast', module: 'backup', message: {function: 'getBackupDir', logTo: message.logTo} }) },
-		description: {
-			grouping: 'Backups',
-			summary: `Gets backup directory.`,
-			console: `${sS.c['white'].c}Gets backup directory. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~backupDir${sS.c['reset'].c}`,
-			minecraft: [{
-				"text": `Gets backup directory. `,
-				"color": sS.c['brightWhite'].m
-			}, {
-				"text": 'Example: ',
-				"color": sS.c['white'].m
-			}, {
-				"text": '~backupDir',
-				"color": sS.c['yellow'].m
-			}],
-			discord: {
-				string: null,
-				embed: {
-					title: "Get Backup Directory",
-					description: "~backupDir",
-					color: parseInt(sS.c['orange'].h, 16),
-					timestamp: new Date(),
-					fields: [{
-						name: "Description",
-						value: "Gets backup directory."
-					}, {
-						name: "Example",
-						value: "**~backupDir**"
-					}]
-				}
-			}
-		}
-	}),
-	new command({
-		name: 'nextBackup',
-		exeFunc: function(message){ modul.pSend(process, { function: 'unicast', module: 'backup', message: {function: 'nextBackup', logTo: message.logTo} }) },
-		description: {
-			grouping: 'Backups',
-			summary: `Gets time to next backup.`,
-			console: `${sS.c['white'].c}Gets time to next backup. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~nextBackup${sS.c['reset'].c}`,
-			minecraft: [{
-				"text": `Gets time to next backup. `,
-				"color": sS.c['brightWhite'].m
-			}, {
-				"text": 'Example: ',
-				"color": sS.c['white'].m
-			}, {
-				"text": '~nextBackup',
-				"color": sS.c['yellow'].m
-			}],
-			discord: {
-				string: null,
-				embed: {
-					title: "Next Backup",
-					description: "~nextBackup",
-					color: parseInt(sS.c['orange'].h, 16),
-					timestamp: new Date(),
-					fields: [{
-						name: "Description",
-						value: "Gets time to next backup."
-					}, {
-						name: "Example",
-						value: "**~nextBackup**"
-					}]
-				}
-			}
-		}
-	}),
-	new command({
-		name: 'lastBackup',
-		exeFunc: function(message){ modul.pSend(process, { function: 'unicast', module: 'backup', message: {function: 'lastBackup', logTo: message.logTo} }) },
-		description: {
-			grouping: 'Minecraft',
-			summary: `Gets last backup info.`,
-			console: `${sS.c['white'].c}Gets last backup info. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~lastBackup${sS.c['reset'].c}`,
-			minecraft: [{
-				"text": `Gets last backup info. `,
-				"color": sS.c['brightWhite'].m
-			}, {
-				"text": `Example: `,
-				"color": sS.c['white'].m
-			}, {
-				"text": `~lastBackup`,
-				"color": sS.c['yellow'].m
-			}],
-			discord: {
-				string: null,
-				embed: {
-					title: "Last Backup",
-					description: "~lastBackup",
-					color: parseInt(sS.c['orange'].h, 16),
-					timestamp: new Date(),
-					fields: [{
-						name: "Description",
-						value: "Gets last backup info, time etc."
-					}, {
-						name: "Example",
-						value: "**~lastBackup**"
-					}]
-				}
-			}
-		}
-	});
 
 	// nbt commands
 	new command({

@@ -4,6 +4,13 @@
 const fs = require('fs')
 const children = require('child_process');
 const readline = require('readline');
+const path = require('path');
+class EventEmitter extends require('events') {
+    emit(type, ...args) {
+		super.emit(type, ...args)
+		if (args[args.length-1] != true) wrapperModule.emit(type, args)
+    }
+}
 
 process.stdin.setRawMode(true);
 
@@ -30,9 +37,13 @@ let sSFile = './serverSettings.json'
 let sS = require(sSFile);
 let loadedModules = {};
 let serverStartVars = Object.assign([], [`-D${sS.serverName}`].concat(sS.serverStartVars));
+
+let moduleEvent = new EventEmitter();
+
 serverStartVars.push("-Xms"+sS.minRamAllocation, "-Xmx"+sS.maxRamAllocation, "-jar", sS.jar)
 serverStartVars = serverStartVars.concat(sS.serverPostfixVars);
 sS.server_dir = __dirname;
+sS.serverName = path.basename(process.cwd());
 
 if (((sS.modules['discord']||{}).settings||{}).discord_token == "" && fs.existsSync('./config/Chikachi/DiscordIntegration.json')) {
 	sS.modules['discord'].settings.discord_token = fs.readFileSync('./config/Chikachi/DiscordIntegration.json', 'utf8').slice(31, 90);
@@ -49,24 +60,113 @@ const cleanExit = () => {
 process.on('SIGINT', cleanExit); // catch ctrl-c
 process.on('SIGTERM', cleanExit); // catch term
 
-const util = require(sS.modulesDir+'util.js')
-
 let fn = { // Object holding callable functions for modules
+	'emit': (...args) => {
+		wrapperModule.emit(...args)
+	},
 	'enableModule': async data => { 
-		if (!loadedModules[data.args[1]]) throw new Error(`Module ${data.args[1]} is not loaded.`)
-		return await loadedModules[data.args[1]].enable(data.args[2])
+		let thisModule = loadedModules[data.args[1]];
+		if (!thisModule) throw new Error(`Module ${data.args[1]} is not loaded.`)
+		await thisModule.enable(data.args[2])
+		return {
+			console: `${sS.c['brightCyan'].c}Enabled module${sS.c['reset'].c}: ${thisModule.color.c}${thisModule.name}${sS.c['reset'].c}`,
+			minecraft: `tellraw ${data.logTo.user} ${JSON.stringify(
+				[{
+					"text": `Enabled module `,
+					"color": sS.c['brightCyan'].m
+				}, {
+					"text": thisModule.name,
+					"color": thisModule.color.m
+				}]
+			)}\n`,
+			discord : {
+				string: null,
+				embed: {
+					color: parseInt(thisModule.color.h, 16),
+					title: `Enabled module: ${thisModule.name}`,
+					description: null,
+					timestamp: new Date()
+				}
+			}
+		}
 	},
 	'disableModule': async data => { 
-		if (!loadedModules[data.args[1]]) throw new Error(`Module ${data.args[1]} is not loaded.`)
-		return await loadedModules[data.args[1]].disable(data.args[2])
+		let thisModule = loadedModules[data.args[1]]
+		if (!thisModule) throw new Error(`Module ${data.args[1]} is not loaded.`)
+		await thisModule.disable(data.args[2])
+		return {
+			console: `${sS.c['brightCyan'].c}Disabled module${sS.c['reset'].c}: ${thisModule.color.c}${thisModule.name}${sS.c['reset'].c}`,
+			minecraft: `tellraw ${data.logTo.user} ${JSON.stringify(
+				[{
+					"text": `Disabled module `,
+					"color": sS.c['brightCyan'].m
+				}, {
+					"text": thisModule.name,
+					"color": thisModule.color.m
+				}]
+			)}\n`,
+			discord : {
+				string: null,
+				embed: {
+					color: parseInt(thisModule.color.h, 16),
+					title: `Disabled module: ${thisModule.name}`,
+					description: null,
+					timestamp: new Date()
+				}
+			}
+		}
 	},
 	'killModule': async data => { 
-		if (!loadedModules[data.args[1]]) throw new Error(`Module ${data.args[1]} is not loaded.`)
-		return await loadedModules[data.args[1]].kill()
+		let thisModule = loadedModules[data.args[1]]
+		if (!thisModule) throw new Error(`Module ${data.args[1]} is not loaded.`)
+		await thisModule.kill()
+		return {
+			console: `${sS.c['brightCyan'].c}Killed module${sS.c['reset'].c}: ${thisModule.color.c}${thisModule.name}${sS.c['reset'].c}`,
+			minecraft: `tellraw ${data.logTo.user} ${JSON.stringify(
+				[{
+					"text": `Killed module `,
+					"color": sS.c['brightCyan'].m
+				}, {
+					"text": thisModule.name,
+					"color": thisModule.color.m
+				}]
+			)}\n`,
+			discord : {
+				string: null,
+				embed: {
+					color: parseInt(thisModule.color.h, 16),
+					title: `Killed module: ${thisModule.name}`,
+					description: null,
+					timestamp: new Date()
+				}
+			}
+		}
 	},
 	'startModule': async data => { 
-		if (!loadedModules[data.args[1]]) throw new Error(`Module ${data.args[1]} is not loaded.`)
-		return await loadedModules[data.args[1]].start()
+		let thisModule = loadedModules[data.args[1]]
+		if (!thisModule) throw new Error(`Module ${data.args[1]} is not loaded.`)
+		await thisModule.start()
+		return {
+			console: `${sS.c['brightCyan'].c}Started module${sS.c['reset'].c}: ${thisModule.color.c}${thisModule.name}${sS.c['reset'].c}`,
+			minecraft: `tellraw ${data.logTo.user} ${JSON.stringify(
+				[{
+					"text": `Started module `,
+					"color": sS.c['brightCyan'].m
+				}, {
+					"text": thisModule.name,
+					"color": thisModule.color.m
+				}]
+			)}\n`,
+			discord : {
+				string: null,
+				embed: {
+					color: parseInt(thisModule.color.h, 16),
+					title: `Started module: ${thisModule.name}`,
+					description: null,
+					timestamp: new Date()
+				}
+			}
+		}
 	},
 	'restartModule':async data => { 
 		if (!loadedModules[data.args[1]]) throw new Error(`Module ${data.args[1]} is not loaded.`)
@@ -77,21 +177,165 @@ let fn = { // Object holding callable functions for modules
 		return await loadedModules[data.args[1]].reload()
 	},
 	'loadModuleFunctions': async data => { 
-		if (!loadedModules[data.args[1]]) throw new Error(`Module ${data.args[1]} is not loaded.`)
-		return await loadedModules[data.args[1]].loadFunctions() 
+		let thisModule = loadedModules[data.args[1]]
+		if (!thisModule) throw new Error(`Module ${data.args[1]} is not loaded.`)
+		await thisModule.loadFunctions()
+		return {
+			console: `${sS.c['brightCyan'].c}Loaded${sS.c['reset'].c} ${thisModule.color.c}${thisModule.name}${sS.c['reset'].c}'s functions`,
+			minecraft: `tellraw ${data.logTo.user} ${JSON.stringify(
+				[{
+					"text": `Loaded `,
+					"color": sS.c['brightCyan'].m
+				}, {
+					"text": `${thisModule.name}'s'`,
+					"color": thisModule.color.m
+				}, {
+					"text": ` functions`,
+					"color": "white"
+				}]
+			)}\n`,
+			discord : {
+				string: null,
+				embed: {
+					color: parseInt(thisModule.color.h, 16),
+					title: `Loaded ${thisModule.name}'s functions'`,
+					description: null,
+					timestamp: new Date()
+				}
+			}
+		}
 	},
 	'restartModules': restartModules,
 	'unloadModules': unloadModules,
 	'reloadModules': reloadModules,
 	'listModules': async data => {
 		return loadedModules
+		let enabledModules = "";
+		let disabledModules = "";
+		let enabledModulesIng = [{"text":"Enabled: "}];
+		let disabledModulesIng = [{"text":"Disabled: "}];
+		return Object.keys(vars.loadedModules).map(function(moduleName, index){
+			let thisModule = vars.loadedModules[moduleName];
+			thisModule.color = sS.c[sS.modules[moduleName].color].c;
+			thisModule.enabled = sS.modules[moduleName].enabled;
+			thisModule.description = sS.modules[moduleName].description;
+			if (thisModule.enabled) {
+				enabledModulesIng = enabledModulesIng.concat([{
+					"text": `\n  ${moduleName} `,
+					"color": sS.c[sS.modules[moduleName].color].m
+				}, {
+					"text": `[`,
+					"color": "white"
+				}, {
+					"text": `${thisModule.process ? 'R' : 'S'}`,
+					"color": thisModule.process ? sS.c['green'].m : sS.c['red'].m
+				}, {
+					"text": `]`,
+					"color": "white"
+				}, {
+					"text": !(index < Object.keys(vars.loadedModules).length-1) ? '\n' : ''
+				}])
+				enabledModules += `${thisModule.color}${moduleName} ${sS.c['reset'].c}[${thisModule.process ? `${sS.c['green'].c}R${sS.c['reset'].c}` : `${sS.c['red'].c}S${sS.c['reset'].c}`}]${sS.c['reset'].c}${!(index < Object.keys(vars.loadedModules).length-1) ? '' : vars.seperator }`
+			} else {
+				disabledModulesIng = disabledModulesIng.concat([{
+					"text": `\n  ${moduleName} `,
+					"color": sS.c[sS.modules[moduleName].color].m
+				}, {
+					"text": `[`,
+					"color": "white"
+				}, {
+					"text": `${thisModule.process ? 'R' : 'S'}`,
+					"color": thisModule.process ? sS.c['green'].m : sS.c['red'].m
+				}, {
+					"text": `]`,
+					"color": "white"
+				}])
+				disabledModules += `${thisModule.color}${moduleName} ${sS.c['reset'].c}[${thisModule.process ? `${sS.c['green'].c}R${sS.c['reset'].c}` : `${sS.c['red'].c}S${sS.c['reset'].c}`}]${sS.c['reset'].c}${!(index < Object.keys(vars.loadedModules).length-1) ? '' : vars.seperator }`
+			}
+			return {
+				discord : {
+					string: null,
+					embed: {
+						color: parseInt(sS.c[sS.modules[moduleName].discordColor||sS.modules[moduleName].color].h, 16),
+				    title: `${thisModule.name}`,
+				    description: `${thisModule.description}`,
+				    timestamp: new Date(),
+				    footer: {
+				      text: (vars.executionStartTime) ? `${(thisModule.process) ? 'Running' : 'Stopped'} • ${(thisModule.enabled) ? 'Enabled' : 'Disabled'} • Command executed in ${parseDuration(moment(vars.executionStartTime), moment(vars.executionEndTime))}` : ``
+						}
+					}
+				}
+			};
+		}).concat([{
+			discord: ``,
+			minecraft: `tellraw ${message.logTo.user} ${JSON.stringify(enabledModulesIng.concat(disabledModulesIng))}\n`,
+			console: `\n${sS.c['brightCyan'].c}Enabled wrapper modules${sS.c['reset'].c}: ${enabledModules}\n`+`${sS.c['brightCyan'].c}Disabled wrapper modules${sS.c['reset'].c}: ${disabledModules}\n`
+		}])
 	},
-	'backupSettings': backupSettings,
-	'loadSettings': loadSettings,
+	'backupSettings': async data => {
+		await backupSettings()
+		return {
+			console: `${sS.c['brightCyan'].c}Backed up settings${sS.c['reset'].c}`,
+			minecraft: `tellraw ${data.logTo.user} ${JSON.stringify(
+				{
+					"text": `Backed up settings`,
+					"color": sS.c['brightCyan'].m
+				}
+			)}\n`,
+			discord : {
+				string: null,
+				embed: {
+					color: parseInt(sS.c['brightCyan'].h, 16),
+					title: `Backed up settings...`,
+					description: null,
+					timestamp: new Date()
+				}
+			}
+		}
+	},
+	'loadSettings': async data => {
+		await loadSettings()
+		return {
+			console: `${sS.c['brightCyan'].c}Loaded settings${sS.c['reset'].c}`,
+			minecraft: `tellraw ${data.logTo.user} ${JSON.stringify(
+				{
+					"text": `Loaded settings`,
+					"color": sS.c['brightCyan'].m
+				}
+			)}\n`,
+			discord : {
+				string: null,
+				embed: {
+					color: parseInt(sS.c['brightCyan'].h, 16),
+					title: `Loaded settings...`,
+					description: null,
+					timestamp: new Date()
+				}
+			}
+		}
+	},
 	'saveSettings': async data => {
 		sS = data.sS;
 		await wrapperModule.broadcast({function: 'pushSettings', sS: sS })
-		return await saveSettings();
+		await saveSettings();
+		return {
+			console: `${sS.c['brightCyan'].c}Saved settings${sS.c['reset'].c}`,
+			minecraft: `tellraw ${data.logTo.user} ${JSON.stringify(
+				{
+					"text": `Saved settings`,
+					"color": sS.c['brightCyan'].m
+				}
+			)}\n`,
+			discord : {
+				string: null,
+				embed: {
+					color: parseInt(sS.c['brightCyan'].h, 16),
+					title: `Saved settings...`,
+					description: null,
+					timestamp: new Date()
+				}
+			}
+		}
 	}
 }
 
@@ -103,6 +347,7 @@ class wrapperModule {
 	constructor(moduleName) {
 		this.name = moduleName;
 		this.process = null;
+		this.subscribedEvents = [];
 		this.crashCount = 0;
 		if (this.import) this.functions = require(sS.modulesDir+sS.modules[this.name].file);
 		if (this.name == 'stats' && !this.enabled) process.stdout.write(`${String.fromCharCode(27)}]0;${sS.serverName}  |  Stats Module Disabled${String.fromCharCode(7)}`);
@@ -134,34 +379,60 @@ class wrapperModule {
 				})
 			});
 			this.process.on('message', async message => {
-				if (message.function == 'broadcast') {
-					message.message.sourceModule = this.name;
-					await wrapperModule.broadcast(message.message)
-					.catch(err => lErr(err, `Failed to broadcast message "${JSON.stringify(message.message)}"\n`));
-				} else if (message.function == 'unicast') {
-					message.message.sourceModule = this.name;
-					await wrapperModule.unicast(message.module, message.message)
-					.catch(err => lErr(err, `Failed to unicast message "${JSON.stringify(message.message)} to module ${message.module}"\n`));
-				} else if (message.function == 'serverStdin' && server) {
-					console.log(message.string)
-					server.stdin.write(message.string);
-				} else if (message.function == 'execute') {
-					fn[message.func](message.data).then(data => {
-						wrapperModule.resolve(data, message.promiseId, message.returnModule)
-						.catch(err => {
-							lErr(err, `Failed to resolve promise ${message.promiseId}, to module ${message.returnModule}`)
-						});
-					}).catch(error => {
-						wrapperModule.reject(error, message.promiseId, message.returnModule)
-						.catch(err => {
-							lErr(error)
-							lErr(err, `Failed to reject promise ${message.promiseId}, to module ${message.returnModule}`)
+				switch (message.function) {
+					case 'event':
+						// Module has sent event
+						moduleEvent.emit(message.event, message.args, true) // Emit in wrapper event handler
+						wrapperModule.emit(message.event, message.args, this.name) // Broadcast to other modules
+						break;
+					case 'serverStdin':
+						console.log(message.string)
+						if (server) server.stdin.write(message.string);
+						else lErr(new Error('Attempted to send input to server while not running.'))
+						break;
+					case 'unicast':
+						message.message.sourceModule = this.name;
+						await wrapperModule.unicast(message.module, message.message)
+						.catch(err => lErr(err, `Failed to unicast message "${JSON.stringify(message.message)} to module ${message.module}"\n`));		
+						break;
+					case 'execute':
+						fn[message.func](message.data).then(data => {
+							wrapperModule.resolve(data, message.promiseId, message.returnModule)
+							.catch(err => {
+								lErr(err, `Failed to resolve promise ${message.promiseId}, to module ${message.returnModule}`)
+							});
+						}).catch(error => {
+							wrapperModule.reject(error, message.promiseId, message.returnModule)
+							.catch(err => {
+								lErr(error)
+								lErr(err, `Failed to reject promise ${message.promiseId}, to module ${message.returnModule}`)
+							})
 						})
-					})
+						break;
+					case 'eventSub':
+						if (this.subscribedEvents.indexOf(message.event) == -1) this.subscribedEvents.push(message.event);
+						break;
+					case 'broadcast':
+						message.message.sourceModule = this.name;
+						await wrapperModule.broadcast(message.message)
+						.catch(err => lErr(err, `Failed to broadcast message "${JSON.stringify(message.message)}"\n`));
+						break;					
 				}
 			})
 			return [{ event: 'moduleStarted', moduleName: this.name }]
 		} else return [{ event: 'moduleAlreadyStarted', moduleName: this.name}]
+	}
+
+	static emit(event, args, exclude=null) {
+		Object.keys(loadedModules).forEach(modul => {
+			if (modul != exclude && (loadedModules[modul]||{}.process) && loadedModules[modul].subscribedEvents.indexOf(event) > -1) {
+				pSend(loadedModules[modul].process, {
+					function: 'event', 
+					event: event, 
+					args: args 
+				}).catch(err => lErr(err, `Failed to send event "${event}" to module ${modul}`))
+			}
+		})
 	}
 
 	static async resolve(data, promiseId, returnModule) {
@@ -170,7 +441,7 @@ class wrapperModule {
 			promiseID: promiseId,
 			return: data
 		})
-		else throw new Error(`Cannot resolve promise ${promiseId} to ${returnModule} module not running.`)
+		else throw new Error(`Cannot resolve promise ${promiseId} to ${returnModule} module not running/loaded.`)
 	}
 	static async reject(err, promiseId, returnModule) {
 		if (loadedModules[returnModule]||{}.process) return await pSend(loadedModules[returnModule].process, {
@@ -178,7 +449,7 @@ class wrapperModule {
 			promiseID: promiseId,
 			return: err
 		})
-		else throw new Error(`Cannot reject promise ${promiseId} to ${returnModule} module not running.`)
+		else throw new Error(`Cannot reject promise ${promiseId} to ${returnModule} module not running/loaded.`)
 	}
 
 	async restart() {
@@ -202,10 +473,6 @@ class wrapperModule {
 				delete loadedModules['command'];
 				loadedModules['command'] = new wrapperModule('command');
 				return [].concat(moduleDeath, await loadedModules['command'].start());
-			} else if ((sS.modules['log']||{}).enabled && this.name == 'log') {
-				delete loadedModules['log'];
-				loadedModules['log'] = new wrapperModule('log');
-				return [].concat(moduleDeath, await loadedModules['log'].start());
 			} else {
 				this.process = null;
 				return moduleDeath;
@@ -346,8 +613,7 @@ async function startServer() {
 
 	let postConsoleTimeout = (string) => { 
 		process.stdout.write(string); // Write line to wrapper console
-		wrapperModule.broadcast({ function: 'serverStdout', string: string.toString() }) 
-		.catch(err => lErr(err, 'Failed to broadcast serverStdout.'));
+		moduleEvent.emit('serverStdout', string.toString())
 	};
 	let sStdoutHandler = (string) => {
 		process.stdout.write(string); // Write line to wrapper console
@@ -403,7 +669,7 @@ async function startServer() {
 	/ Wrapper Console Handling
 	*/
 	consoleReadline.on('line', string => {
-		wrapperModule.broadcast({function: 'consoleStdout', string: string.toString().trim() }).catch(err => lErr(err, 'Failed to broadcast consoleStdout.'));
+		moduleEvent.emit('consoleStdout', string.toString().trim())
 		if (string.toString().trim()[0] != '~' && string.toString().trim()[0] != '?') server.stdin.write(string.toString().trim()+'\n');
 	});
 }

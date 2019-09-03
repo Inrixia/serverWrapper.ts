@@ -1,8 +1,8 @@
+const thisModule = 'mineapi';
+
 // Import core packages
 const util = require('./util/request.js');
-const modul = require('./modul.js');
-
-const thisModule = 'mineapi';
+const modul = new [require('./modul.js')][0](thisModule);
 
 // Set defaults
 let sS = {} // serverSettings
@@ -131,14 +131,14 @@ fn.getPlayer = async (playerIdentifier) => {
 process.on('message', message => {
 	switch (message.function) {
 		case 'init':
-			[sS, mS] = modul.init(message, thisModule)
+			[sS, mS] = modul.loadSettings(message)
 			players = new PlayerStore();
 			break;
 		case 'kill':
 			modul.kill(message);
 			break;
 		case 'pushSettings':
-			[sS, mS] = modul.pushSettings(message, thisModule)
+			[sS, mS] = modul.loadSettings(message)
 			break;
 		case 'promiseResolve':
 			modul.promiseResolve(message);

@@ -1,9 +1,11 @@
+const thisModule = 'discord'
+
 // Import core packages
 const properties = require('properties');
 const discordjs = require("discord.js");
-const modul = require("./modul.js")
+const modul = new [require('./modul.js')][0](thisModule);
 
-const thisModule = 'discord'
+
 
 // Set defaults
 const discord = new discordjs.Client();
@@ -46,11 +48,11 @@ process.on('message', async message => {
 			modul.promiseReject(message);
 			break;
 		case 'pushSettings':
-			[sS, mS] = modul.pushSettings(message, thisModule)
+			[sS, mS] = modul.loadSettings(message)
 			buildMatches();
 			break;
 		case 'init':
-			[sS, mS] = modul.init(message, thisModule)
+			[sS, mS] = modul.loadSettings(message)
 			buildMatches().then(openDiscord);
 			break;
 		case 'kill':

@@ -12,6 +12,7 @@
     "pidusage": "^2.0.17",
     "prismarine-nbt": "^1.2.1",
     "properties": "^1.2.1",
+    "request": "^2.88.0",
     "zlib": "^1.0.5"
   },
   "devDependencies": {},

@@ -1,7 +1,7 @@
-// Import core packages
-const modul = require("./modul.js")
+const thisModule = 'moduleName';
 
-const thisModule = 'command';
+// Import core packages
+const modul = new [require('./modul.js')][0](thisModule)
 const fn = {}
 
 // Set defaults
@@ -9,27 +9,18 @@ var sS = {} // serverSettings
 var mS = {} // moduleSettings
 
 // Module command handling
-process.on('message', message => {
+process.on('message', async message => {
 	switch (message.function) {
+		case 'init':
+			[sS, mS] = modul.loadSettings(message)
+			break;
 		case 'execute':
 			fn[message.func](message.data)
 			.then(data => modul.resolve(data, message.promiseId, message.returnModule))
 			.catch(err => modul.reject(err, message.promiseId, message.returnModule))
 			break;
-		case 'promiseResolve':
-			modul.promiseResolve(message);
-			break;
-		case 'promiseReject':
-			modul.promiseReject(message);
-			break;
 		case 'pushSettings':
-			[sS, mS] = modul.pushSettings(message, thisModule)
-			break;
-		case 'init':
-			[sS, mS] = modul.init(message, thisModule)
-			break;
-		case 'kill':
-			modul.kill(message);
+			[sS, mS] = modul.loadSettings(message)
 			break;
 	}
 });

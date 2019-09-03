@@ -1,12 +1,12 @@
+const thisModule = 'nbt';
+
 // Import core packages
 const fs = require('fs');
 const zlib = require('zlib');
 const NbtReader = require('node-nbt').NbtReader;
 const NbtWriter = require('node-nbt').NbtWriter;
 
-const modul = require('./modul.js');
-
-const thisModule = 'nbt';
+const modul = new [require('./modul.js')][0](thisModule);
 
 // Set defaults
 let sS = {} // serverSettings
@@ -16,13 +16,13 @@ let mS = {} // moduleSettings
 process.on('message', message => {
 	switch (message.function) {
 		case 'init':
-			[sS, mS] = modul.init(message, thisModule)
+			[sS, mS] = modul.loadSettings(message)
 			break;
 		case 'kill':
 			modul.kill(message);
 			break;
 		case 'pushSettings':
-			[sS, mS] = modul.pushSettings(message, thisModule)
+			[sS, mS] = modul.loadSettings(message)
 			break;
 		case 'promiseResolve':
 			modul.promiseResolve(message);
@@ -31,7 +31,7 @@ process.on('message', message => {
 			modul.promiseReject(message);
 			break;
 		case 'tpo':
-			modul.send('mineapi', 'getPlayer', 'inrix', thisModule).then(data => {
+			modul.send('mineapi', 'getPlayer', 'inrix').then(data => {
 				console.log(data);
 			}).catch(err => modul.lErr(err))
 			// let executionStartTime = new Date();
@@ -127,7 +127,7 @@ process.on('message', message => {
 
 function tpo(args) {
 	return new Promise((resolve, reject) => {
-		modul.send('mineapi', 'getPlayerNameUUIDDirty', {username: args.username}, thisModule).then(playerObj => {
+		modul.send('mineapi', 'getPlayerNameUUIDDirty', {username: args.username}).then(playerObj => {
 			// TODO replace serverWorldFolder with dynamic generated
 			let serverWorldFolder = sS.modules['properties'].settings.p['level-name'] ? sS.modules['properties'].settings.p['level-name'] : 'Cookies';
 			fs.readFile(serverWorldFolder+`/playerdata/${playerObj.uuid}.dat`, (err, data) => {
