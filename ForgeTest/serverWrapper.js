@@ -817,15 +817,39 @@ function backupSettings() {
 }
 
 async function startServer() {
+	const colorArr = [
+		// "[" Must go first to avoid replacing color codes
+		["[", new RegExp(`\\[`, 'g'), `${sS.c['brightBlack'].c}[${sS.c['reset'].c}`],
+		["]", new RegExp(`\\]`, 'g'), `${sS.c['brightBlack'].c}]${sS.c['reset'].c}`],
+		["Server thread", new RegExp("Server thread", 'g'), `${sS.c['brightGreen'].c}Server thread${sS.c['reset'].c}`],
+		["INFO", new RegExp("INFO", 'g'), `${sS.c['cyan'].c}INFO${sS.c['reset'].c}`],
+		["WARN", new RegExp("WARN", 'g'), `${sS.c['orange'].c}WARN${sS.c['reset'].c}`],
+		["ERROR", new RegExp("ERROR", 'g'), `${sS.c['red'].c}ERROR${sS.c['reset'].c}`],
+		["FATAL", new RegExp("FATAL", 'g'), `${sS.c['brightRed'].c}FATAL${sS.c['reset'].c}`],
+		["FML", new RegExp("FML", 'g'), `${sS.c['brightMagenta'].c}FML${sS.c['reset'].c}`]
+	]
+	const colorArrLen = colorArr.length
+
+
+	console.log(`${sS.c['brightCyan'].c}Starting server...${sS.c['reset'].c}`)
 	server = children.spawn('java', serverStartVars, { detached : false });
-	server.stdin.write('list\n'); // Write list to the console so we can know when the server has finished starting
+	server.stdin.write('list\n'); // Write list to the console so we can know when the server has finished starting'
+
+	let color = string => {
+		for (let i = 0; i < colorArrLen; i++) {
+			if (string.indexOf(colorArr[i][0]) > -1) {
+				string = string.replace(colorArr[i][1], colorArr[i][2]);
+			}
+		}
+		process.stdout.write(string);
+	}
 
 	let postConsoleTimeout = (string) => { 
-		process.stdout.write(string); // Write line to wrapper console
+		color(string.toString()) // Write line to wrapper console
 		moduleEvent.emit('serverStdout', string.toString())
 	};
 	let sStdoutHandler = (string) => {
-		process.stdout.write(string); // Write line to wrapper console
+		color(string.toString()) // Write line to wrapper console
 		if (string.indexOf("players online") > -1) { // "list" command has completed, server is now online
 			sStdoutHandler = postConsoleTimeout;
 			started();
