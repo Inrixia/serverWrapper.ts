@@ -20,9 +20,8 @@ const modul = new [require('./modul.js')][0](thisModule)
 let fn = {
 	init: async message => {
 		[sS, mS] = modul.loadSettings(message)
-		modul.event.on('fetchCommands', () => fn.exportCommands())
-		fn.exportCommands = async () => {
-			return await modul.call('command', 'importCommands', [{
+		modul.event.on('fetchCommands', () => {
+			modul.emit('exportCommands', [{
 				name: 'getProperty',
 				exeFunc: 'showProperty',
 				module: thisModule,
@@ -91,7 +90,7 @@ let fn = {
 					}
 				}
 			}])
-		}
+		})
 	},
 	getProperty: async propertyKey => {
 		return await pProp()[propertyKey];

@@ -12,157 +12,158 @@ const fn = {
 	init: async (data) => {
 		[sS, mS] = modul.loadSettings(data)
 		modul.event.on('consoleStdout', message => fn.processCommand({ string: message }).catch(err => modul.lErr(err)))
+		modul.event.on('exportCommands', commands => fn.importCommands(commands))
+		modul.event.on('fetchCommands', () => {
+			modul.emit('exportCommands', [{
+				name: 'tpc',
+				exeFunc: 'tpc',
+				module: thisModule,
+				description: {
+					summary: `Teleports player to given chunk coords.`,
+					console: `${sS.c['white'].c}Teleports player to given chunk coords. ${sS.c['reset'].c}\nExample: ${sS.c['yellow'].c}~tpc ${sS.c['orange'].c}10 ${sS.c['brightBlue'].c}10 ${sS.c['reset'].c}tp's to ${sS.c['orange'].c}160 ${sS.c['white'].c}100 ${sS.c['brightBlue'].c}160 ${sS.c['reset'].c}`,
+					minecraft: [{
+						"text": `Teleports player to given chunk coords.\n`,
+						"color": sS.c['brightWhite'].m
+					}, {
+						"text": 'Example: ',
+						"color": sS.c['white'].m
+					}, {
+						"text": '~tpc ',
+						"color": sS.c['brightYellow'].m
+					}, {
+						"text": '10 ',
+						"color": sS.c['yellow'].m
+					}, {
+						"text": '10 ',
+						"color": sS.c['brightBlue'].m
+					}, {
+						"text": "tp's to ",
+						"color": sS.c['white'].m
+					}, {
+						"text": '160 ',
+						"color": sS.c['yellow'].m
+					}, {
+						"text": '100 ',
+						"color": sS.c['white'].m
+					}, {
+						"text": '160',
+						"color": sS.c['brightBlue'].m
+					}],
+					discord: {
+						string: null,
+						embed: {
+							title: "Teleport player to chunk coords",
+							description: "~tpc",
+							color: parseInt(sS.c['orange'].h, 16),
+							timestamp: new Date(),
+							fields: [{
+								name: "Description",
+								value: "Takes x and z coords given, multiplies them by 16 and teleports the player to that location."
+							}, {
+								name: "Example",
+								value: "**~tpc** 10 10 teleports player to coords 160 100 160"
+							}]
+						}
+					}
+				}
+			}, {
+				name: 'tpr',
+				exeFunc: 'tpr',
+				module: thisModule,
+				description: {
+					summary: `Teleports player to given region coords.`,
+					console: `${sS.c['white'].c}Teleports player to given region coords. ${sS.c['reset'].c}\nExample: ${sS.c['yellow'].c}~tpr ${sS.c['orange'].c}10 ${sS.c['brightBlue'].c}10 ${sS.c['white'].c}tp's to ${sS.c['orange'].c}5120 ${sS.c['white'].c}100 ${sS.c['brightBlue'].c}5120 ${sS.c['reset'].c}`,
+					minecraft: [{
+						"text": `Teleports player to given region coords.\n`,
+						"color": sS.c['brightWhite'].m
+					}, {
+						"text": 'Example: ',
+						"color": sS.c['white'].m
+					}, {
+						"text": '~tpr ',
+						"color": sS.c['brightYellow'].m
+					}, {
+						"text": '10 ',
+						"color": sS.c['yellow'].m
+					}, {
+						"text": '10 ',
+						"color": sS.c['brightBlue'].m
+					}, {
+						"text": "tp's to ",
+						"color": sS.c['white'].m
+					}, {
+						"text": '5120 ',
+						"color": sS.c['yellow'].m
+					}, {
+						"text": '100 ',
+						"color": sS.c['white'].m
+					}, {
+						"text": '5120',
+						"color": sS.c['brightBlue'].m
+					}],
+					discord: {
+						string: null,
+						embed: {
+							title: "Teleport player to region coords",
+							description: "~tpr",
+							color: parseInt(sS.c['orange'].h, 16),
+							timestamp: new Date(),
+							fields: [{
+								name: "Description",
+								value: "Takes x and z region coords, multiplies them by 512 and teleports the player to that location."
+							}, {
+								name: "Example",
+								value: "**~tpr** 10 10 teleports player to coords 5,120 100 5,120"
+							}]
+						}
+					}
+				}
+			}, {
+				name: 'help',
+				exeFunc: 'help',
+				module: thisModule,
+				description: {
+					summary: `Returns all commands or gives info on a specific command given.`,
+					console: `${sS.c['brightWhite'].c}Returns all commands or gives info on a specific command given. ${sS.c['reset'].c}\nExamples: ${sS.c['yellow'].c}~help ${sS.c['brightBlue'].c}listmodules ${sS.c['reset'].c}\n${sS.c['yellow'].c}?${sS.c['brightBlue'].c}listmodules${sS.c['reset'].c}`,
+					minecraft: [{
+						"text": `Returns all commands or gives info on a specific command given. `,
+						"color": sS.c['brightWhite'].m
+					}, {
+						"text": `Examples: \n`,
+						"color": sS.c['white'].m
+					}, {
+						"text": `~help `,
+						"color": sS.c['yellow'].m
+					}, {
+						"text": `listmodules\n`,
+						"color": sS.c['brightBlue'].m
+					}, {
+						"text": `?`,
+						"color": sS.c['yellow'].m
+					}, {
+						"text": `listmodules`,
+						"color": sS.c['brightBlue'].m
+					}],
+					discord: {
+						string: null,
+						embed: {
+							title: "Help! I have fallen and cant get up.",
+							description: "~help",
+							color: parseInt(sS.c['orange'].h, 16),
+							timestamp: new Date(),
+							fields: [{
+								name: "Description",
+								value: "Returns all commands or gives info on a specific command given."
+							}, {
+								name: "Examples",
+								value: "**~help** listmodules\n**?**listmodules"
+							}]
+						}
+					}
+				}
+			}])
+		})
 		modul.emit('fetchCommands')
-		fn.exportCommands = async () => {}
-		fn.importCommands(data.commands);
-		fn.importCommands([{
-			name: 'tpc',
-			exeFunc: 'tpc',
-			module: thisModule,
-			description: {
-				summary: `Teleports player to given chunk coords.`,
-				console: `${sS.c['white'].c}Teleports player to given chunk coords. ${sS.c['reset'].c}\nExample: ${sS.c['yellow'].c}~tpc ${sS.c['orange'].c}10 ${sS.c['brightBlue'].c}10 ${sS.c['reset'].c}tp's to ${sS.c['orange'].c}160 ${sS.c['white'].c}100 ${sS.c['brightBlue'].c}160 ${sS.c['reset'].c}`,
-				minecraft: [{
-					"text": `Teleports player to given chunk coords.\n`,
-					"color": sS.c['brightWhite'].m
-				}, {
-					"text": 'Example: ',
-					"color": sS.c['white'].m
-				}, {
-					"text": '~tpc ',
-					"color": sS.c['brightYellow'].m
-				}, {
-					"text": '10 ',
-					"color": sS.c['yellow'].m
-				}, {
-					"text": '10 ',
-					"color": sS.c['brightBlue'].m
-				}, {
-					"text": "tp's to ",
-					"color": sS.c['white'].m
-				}, {
-					"text": '160 ',
-					"color": sS.c['yellow'].m
-				}, {
-					"text": '100 ',
-					"color": sS.c['white'].m
-				}, {
-					"text": '160',
-					"color": sS.c['brightBlue'].m
-				}],
-				discord: {
-					string: null,
-					embed: {
-						title: "Teleport player to chunk coords",
-						description: "~tpc",
-						color: parseInt(sS.c['orange'].h, 16),
-						timestamp: new Date(),
-						fields: [{
-							name: "Description",
-							value: "Takes x and z coords given, multiplies them by 16 and teleports the player to that location."
-						}, {
-							name: "Example",
-							value: "**~tpc** 10 10 teleports player to coords 160 100 160"
-						}]
-					}
-				}
-			}
-		}, {
-			name: 'tpr',
-			exeFunc: 'tpr',
-			module: thisModule,
-			description: {
-				summary: `Teleports player to given region coords.`,
-				console: `${sS.c['white'].c}Teleports player to given region coords. ${sS.c['reset'].c}\nExample: ${sS.c['yellow'].c}~tpr ${sS.c['orange'].c}10 ${sS.c['brightBlue'].c}10 ${sS.c['white'].c}tp's to ${sS.c['orange'].c}5120 ${sS.c['white'].c}100 ${sS.c['brightBlue'].c}5120 ${sS.c['reset'].c}`,
-				minecraft: [{
-					"text": `Teleports player to given region coords.\n`,
-					"color": sS.c['brightWhite'].m
-				}, {
-					"text": 'Example: ',
-					"color": sS.c['white'].m
-				}, {
-					"text": '~tpr ',
-					"color": sS.c['brightYellow'].m
-				}, {
-					"text": '10 ',
-					"color": sS.c['yellow'].m
-				}, {
-					"text": '10 ',
-					"color": sS.c['brightBlue'].m
-				}, {
-					"text": "tp's to ",
-					"color": sS.c['white'].m
-				}, {
-					"text": '5120 ',
-					"color": sS.c['yellow'].m
-				}, {
-					"text": '100 ',
-					"color": sS.c['white'].m
-				}, {
-					"text": '5120',
-					"color": sS.c['brightBlue'].m
-				}],
-				discord: {
-					string: null,
-					embed: {
-						title: "Teleport player to region coords",
-						description: "~tpr",
-						color: parseInt(sS.c['orange'].h, 16),
-						timestamp: new Date(),
-						fields: [{
-							name: "Description",
-							value: "Takes x and z region coords, multiplies them by 512 and teleports the player to that location."
-						}, {
-							name: "Example",
-							value: "**~tpr** 10 10 teleports player to coords 5,120 100 5,120"
-						}]
-					}
-				}
-			}
-		}, {
-			name: 'help',
-			exeFunc: 'help',
-			module: thisModule,
-			description: {
-				summary: `Returns all commands or gives info on a specific command given.`,
-				console: `${sS.c['brightWhite'].c}Returns all commands or gives info on a specific command given. ${sS.c['reset'].c}\nExamples: ${sS.c['yellow'].c}~help ${sS.c['brightBlue'].c}listmodules ${sS.c['reset'].c}\n${sS.c['yellow'].c}?${sS.c['brightBlue'].c}listmodules${sS.c['reset'].c}`,
-				minecraft: [{
-					"text": `Returns all commands or gives info on a specific command given. `,
-					"color": sS.c['brightWhite'].m
-				}, {
-					"text": `Examples: \n`,
-					"color": sS.c['white'].m
-				}, {
-					"text": `~help `,
-					"color": sS.c['yellow'].m
-				}, {
-					"text": `listmodules\n`,
-					"color": sS.c['brightBlue'].m
-				}, {
-					"text": `?`,
-					"color": sS.c['yellow'].m
-				}, {
-					"text": `listmodules`,
-					"color": sS.c['brightBlue'].m
-				}],
-				discord: {
-					string: null,
-					embed: {
-						title: "Help! I have fallen and cant get up.",
-						description: "~help",
-						color: parseInt(sS.c['orange'].h, 16),
-						timestamp: new Date(),
-						fields: [{
-							name: "Description",
-							value: "Returns all commands or gives info on a specific command given."
-						}, {
-							name: "Examples",
-							value: "**~help** listmodules\n**?**listmodules"
-						}]
-					}
-				}
-			}
-		}])
 	},
 	tpc: async message => {
 		return {

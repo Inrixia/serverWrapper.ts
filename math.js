@@ -14,7 +14,6 @@ var mS = {} // moduleSettings
 let fn = {
 	init: async message => {
 		[sS, mS] = modul.loadSettings(message)
-		modul.event.on('fetchCommands', () => fn.exportCommands())
 		fn.qm = async (message) => {
 			let question = message.args.slice(1, message.args.length).join(' ');
 			let answer = math.evaluate(question).toString()
@@ -43,8 +42,8 @@ let fn = {
 				}
 			}
 		}
-		fn.exportCommands = async () => {
-			return await modul.call('command', 'importCommands', [{
+		modul.event.on('fetchCommands', () => {
+			modul.emit('exportCommands', [{
 				name: 'qm',
 				exeFunc: 'qm',
 				module: thisModule,
@@ -112,7 +111,7 @@ let fn = {
 					}
 				}
 			}])
-		}
+		})
 	}
 }
 

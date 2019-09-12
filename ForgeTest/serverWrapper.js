@@ -14,14 +14,42 @@ class EventEmitter extends require('events') {
 }
 
 process.stdin.setRawMode(true);
+let moduleEvent = new EventEmitter();
 
+moduleEvent.on('exportCommands', commands => {
+	if (Array.isArray(commands[0])) commands = commands[0]
+	commands.forEach(command => {
+		if (completions.indexOf(`~${command.name}`) == -1) {
+			completions.push(`~${command.name}`)
+			completions.push(`?${command.name}`)
+		}
+	})
+})
+let minecraftCompletions = ['help', 'advancement', 'ban', 'ban-ip', 'banlist ips', 
+'banlist players', 'clear', 'blockdata', 'clone', 'debug', 'defaultgamemode', 
+'deop', 'difficulty', 'effect', 'enchant', 'entitydata', 'execute', 'fill', 
+'gamemode', 'gamerule', 'give', 'kick', 'kill', 'list', 'me', 'op', 'pardon', 
+'pardon-ip', 'playsound', 'reload', 'save-all', 'save-off', 'save-on', 'say', 
+'scoreboard', 'scoreboard objectives', 'scoreboard players', 'scoreboard teams', 
+'seed', 'setblock', 'setidletimeout', 'setworldspawn', 'spawnpoint', 
+'spreadplayers', 'stats', 'stop', 'stopsound', 'summon', 'teleport', 'tp', 'tell', 
+'tellraw', 'testfor', 'testforblock', 'testforblocks', 'time', 'time set', 'time add', 
+'time query', 'title', 'toggledownfall', 'tp', 'trigger', 'weather', 'weather clear', 
+'weather rain', 'weather thunder', 'whitelist', 'worldborder', 'worldborder set', 
+'worldborder center', 'worldborder damage', 'worldborder warning', 'worldborder get', 
+'worldborder add', 'xp']
+let completions = [].concat(minecraftCompletions)
 // Setup console handling
 const consoleReadline = readline.createInterface({
 	input: process.stdin,
 	output: process.stdout,
 	terminal: true,
 	historySize: 10000,
-	prompt: ''
+	prompt: '',
+	completer: (line) => {
+		const hits = completions.filter((c) => c.toLowerCase().startsWith(line.toLowerCase()));
+		return [hits.length ? hits : completions, line];
+	}
 });
 
 // On exception log it and continue
@@ -38,8 +66,6 @@ let sSFile = './serverSettings.json'
 let sS = require(sSFile);
 let loadedModules = {};
 let serverStartVars = Object.assign([], [`-D${sS.serverName}`].concat(sS.serverStartVars));
-
-let moduleEvent = new EventEmitter();
 
 serverStartVars.push("-Xms"+sS.minRamAllocation, "-Xmx"+sS.maxRamAllocation, "-jar", sS.jar)
 serverStartVars = serverStartVars.concat(sS.serverPostfixVars);
@@ -584,8 +610,7 @@ class wrapperModule {
 						break;				
 				}
 			})
-			let init = await this.call('init', { 'sS': sS, commands: this.name=='command'?commands:null }).catch(err => lErr(err, `Failed to call init for module ${this.name}!`));
-			await this.call('exportCommands', null).catch(err => lErr(err, `Failed to export commands for module ${this.name}!`));
+			let init = await this.call('init', { 'sS': sS }).catch(err => lErr(err, `Failed to call init for module ${this.name}!`));
 			return init;
 		} else throw new Error(`Module ${this.name} has already been started!`)
 	}
@@ -740,9 +765,11 @@ class wrapperModule {
 */
 (async () => {
 	backupSettings().catch(err => lErr(err, 'Failed to backup settings on launch.'));
-	let loaded = await loadModules()
-	let started = await startEnabledModules()
+	await loadModules()
+	await startEnabledModules()
 	await startServer()
+	moduleEvent.on('fetchCommands', () => moduleEvent.emit('exportCommands', commands))
+	moduleEvent.emit('fetchCommands')
 })().catch(err => lErr(err, 'Failed to start modules and launch server.'));
 /*
 / START
@@ -831,7 +858,6 @@ async function startServer() {
 		["FML", new RegExp("FML", 'g'), `${sS.c['brightMagenta'].c}FML${sS.c['reset'].c}`]
 	]
 	const colorArrLen = colorArr.length
-
 
 	console.log(`${sS.c['brightCyan'].c}Starting server...${sS.c['reset'].c}`)
 	server = children.spawn('java', serverStartVars, { detached : false });

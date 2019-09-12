@@ -15,7 +15,6 @@ let mS = {} // moduleSettings
 let fn = {
 	init: async message => {
 		[sS, mS] = modul.loadSettings(message),
-		modul.event.on('fetchCommands', () => fn.exportCommands())
 		fn.tpo = async message => { 
 			let vars = await tpo({
 				username: message.args[1],
@@ -82,8 +81,8 @@ let fn = {
 				}
 			}
 		}
-		fn.exportCommands = async () => {
-			return await modul.call('command', 'importCommands', [{
+		modul.event.on('fetchCommands', () => {
+			modul.emit('exportCommands', [{
 				name: 'tpo',
 				exeFunc: 'tpo',
 				module: thisModule,
@@ -175,7 +174,7 @@ let fn = {
 					}
 				}
 			}])
-		}
+		})
 	},
 };
 

@@ -31,9 +31,8 @@ let fn = {
 				lastBackupDuration: lastBackupDurationString 
 			})
 		})
-		modul.event.on('fetchCommands', () => fn.exportCommands())
-		fn.exportCommands = async () => {
-			return await modul.call('command', 'importCommands', [{
+		modul.event.on('fetchCommands', () => {
+			modul.emit('exportCommands', [{
 				name: 'backup',
 				exeFunc: 'runBackup',
 				module: thisModule,
@@ -271,8 +270,8 @@ let fn = {
 						}
 					}
 				}
-			}]
-		}
+			}])
+		})
 	},
 	startBackupInterval: async () => {
 		if (backupInterval) await clearInterval(backupInterval);

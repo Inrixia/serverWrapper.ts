@@ -11,7 +11,6 @@ let fn = {
 	init: async message => {
 		[sS, mS] = modul.loadSettings(message)
 		players = new PlayerStore();
-		fn.exportCommands = async () => {}
 	}
 }; // moduleFunctions
 let players = null // Storage for player data;

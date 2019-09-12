@@ -13,9 +13,8 @@ const fn = {
 		[sS, mS] = modul.loadSettings(message)
 		modul.event.on('serverStdout', message => processServerMessage(message).catch(err => modul.lErr(err, null, message.logTo)))
 		modul.event.on('discordMessage', message => processDiscordMessage(message).catch(err => modul.lErr(err, null, message.logTo)))
-		modul.event.on('fetchCommands', () => fn.exportCommands())
-		fn.exportCommands = async () => {
-			return await modul.call('command', 'importCommands', [{
+		modul.event.on('fetchCommands', () => {
+			modul.emit('exportCommands', [{
 				name: 'cwAdd', 
 				exeFunc: 'commandWhitelistAdd',
 				module: thisModule,
@@ -175,7 +174,7 @@ const fn = {
 					}
 				}
 			}])
-		}
+		})
 	},
 	commandWhitelistAdd: async message => {
 		// ~commandwhitelist add !list @Inrix 1 hour

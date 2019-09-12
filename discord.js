@@ -14,7 +14,7 @@ let mS = {} // moduleSettings
 let managementChannel = null; // This will be assigned the management channel when the server starts
 let chatChannel = null; 
 let discordData = "";
-let previousMessage = "";
+let flatMessages = {};
 let serverStarted = true;
 
 let fn = {
@@ -22,11 +22,10 @@ let fn = {
 		[sS, mS] = modul.loadSettings(message)
 		modul.event.on('serverStdout', message => serverStdout(message))
 		modul.event.on('consoleStdout', message => {
-			if (managementChannel) managementChannel.send(`[BOX] > ${message}\n`, { split: true })
+			//if (managementChannel) managementChannel.send(`[BOX] > ${message}\n`, { split: true })
 		})
 		await buildMatches()
 		await openDiscord();
-		fn.exportCommands = async () => {};
 	},
 	discordStdin: async (message) => {
 		let channel = managementChannel;
@@ -152,19 +151,27 @@ discord.on('message', async message => {
 
 async function sendChat(msg) { if (chatChannel) chatChannel.send(msg, { split: true }); }
 async function serverStdout(string) {
-	if (string == previousMessage) return;
-	previousMessage = string;
-
 	// every message we send spawns another stdout, so we don't want to infinite loop
-	if (string.includes('DiscordIntegration')) return;
+	if (string.indexOf('DiscordIntegration') > -1) return;
+	let trueString = string.split('\n')
+	for (let i = 0; i < trueString.length - 1; i++) {
+		flatMessages[trueString[i]+'\n'] = flatMessages[trueString[i]+'\n'] || 0;
+		flatMessages[trueString[i]+'\n']++;
+	}
 
-	discordData += string;
 	setTimeout(() => {
-		if (discordData != "" && managementChannel) {
-			managementChannel.send(discordData, { split: true })
-			discordData = "";
+		if (flatMessages != {}) {
+			for (message in flatMessages) {
+				if (flatMessages[message] > 1) discordData += `**${flatMessages[message]}x** ${message}`;
+				else discordData += message;
+				delete flatMessages[message];
+			}
+			if (discordData != "" && managementChannel) {
+				managementChannel.send(discordData, { split: true })
+				discordData = "";
+			}
 		}
-	}, mS.discordMessageFlushRate);
+	}, mS.messageFlushRate)
 
 	if(!serverStarted) {
 		serverStarted = true;
