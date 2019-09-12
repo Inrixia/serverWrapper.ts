@@ -311,7 +311,10 @@ async function processDiscordMessage(message) {
 	if ((message.string[0] == '~' || message.string[0] == '!' || message.string[0] == '?') && await checkDiscordAuth(message)) { // User is allowed to run this command
 		process.stdout.write(`[${sS.c['brightCyan'].c}${message.author.username}${sS.c['reset'].c}]: ${message.string.trim()}\n`);
 		if (message.string[0] == '~' || message.string[0] == '?') await modul.call('command', 'processCommand', message)
-		else if (message.string[0] == '!') await this.call('serverWrapper', 'serverStdin', message.string.slice(1,message.length).trim()+'\n') // Message is a serverCommand
+		else if (message.string[0] == '!') {
+			await modul.call('discord', 'addTempManagementChannel', message.channel.id)
+			await modul.call('serverWrapper', 'serverStdin', message.string.slice(1,message.length).trim()+'\n') // Message is a serverCommand
+		}
 	}
 }
 
@@ -327,6 +330,6 @@ async function processServerMessage(message) {
 	commandString = message.slice(message.indexOf('> '+commandType)+2, message.length)
 	user = message.slice(message.indexOf('<')+1, message.indexOf('> '+commandType))
 	let ops = JSON.parse(await util.pReadFile('./ops.json', null))
-	// CALL TO  COMMAND.JS
+	// CALL TO COMMAND.JS
 	if (await modul.getObj(ops, 'name', user)) await modul.call('command', 'processCommand', { string: commandString, minecraft: true, user: user })
 }

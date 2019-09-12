@@ -1,11 +1,11 @@
-const thisModule = 'moduleName';
+const thisModule = 'backup';
 
 // Import core packages
 const moment = require('moment');
 const modul = new [require('./modul.js')][0](thisModule)
 const util = {
 	...require('./util/children.js'),
-	...require('./util/moment.js')
+	...require('./util/time.js')
 }
 
 // Set defaults
@@ -23,7 +23,6 @@ let fn = {
 	init: async message => {
 		[sS, mS] = modul.loadSettings(message)
 		startBackupInterval();
-		exportCommands();
 		modul.event.on('fetchStats', () => {
 			modul.emit('pushStats', { 
 				timeToNextBackup: timeToNextBackup ? timeToNextBackup.fromNow() : 'Backups disabled', 
@@ -332,7 +331,7 @@ let fn = {
 		mS.overrideBackupDir = data.backupDir;
 	},
 	getBackupDir: async () => {
-		let backupDir =  (mS.overrideBackupDir)?mS.overrideBackupDir:mS.rootBackupDir+sS.serverName
+		let backupDir =  (mS.overrideBackupDir)?mS.overrideBackupDir:`${mS.rootBackupDir}/${sS.serverName}`
 		return {
 			discord : {
 				string: null,
@@ -421,7 +420,11 @@ process.on('message', async message => {
 
 async function startBackupInterval() {
 	timeToNextBackup = moment().add(mS.backupIntervalInHours, 'hours');
-	await pushStats();
+	await modul.call('stats', 'pushStats', { 
+		timeToNextBackup: timeToNextBackup?timeToNextBackup.fromNow():'Backups disabled', 
+		timeSinceLastBackup: (lastBackupEndTime != null) ? lastBackupEndTime.fromNow() : null, 
+		lastBackupDuration: lastBackupDurationString 
+	})
 	backupInterval = setInterval(async () => {
 		await runBackup();
 		timeToNextBackup = moment().add(mS.backupIntervalInHours, 'hours');
@@ -435,9 +438,9 @@ async function runBackup() {
 	process.stdout.write(mS.messages.backupStarting.console+'\n');
 	await this.call('serverWrapper', 'serverStdin', mS.messages.backupStarting.minecraft+'\n')
 	await modul.call('stats', 'pushStats', { status: 'Backing Up', timeToBackup: timeToNextBackup.fromNow() })
-	let backupDir = mS.overrideBackupDir ? mS.overrideBackupDir : mS.rootBackupDir+sS.serverName;
+	let backupDir = mS.overrideBackupDir ? mS.overrideBackupDir : `${mS.rootBackupDir}/${sS.serverName}`;
 	//children.spawn('robocopy', [sS.modules['properties'].settings.p['level-name'], `${backupDir}/${moment().format('MMMMDDYYYY_h-mm-ssA')}/Cookies`, (mS.threads > 1) ? `/MT:${mS.threads}` : '', '/E'], {shell: true, detached: true}).on('close', function (code) {
-	await util.exec(`ssh ${mS.remote.user}@${mS.remote.ip} -p ${mS.remote.port} "mkdir -p ${backupDir} && mkdir -p ${mS.remote.publicBackupDir}${sS.serverName}/"`, {})
+	await util.exec(`ssh ${mS.remote.user}@${mS.remote.ip} -p ${mS.remote.port} "mkdir -p ${backupDir} && mkdir -p ${mS.remote.publicBackupDir} && mkdir -p ${mS.remote.publicBackupDir}/${sS.serverName}/"`, {})
 	await util.exec(`rsync-snapshot --src ${sS.server_dir} -p ${mS.remote.port} --shell "ssh -p ${mS.remote.port}" --dst ${mS.remote.user}@${mS.remote.ip}:${backupDir} --setRsyncArg exclude='*.log' --setRsyncArg exclude='*.zip' --setRsyncArg exclude='*.rar' --setRsyncArg exclude='*node_modules*' --maxSnapshots 100000`)
 	let info = await util.exec(`ssh ${mS.remote.user}@${mS.remote.ip} -p ${mS.remote.port} "ls /mnt/redlive/LiveArchives/${sS.serverName}"`)
 	let latestFolder = info.split(/\r?\n/).slice(-3, -2)[0];
@@ -455,6 +458,11 @@ async function runBackup() {
 	await this.call('serverWrapper', 'serverStdin', 'save-on\n');
 	process.stdout.write(mS.messages.backupEnded.console.replace("%duration%", lastBackupDurationString)+'\n');
 	await this.call('serverWrapper', 'serverStdin', mS.messages.backupEnded.minecraft+'\n')
-	await pushStats();
+	await modul.call('stats', 'pushStats', {
+		status: 'Running',
+		timeToNextBackup: timeToNextBackup?timeToNextBackup.fromNow():'Backups disabled', 
+		timeSinceLastBackup: (lastBackupEndTime != null) ? lastBackupEndTime.fromNow() : null, 
+		lastBackupDuration: lastBackupDurationString 
+	})
 	return lastBackupDurationString
 }

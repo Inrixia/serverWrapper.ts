@@ -11,7 +11,7 @@ const modul = new [require('./modul.js')][0](thisModule);
 const discord = new discordjs.Client();
 let sS = {} // serverSettings
 let mS = {} // moduleSettings
-let managementChannel = null; // This will be assigned the management channel when the server starts
+let managementChannels = []; // This will be assigned the management channel when the server starts
 let chatChannel = null; 
 let discordData = "";
 let flatMessages = {};
@@ -22,16 +22,21 @@ let fn = {
 		[sS, mS] = modul.loadSettings(message)
 		modul.event.on('serverStdout', message => serverStdout(message))
 		modul.event.on('consoleStdout', message => {
-			//if (managementChannel) managementChannel.send(`[BOX] > ${message}\n`, { split: true })
+			if (managementChannels.length > 0) managementChannels.forEach(channel => {
+				channel.send(`[BOX] > ${message}\n`, { split: true })
+			})
 		})
 		await buildMatches()
 		await openDiscord();
 	},
-	discordStdin: async (message) => {
-		let channel = managementChannel;
-		if (message.channel) channel = discord.guilds.get('155507830076604416').channels.get(message.channel)
-		else if (message.userID) channel = discord.users.get(message.userID);
-		await channel.send(message.msg)
+	discordStdin: async message => {
+		 if (message.channel) await discord.channels.get(message.channel).send(message.msg)
+	},
+	addTempManagementChannel: async channel => {
+		let managementChannel = discord.channels.get(channel)
+		managementChannels.push(managementChannel);
+		setTimeout(() => managementChannels.pop(managementChannel), 500)
+		return;
 	}
 }
 
@@ -58,8 +63,10 @@ async function openDiscord() {
 
 // On discord client login
 discord.on('ready', () => {
-	managementChannel = discord.guilds.get('155507830076604416').channels.get(mS.managementChannelId);
-	if(mS.chatLink.chatChannelId) chatChannel = discord.guilds.get('155507830076604416').channels.get(mS.chatLink.chatChannelId);
+	mS.managementChannels.forEach(mChannelId => {
+		managementChannels.push(discord.channels.get(mChannelId));
+	})
+	if(mS.chatLink.chatChannelId) chatChannel = discord.channels.get(mS.chatLink.channelId);
 	properties.parse('./server.properties', {path: true}, (err, properties) => {
 		if (err) modul.lErr(err);
 		else discord.user.setActivity(properties.motd.replace(/§./g, '').replace(/\n.*/g, '').replace('// Von Spookelton - ', '').replace(' \\\\', ''), { type: 'WATCHING' })
@@ -68,6 +75,7 @@ discord.on('ready', () => {
 
 // On receive message from discord server
 discord.on('message', async message => {
+	if (!(mS.managementChannels.indexOf(message.channel.id) > -1 && message.author.id != discord.user.id)) return;
 	let discordMessage = {
 		channel : {
 			id: ((message.channel||{}).id||null),
@@ -116,12 +124,8 @@ discord.on('message', async message => {
 			everyone: (((message.mentions||{}).everyone||new discordjs.Collection()).array()||null),
 		}
 	}
-	discordMessage.logTo = {
-		console: true,
-		discord: { channel: discordMessage.channel.id }
-	}
 	if (message.isMemberMentioned(discord.user)) discordMessage.string = message.toString().trim().slice(message.toString().trim().indexOf(' ')+1, message.toString().trim().length)
-	else if (message.channel.id == mS.managementChannelId && message.author.id != discord.user.id) discordMessage.string = message.toString().trim();
+	else discordMessage.string = message.toString().trim();
 	if (discordMessage.string) modul.emit('discordMessage', discordMessage)
 	if(chatChannel && discordMessage.channel.id === mS.chatLink.chatChannelId) {
 		// modul.pSend(process, {
@@ -166,8 +170,10 @@ async function serverStdout(string) {
 				else discordData += message;
 				delete flatMessages[message];
 			}
-			if (discordData != "" && managementChannel) {
-				managementChannel.send(discordData, { split: true })
+			if (discordData != "" && managementChannels.length > 0) {
+				managementChannels.forEach(channel => {
+					channel.send(discordData, { split: true })
+				})
 				discordData = "";
 			}
 		}

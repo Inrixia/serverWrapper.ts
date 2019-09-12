@@ -113,8 +113,8 @@ let fn = { // Object holding callable functions for modules
 		wrapperModule.emit(...args)
 	},
 	enableModule: async data => { 
-		if (!thisModule) throw new Error(`Module ${data.args[1]} is not loaded.`)
 		let thisModule = loadedModules[data.args[1]]
+		if (!thisModule) throw new Error(`Module ${thisModule} is not loaded.`)
 		await thisModule.enable(data.args[2])
 		return {
 			console: `${sS.c['brightCyan'].c}Enabled module${sS.c['reset'].c}: ${thisModule.color.c}${thisModule.name}${sS.c['reset'].c}`,
@@ -139,8 +139,8 @@ let fn = { // Object holding callable functions for modules
 		}
 	},
 	disableModule: async data => { 
-		if (!thisModule) throw new Error(`Module ${data.args[1]} is not loaded.`)
 		let thisModule = loadedModules[data.args[1]]
+		if (!thisModule) throw new Error(`Module ${thisModule} is not loaded.`)
 		await thisModule.disable(data.args[2])
 		return {
 			console: `${sS.c['brightCyan'].c}Disabled module${sS.c['reset'].c}: ${thisModule.color.c}${thisModule.name}${sS.c['reset'].c}`,
@@ -165,8 +165,8 @@ let fn = { // Object holding callable functions for modules
 		}
 	},
 	killModule: async data => { 
-		if (!thisModule) throw new Error(`Module ${data.args[1]} is not loaded.`)
 		let thisModule = loadedModules[data.args[1]]
+		if (!thisModule) throw new Error(`Module ${thisModule} is not loaded.`)
 		await thisModule.kill()
 		return {
 			console: `${sS.c['brightCyan'].c}Killed module${sS.c['reset'].c}: ${thisModule.color.c}${thisModule.name}${sS.c['reset'].c}`,
@@ -191,8 +191,8 @@ let fn = { // Object holding callable functions for modules
 		}
 	},
 	startModule: async data => { 
-		if (!thisModule) throw new Error(`Module ${data.args[1]} is not loaded.`)
 		let thisModule = loadedModules[data.args[1]]
+		if (!thisModule) throw new Error(`Module ${thisModule} is not loaded.`)
 		await thisModule.start()
 		return {
 			console: `${sS.c['brightCyan'].c}Started module${sS.c['reset'].c}: ${thisModule.color.c}${thisModule.name}${sS.c['reset'].c}`,
@@ -217,9 +217,9 @@ let fn = { // Object holding callable functions for modules
 		}
 	},
 	restartModule:async data => { 
-		if (!loadedModules[data.args[1]]) throw new Error(`Module ${data.args[1]} is not loaded.`)
 		let thisModule = loadedModules[data.args[1]]
-		await loadedModules[data.args[1]].restart()
+		if (!thisModule) throw new Error(`Module ${thisModule} is not loaded.`)
+		await thisModule.restart()
 		return {
 			console: `${sS.c['brightCyan'].c}Restarted module${sS.c['reset'].c}: ${thisModule.color.c}${thisModule.name}${sS.c['reset'].c}`,
 			minecraft: `tellraw ${data.logTo.user} ${JSON.stringify(
@@ -243,9 +243,9 @@ let fn = { // Object holding callable functions for modules
 		}
 	},
 	reloadModule: async data => { 
-		if (!loadedModules[data.args[1]]) throw new Error(`Module ${data.args[1]} is not loaded.`)
 		let thisModule = loadedModules[data.args[1]]
-		await loadedModules[data.args[1]].reload()
+		if (!thisModule) throw new Error(`Module ${thisModule} is not loaded.`)
+		await thisModule.reload()
 		return {
 			console: `${sS.c['brightCyan'].c}Reloaded module${sS.c['reset'].c}: ${thisModule.color.c}${thisModule.name}${sS.c['reset'].c}`,
 			minecraft: `tellraw ${data.logTo.user} ${JSON.stringify(
@@ -269,8 +269,8 @@ let fn = { // Object holding callable functions for modules
 		}
 	},
 	loadModuleFunctions: async data => { 
-		if (!thisModule) throw new Error(`Module ${data.args[1]} is not loaded.`)
 		let thisModule = loadedModules[data.args[1]]
+		if (!thisModule) throw new Error(`Module ${thisModule.name} is not loaded.`)
 		await thisModule.loadFunctions()
 		return {
 			console: `${sS.c['brightCyan'].c}Loaded${sS.c['reset'].c} ${thisModule.color.c}${thisModule.name}${sS.c['reset'].c}'s functions`,

@@ -45,7 +45,7 @@
     },
     "math": {
       "file": "math.js",
-      "enabled": false,
+      "enabled": true,
       "persistent": false,
       "color": "brightMagenta",
       "import": false,
@@ -65,7 +65,7 @@
     },
     "backup": {
       "file": "backup.js",
-      "enabled": false,
+      "enabled": true,
       "persistent": false,
       "color": "brightRed",
       "import": false,
@@ -88,8 +88,8 @@
           "user": "administrator",
           "ip": "11.0.0.5",
           "port": "22",
-          "publicBackupDir": "/mnt/redlive/PublicFTP/LiveArchives/",
-          "rootBackupDir": "/mnt/redlive/LiveArchives/",
+          "publicBackupDir": "/mnt/redlive/PublicFTP/LiveArchives",
+          "rootBackupDir": "/mnt/redlive/LiveArchives",
           "overrideBackupDir": ""
         },
         "backupIntervalInHours": 0.5,
@@ -186,7 +186,7 @@
     },
     "properties": {
       "file": "properties.js",
-      "enabled": false,
+      "enabled": true,
       "persistent": false,
       "color": "cyan",
       "import": false,
@@ -204,9 +204,11 @@
       "settings": {
         "messageFlushRate": 100,
         "discordToken": "NDg3ODExOTkwNTMwNTU1OTA0.XSQ-uQ.0lUQcpbDT2la13756Tf65iijgrs",
-        "managementChannelId": "475502976656736257",
+        "managementChannels": [
+          "475502976656736257"
+        ],
         "chatLink": {
-          "chatChannelId": "614637977502744576",
+          "channelId": "614637977502744576",
           "eventTranslation": {
             "Started": {
               "match": false,
@@ -916,5 +918,5 @@
   },
   "server_dir": "Z:\\wrapperModules\\ForgeTest",
   "serverName": "ForgeTest",
-  "lastStartTime": 5652
+  "lastStartTime": 5592
 }

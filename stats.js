@@ -39,8 +39,8 @@ let fn = {
 			sendStatsUpdate()
 		}, mS.pollRate)
 	},
-	clearStatsInterval: async () => clearInterval(statsInterval)
-	
+	clearStatsInterval: async () => clearInterval(statsInterval),
+	pushStats: async stats => Object.assign(serverStats, stats)
 };
 
 // Module command handling

@@ -137,10 +137,10 @@ module.exports = class Module {
 		logTo = {
 			console: (logTo||{}).console||true,
 			discord: (logTo||{}).discord||false,
-			minecraft: (logTo||{}).minecraft||false
+			server: (logTo||{}).server||false
 		}
 		if (logTo.console && logObj.console) process.stdout.write(logObj.console+'\n');
-		if (logTo.minecraft && logObj.minecraft) await this.call('serverWrapper', 'serverStdin', logObj.minecraft);
+		if (logTo.server && logObj.server) await this.call('serverWrapper', 'serverStdin', logObj.server);
 		if (logTo.discord && logObj.discord) await this.call('discord', 'discordStdin', { msg: logObj.discord, channel: logTo.discord.channel||null }, this.thisModule)
 	}
 	async lErr(err, name='', logTo=null) {

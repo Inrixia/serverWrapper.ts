@@ -248,7 +248,7 @@ fn.processCommand = async function (message) {
 	message.logTo = {
 		console: true,
 		discord: (message.author) ? { channel: message.channel.id } : null,
-		minecraft: message.minecraft,
+		server: message.server,
 		user: message.user
 	};
 	message.args = await getCommandArgs(message.string);
@@ -286,7 +286,6 @@ fn.processCommand = async function (message) {
 	let exeStart = new Date();
 	let commandOutput = await commands[commandName.toLowerCase()].execute(message)
 	.catch(err => {
-		// TODO Add unknown command handling
 		modul.lErr(err, `Error while executing command "${message.string}"`, message.logTo)
 	});
 	if (!commandOutput) return;
