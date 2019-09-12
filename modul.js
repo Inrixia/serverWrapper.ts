@@ -10,7 +10,7 @@ module.exports = class Module {
 		this.thisModule = thisModule;
 		this.crossModulePromises = {};
 		this._event = new EventEmitter();
-		this._event.once('newListener', (event, listener) => {
+		this._event.on('newListener', (event, listener) => {
 			Module.pSend(process, { function: 'eventSub', event: event })
 		});
 		process.on('message', message => {
@@ -30,6 +30,9 @@ module.exports = class Module {
 			}
 		})
 	}
+	delay(time) {
+		return new Promise(resolve => setTimeout(() => resolve(), time))
+	}
 	get event() { return this._event }
 	emit(...args) { this._event.emit(...args) }
 	loadSettings(message, moduleName=this.thisModule) {
@@ -47,20 +50,22 @@ module.exports = class Module {
 		})
 	}
 	promiseResolve(message) {
-		if (this.crossModulePromises[message.promiseID] == undefined) console.log(`\u001b[91;1mERROR: \u001b[0mAttempting to resolve undefined promise with message`, message)
-		else {
+		if (this.crossModulePromises[message.promiseID] == undefined) {
+			if (this.moduleName) console.log(`\u001b[91;1mERROR: \u001b[0mAttempting to resolve undefined promise in ${this.moduleName} with message`, message)
+		} else {
 			this.crossModulePromises[message.promiseID].resolve(message.return);
 			delete this.crossModulePromises[message.promiseID];
 		}
 	}
 	promiseReject(message) {
-		if (this.crossModulePromises[message.promiseID] == undefined) console.log(`\u001b[91;1mERROR: \u001b[0mAttempting to reject undefined promise with message`, message)
-		else {
+		if (this.crossModulePromises[message.promiseID] == undefined) {
+			if (this.moduleName) console.log(`\u001b[91;1mERROR: \u001b[0mAttempting to reject undefined promise in ${this.moduleName} with message`, message)
+		} else {
 			this.crossModulePromises[message.promiseID].reject(message.return);
 			delete this.crossModulePromises[message.promiseID];
 		}
 	}
-	send(destModule, func, data, returnModule=this.thisModule) {
+	call(destModule, func, data, returnModule=this.thisModule) {
 		let externalPromiseId = Math.random();
 		let externalPromise = {};
 		let promise = new Promise((resolve, reject) => {
@@ -88,8 +93,8 @@ module.exports = class Module {
 		})
 		return promise;
 	}
-	resolve(data, promiseId, returnModule=this.thisModule) {
-		Module.pSend(process, {
+	resolve(data, promiseId, returnModule) {
+		if (returnModule != 'serverWrapper') Module.pSend(process, {
 			function: 'unicast',
 			module: returnModule,
 			message: {
@@ -98,11 +103,18 @@ module.exports = class Module {
 				return: data
 			}
 		}).catch(err => {
-			this.lErr(err, `Failed to resolve promise ${promiseId}, to module ${returnModule}`)
+			this.lErr(err, `Failed to resolve promise ${promiseId}, to module ${returnModule} in ${this.moduleName}`)
+		})
+		else Module.pSend(process, {
+			function: 'promiseResolve',
+			promiseID: promiseId,
+			return: data
+		}).catch(err => {
+			this.lErr(err, `Failed to resolve promise ${promiseId}, to module ${returnModule}in ${this.moduleName}`)
 		})
 	}
-	reject(data, promiseId, returnModule=this.thisModule) {
-		Module.pSend(process, {
+	reject(data, promiseId, returnModule) {
+		if (returnModule != 'serverWrapper') Module.pSend(process, {
 			function: 'unicast',
 			module: returnModule,
 			message: {
@@ -111,7 +123,14 @@ module.exports = class Module {
 				return: data
 			}
 		}).catch(err => {
-			this.lErr(err, `Failed to reject promise ${promiseId}, to module ${returnModule}`)
+			this.lErr(err, `Failed to reject promise ${promiseId}, to module ${returnModule} in ${this.moduleName}`)
+		})
+		else Module.pSend(process, {
+			function: 'promiseReject',
+			promiseID: promiseId,
+			return: data
+		}).catch(err => {
+			this.lErr(err, `Failed to reject promise ${promiseId}, to module ${returnModule}in ${this.moduleName}`)
 		});
 	}
 	async logg(logObj, logTo=null) {
@@ -121,13 +140,13 @@ module.exports = class Module {
 			minecraft: (logTo||{}).minecraft||false
 		}
 		if (logTo.console && logObj.console) process.stdout.write(logObj.console+'\n');
-		if (logTo.minecraft && logObj.minecraft) await this.send('serverWrapper', 'serverStdin', { string: logObj.minecraft }, this.whatsMyParentsName());
-		if (logTo.discord && logObj.discord) await this.send('discord', 'discordStdin', { msg: logObj.discord, channel: logTo.discord.channel||null }, this.whatsMyParentsName())
+		if (logTo.minecraft && logObj.minecraft) await this.call('serverWrapper', 'serverStdin', logObj.minecraft);
+		if (logTo.discord && logObj.discord) await this.call('discord', 'discordStdin', { msg: logObj.discord, channel: logTo.discord.channel||null }, this.thisModule)
 		return true;
 	}
 	async lErr(err, name='', logTo=null) {
 		return await this.logg({
-			console: `${name?`\u001b[91;1m${name}\u001b[0m`:''} ${err.message}\n${err.stack}`,
+			console: `${name?`\u001b[91;1m${name}\u001b[0m `:''}${err.message}\n${err.stack}`,
 			minecraft: `tellraw ${logTo||{}.user} ${JSON.stringify(
 				[{
 					"text": `${name||''}\n`,
@@ -141,16 +160,16 @@ module.exports = class Module {
 				string: null,
 				embed: {
 					color: parseInt(800000, 16),
-					title: `${name ? `${name} ` : ''}${err.message}`,
+					title: `${name ? `${name} `:''}${err.message}`,
 					description: err.stack,
 					timestamp: new Date()
 				}
 			}
-		}, logTo).catch(err => console.log(`\u001b[91;1mError logging Error! Look... Shits real fucked if your this deep in errors\u001b[0m ${err.message}\n${err.stack}`))
+		}, logTo).catch(err => console.log(`\u001b[91;1mError logging Error! Found in ${this.moduleName} Look... Shits real fucked if your this deep in errors\u001b[0m ${err.message}\n${err.stack}`))
 	}
 	async saveSettings(serverSettings, moduleSettings, thisModuleName=this.thisModule, logTo=null) {
 		serverSettings.modules[thisModuleName].settings = moduleSettings;
-		return await this.send('serverWrapper', 'saveSettings' { sS: serverSettings, logTo: logTo })
+		return await this.call('serverWrapper', 'saveSettings', { sS: serverSettings, logTo: logTo })
 	}
 	async getObj(parentObject, childObjectProperty, childObjectValue) {
 		return await parentObject.find((childObject) => { return childObject[childObjectProperty] === childObjectValue; })

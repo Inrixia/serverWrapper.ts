@@ -17,46 +17,36 @@ let discordData = "";
 let previousMessage = "";
 let serverStarted = true;
 
-const fn = {
+let fn = {
+	init: async message => {
+		[sS, mS] = modul.loadSettings(message)
+		modul.event.on('serverStdout', message => serverStdout(message))
+		modul.event.on('consoleStdout', message => {
+			if (managementChannel) managementChannel.send(`[BOX] > ${message}\n`, { split: true })
+		})
+		await buildMatches()
+		await openDiscord();
+	},
 	discordStdin: async (message) => {
-		console.log(message.msg)
 		let channel = managementChannel;
 		if (message.channel) channel = discord.guilds.get('155507830076604416').channels.get(message.channel)
 		else if (message.userID) channel = discord.users.get(message.userID);
-		await channel.send(message.msg)
+		if (Array.isArray(message.msg)) message.msg.forEach(mssg => channel.send(mssg))
+		else await channel.send(message.msg)
 	}
 }
 
 // Module command handling
 process.on('message', async message => {
 	switch (message.function) {
-		case 'serverStdout':
-			serverStdout(message.string);
-			break;
-		case 'consoleStdout':
-			if (managementChannel) managementChannel.send(`[BOX] > ${message.string}\n`, { split: true })
-			break;
 		case 'execute':
+			if (!(message.func in fn)) modul.reject(new Error(`Command ${message.func} does not exist in module ${thisModule}`), message.promiseId, message.returnModule)
 			fn[message.func](message.data)
 			.then(data => modul.resolve(data, message.promiseId, message.returnModule))
 			.catch(err => modul.reject(err, message.promiseId, message.returnModule))
 			break;
-		case 'promiseResolve':
-			modul.promiseResolve(message);
-			break;
-		case 'promiseReject':
-			modul.promiseReject(message);
-			break;
 		case 'pushSettings':
 			[sS, mS] = modul.loadSettings(message)
-			buildMatches();
-			break;
-		case 'init':
-			[sS, mS] = modul.loadSettings(message)
-			buildMatches().then(openDiscord);
-			break;
-		case 'kill':
-			modul.kill(message);
 			break;
 	}
 });
@@ -124,18 +114,16 @@ discord.on('message', async message => {
 					type: ((mentionedChannel||{}).type||null)
 				};
 			})||null),
-			everyone: (((message.mentions||{}).everyone||new discordjs.Collection()).array()||null)
+			everyone: (((message.mentions||{}).everyone||new discordjs.Collection()).array()||null),
 		}
+	}
+	discordMessage.logTo = {
+		console: true,
+		discord: { channel: discordMessage.channel.id }
 	}
 	if (message.isMemberMentioned(discord.user)) discordMessage.string = message.toString().trim().slice(message.toString().trim().indexOf(' ')+1, message.toString().trim().length)
 	else if (message.channel.id == mS.managementChannelId && message.author.id != discord.user.id) discordMessage.string = message.toString().trim();
-	if (discordMessage.string) modul.pSend(process, {
-		function: 'broadcast',
-		message: {
-			function: 'discordMessage',
-			message: discordMessage
-		}
-	});
+	if (discordMessage.string) modul.emit('discordMessage', discordMessage)
 	if(chatChannel && discordMessage.channel.id === mS.chatLink.chatChannelId) {
 		// modul.pSend(process, {
 		// 	function: 'serverStdin',
@@ -178,20 +166,17 @@ async function serverStdout(string) {
 		}
 	}, mS.discordMessageFlushRate);
 
-	
-
-
 	if(!serverStarted) {
 		serverStarted = true;
 		sendChat("Server Started");
 	} else {
-		for (let eventKey in mS.chatLink.eventTranslation) {
+		for (eventKey in mS.chatLink.eventTranslation) {
 			let event = mS.chatLink.eventTranslation[eventKey];
 			if (event.match != false) {
-				if (string.search(event.matchRegex) > -1 && (string.indexOf('>') == -1 || eventKey == "PlayerMessage")) {
+				if ((string.search(event.matchRegex) > -1 && (string.indexOf('>') == -1) )) { // || eventKey == "PlayerMessage"
 					let match = Array.from(string.match(event.matchRegex));
 					let content = event.content;
-					event.matchRelation.forEach(async (matchedWord, i) => {
+					if (event.matchRelation) event.matchRelation.forEach(async (matchedWord, i) => {
 						if (event.send.content) content = content.replace(matchedWord, match[i+1]);
 						if (event.send.embed) {
 							for (key in event.embed) {
@@ -207,12 +192,6 @@ async function serverStdout(string) {
 							}
 						}
 					})
-					//console.log(event.embed)
-					// let msg = {
-					// 	embed: event.send.embed?embed:'',
-					// 	content: event.send.content?content:''
-					// }
-					break;
 				}
 			}
 		}
@@ -223,8 +202,144 @@ async function buildMatches() {
 	for (key in mS.chatLink.eventTranslation) {
 		if (mS.chatLink.eventTranslation[key].match) {
 			mS.chatLink.eventTranslation[key].matchRelation = mS.chatLink.eventTranslation[key].match.match(/\%(.*?)\%/g);
-			mS.chatLink.eventTranslation[key].matchRegex = '.* '+mS.chatLink.eventTranslation[key].match.replace(/\%(.*?)\%/g, '(.*?)')+'\\n$';
+			mS.chatLink.eventTranslation[key].matchRegex = `.* ${mS.chatLink.eventTranslation[key].match.replace(/\%(.*?)\%/g, '(.*?)')}\\r\\n$`;
 		}
 	}
 	return;
 }
+
+// Arrows
+
+//     [player] was shot by arrow
+//         This message is caused by arrows shot from a dispenser or /summon
+//     [player] was shot by [player/mob]
+//         Caused by mobs with projectile attacks or kills using a bow.
+//     [player] was shot by [player/mob] using [bow name]
+//         Caused by mobs or players with a renamed bow
+
+// Cactus
+
+//     [player] was pricked to death
+//     [player] hugged a cactus
+//     [player] walked into a cactus while trying to escape [player/mob]
+//     [player] was stabbed to death
+//         Console Edition only
+
+// Drowning
+
+//     [player] drowned
+//     [player] drowned whilst trying to escape [player/mob]
+
+// Elytra
+
+//     [player] experienced kinetic energy
+//     [player] removed an elytra while flying
+
+// Explosions
+
+//     [player] blew up
+//     [player] was blown up by [player/mob]
+//         This message shows up only when TNT is activated by a creeper or by a player using flint and steel or an arrow shot from a bow enchanted with Flame
+
+// Falling
+
+//     [player] hit the ground too hard
+//         Only caused if the player is killed by a short fall, ender pearl damage, or riding an entity that died due to fall damage.
+//     [player] fell from a high place
+//         Caused by a fall greater than 5 blocks.
+//     [player] fell off a ladder
+//     [player] fell off some vines
+//     [player] fell out of the water
+//     [player] fell into a patch of fire
+//     [player] fell into a patch of cacti
+//     [player] was doomed to fall by [mob/player]
+//     [player] was shot off some vines by [mob/player]
+//     [player] was shot off a ladder by [mob/player]
+//     [player] was blown from a high place by [mob/player]
+//         Only caused if knockback from a creeper explosion, a ghast fireball, or player-lit TNT causes the player to fall to their death.
+
+// Falling blocks
+
+//     [player] was squashed by a falling anvil
+//     [player] was squashed by a falling block
+//         This message appears if the player is killed by a custom falling block other than an anvil that is modified to inflict damage
+
+// Fire
+
+//     [player] went up in flames
+//         This message appears if the player died while in the source of the fire (unless the game rule firedamage has been set to false).
+//     [player] burned to death
+//         This message appears if the player died while on fire, but not in the source (unless the game rule firedamage has been set to false).
+//     [player] was burnt to a crisp whilst fighting [player/mob]
+//     [player] walked into a fire whilst fighting [player/mob]
+
+// Firework rockets
+
+//     [player] went off with a bang
+
+// Lava
+
+//     [player] tried to swim in lava
+//     [player] tried to swim in lava while trying to escape [player/mob]
+
+// Lightning
+
+//     [player] was struck by lightning
+
+// Magma Block
+
+//     [player] discovered floor was lava
+
+// Players and mobs
+
+//     [player] was slain by [player/mob]
+//     [player] was slain by [player/mob] using [weapon]
+//         Caused by kills using a renamed weapon.
+//     [player] got finished off by [player/mob]
+//     [player] got finished off by [player/mob] using [weapon]
+//         Caused by kills using a renamed weapon.
+//     [player] was fireballed by [mob]
+//         Only caused by blazes and ghasts
+
+// Potions of Harming
+
+//     [player] was killed by magic
+//         Happens when the potion is shot from a dispenser, by drinking it, or with /effect
+//     [player] was killed by [player/mob] using magic
+//         Caused by witches, guardians, and kills using a splash potion
+
+// Starving
+
+//     [player] starved to death
+//         Caused if the difficulty is Hard or Hardcore
+
+// Suffocation
+
+//     [player] suffocated in a wall
+//         Happens if the player took suffocation damage from their head being in a block.
+//     [player] was squished too much
+//         Happens if the player took suffocation damage from the maxEntityCramming gamerule.
+
+// Thorns enchantment
+
+//     [player] was killed while trying to hurt [player/mob]
+//         Can be caused by a mob if it is able to wear armor, and can also occur while fighting guardians
+
+// Void
+
+//     [player] fell out of the world
+//         Also shown if the player is killed by the /kill command
+//     [player] fell from a high place and fell out of the world
+
+// Wither effect
+
+//     [player] withered away
+
+// Other
+
+//     [victim] was pummeled by [killer]
+//         This message would appear when killed by a snowball, an egg, a wither skull or an ender pearl
+//         This message is unused in the case of snowballs, chicken eggs, and ender pearls, because they do not cause damage to players hit by them.
+//         This message is currently only shown when the wither kills a player with a wither skull's impact.
+//     [player] died
+//         Pocket Edition only, used in some cases.

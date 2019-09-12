@@ -1,64 +1,75 @@
+const thisModule = 'stats';
+
 // Import core packages
 const pidusage = require('pidusage');
 
 
 // Set defaults
-var sS = {} // serverSettings
-var mS = {} // moduleSettings
-var serverStats = { serverName: '', status: 'Init', pid: '', mem: '', cpu: '', uptime: '', timeToBackup: '' }; // Default stats
-var statsInterval = null;
+let sS = {} // serverSettings
+let mS = {} // moduleSettings
+let serverStats = { serverName: '', status: 'Init', pid: '', mem: '', cpu: '', uptime: '', timeToBackup: 'Backups Disabled' }; // Default stats
+let statsInterval = null;
+
+const modul = new [require('./modul.js')][0](thisModule)
+let fn = {
+	init: async message => {
+		[sS, mS] = modul.loadSettings(message)
+		serverStats.serverName = sS.serverName;
+		modul.event.on('pushStats', async stats => {
+			Object.assign(serverStats, stats);
+		})
+		clearInterval(statsInterval);
+		fn.startInterval();
+	}, 
+	startStatsInterval: async message => { // Start sending frequent stats updates
+		serverStats.pid = message.serverPID||serverStats.pid;
+		Object.assign(serverStats, message.serverStats);
+		await updateServerStats();
+		await sendStatsUpdate();
+		clearInterval(statsInterval);
+		fn.startInterval();
+	},
+	startInterval: async () => { 
+		statsInterval = setInterval(async () => {
+			modul.emit('fetchStats')
+			await updateServerStats();
+			sendStatsUpdate()
+		}, mS.pollRate)
+	},
+	clearStatsInterval: async () => clearInterval(statsInterval)
+	
+};
 
 // Module command handling
 process.on('message', message => {
 	switch (message.function) {
-		case 'init':
-			sS = message.sS;
-			serverStats.serverName = sS.serverName;
-			mS = sS.modules['stats'].settings;
-			if (!message.sS.modules.backup.enabled) serverStats.timeToBackup = "Backups Disabled";
-			if (message.server != null) {
-				serverStats.pid = message.server.pid;
-				serverStats.status = "Running"
-				startStatsInterval();
-			}
-			sendStatsUpdate();
-			break;
-		case 'pushStats':
-			Object.assign(serverStats, message.serverStats);
-			sendStatsUpdate();
-			break;
-		case 'startStatsInterval':
-			serverStats.pid = message.serverPID;
-			serverStats.status = message.serverStats.status;
-			sendStatsUpdate();
-			startStatsInterval();
-			break;
-		case 'clearStatsInterval':
-			clearInterval(statsInterval);
-			break;
-		case 'kill':
-			process.exit();
+		case 'execute':
+			if (!(message.func in fn)) modul.reject(new Error(`Command ${message.func} does not exist in module ${thisModule}`), message.promiseId, message.returnModule)
+			else fn[message.func](message.data)
+			.then(data => modul.resolve(data, message.promiseId, message.returnModule))
+			.catch(err => modul.reject(err, message.promiseId, message.returnModule))
 			break;
 		case 'pushSettings':
-			sS = message.sS;
-			mS = sS.modules['stats'].settings;
+			[sS, mS] = modul.loadSettings(message)
 			break;
 	}
 });
 
-function startStatsInterval() { // Start sending frequent stats updates
-	statsInterval = setInterval(function(){
-		process.send({ function: 'broadcast', message: { function: 'fetchStats' } });
-	}, mS.pollRate)
-}
-
-function sendStatsUpdate() {
-	if (serverStats.pid != '') getPidUsage();
-	process.stdout.write(`${String.fromCharCode(27)}]0;${serverStats.serverName} - ${serverStats.status}  |  PID: ${serverStats.pid}  |  Mem: ${Math.round(serverStats.mem/1024/1024)}MB  |  CPU: ${Math.round(serverStats.cpu/8)}%  |  Uptime: ${Math.round(serverStats.uptime/1000/60)} Min  |${serverStats.timeSinceLastBackup ? `  Last Backup: ${serverStats.timeSinceLastBackup}, Took: ${serverStats.lastBackupDuration}  |`: ''}  Next Backup: ${serverStats.timeToNextBackup}${String.fromCharCode(7)}`);
+async function sendStatsUpdate() {
+	let sName = `${serverStats.serverName} - ${serverStats.status}`
+	let PID = `PID: ${serverStats.pid}`
+	let Mem = `Mem: ${Math.round(serverStats.mem/1024/1024)}MB`
+	let CPU = `CPU: ${Math.round(serverStats.cpu/8)}%`
+	let Uptime = `Uptime: ${Math.round(serverStats.uptime/1000/60)} Min`
+	let lstB = `${serverStats.timeSinceLastBackup ? `Last Backup: ${serverStats.timeSinceLastBackup}`: 'No backup yet'}`
+	let lstBD = `${serverStats.lastBackupDuration ? ` Took: ${serverStats.lastBackupDuration}`:''}`
+	let TTB = `${serverStats.timeToNextBackup ? ` Next In: ${serverStats.timeToNextBackup}`:''}`
+	process.stdout.write(`${String.fromCharCode(27)}]0;${sName}  |  ${PID}  |  ${Mem}  |  ${CPU}  |  ${Uptime}  |  ${lstB+lstBD+TTB}${String.fromCharCode(7)}`);
 };
 
-function getPidUsage() { // Get info for a running server from its PID
-	pidusage(serverStats.pid, function (err, stats) {
+async function updateServerStats() { // Get info for a running server from its PID
+	if (serverStats.pid) pidusage(serverStats.pid, (err, stats) => {
+		if (err) throw err;
 		serverStats.cpu = (stats||{}).cpu;
 		serverStats.mem = (stats||{}).memory;
 		serverStats.uptime = (stats||{}).elapsed;
@@ -73,34 +84,3 @@ function getPidUsage() { // Get info for a running server from its PID
 		// }
 	})
 }
-
-/*
-/ Util Functions
-*/
-
-function debug(stringOut) {
-	try {
-		if (typeof stringOut === 'string') process.stdout.write(`\n\u001b[41mDEBUG>${sS.c['reset'].c} ${stringOut}\n\n`)
-		else {
-			process.stdout.write(`\n\u001b[41mDEBUG>${sS.c['reset'].c}`);
-			console.log(stringOut);
-		}
-	} catch (e) {
-		process.stdout.write(`\n\u001b[41mDEBUG>${sS.c['reset'].c} ${stringOut}\n\n`);
-	}
-}
-
-if (!('toJSON' in Error.prototype))
-Object.defineProperty(Error.prototype, 'toJSON', {
-    value: function () {
-        var alt = {};
-
-        Object.getOwnPropertyNames(this).forEach(function (key) {
-            alt[key] = this[key];
-        }, this);
-
-        return alt;
-    },
-    configurable: true,
-    writable: true
-});

@@ -7,7 +7,12 @@ const modul = new [require('./modul.js')][0](thisModule);
 // Set defaults
 let sS = {} // serverSettings
 let mS = {} // moduleSettings
-let fn = {} // moduleFunctions
+let fn = {
+	init: async message => {
+		[sS, mS] = modul.loadSettings(message)
+		players = new PlayerStore();
+	}
+}; // moduleFunctions
 let players = null // Storage for player data;
 
 class PlayerStore {
@@ -130,24 +135,12 @@ fn.getPlayer = async (playerIdentifier) => {
 // Module command handling
 process.on('message', message => {
 	switch (message.function) {
-		case 'init':
-			[sS, mS] = modul.loadSettings(message)
-			players = new PlayerStore();
-			break;
-		case 'kill':
-			modul.kill(message);
-			break;
 		case 'pushSettings':
 			[sS, mS] = modul.loadSettings(message)
 			break;
-		case 'promiseResolve':
-			modul.promiseResolve(message);
-			break;
-		case 'promiseReject':
-			modul.promiseReject(message);
-			break;
 		case 'execute':
-			fn[message.func](message.data)
+			if (!(message.func in fn)) modul.reject(new Error(`Command ${message.func} does not exist in module ${thisModule}`), message.promiseId, message.returnModule)
+			else fn[message.func](message.data)
 			.then(data => modul.resolve(data, message.promiseId, message.returnModule))
 			.catch(err => modul.reject(err, message.promiseId, message.returnModule))
 			break;

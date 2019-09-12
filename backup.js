@@ -11,7 +11,27 @@ const util = {
 // Set defaults
 let sS = {} // serverSettings
 let mS = {} // moduleSettings
+
+let backupInterval = null;
+let timeToNextBackup = null;
+let lastBackupDuration = null;
+let lastBackupStartTime = null;
+let lastBackupEndTime = null;
+let lastBackupDurationString = null;
+
 let fn = {
+	init: async message => {
+		[sS, mS] = modul.loadSettings(message)
+		startBackupInterval();
+		exportCommands();
+		modul.event.on('fetchStats', () => {
+			modul.emit('pushStats', { 
+				timeToNextBackup: timeToNextBackup ? timeToNextBackup.fromNow() : 'Backups disabled', 
+				timeSinceLastBackup: (lastBackupEndTime != null) ? lastBackupEndTime.fromNow() : null, 
+				lastBackupDuration: lastBackupDurationString 
+			})
+		})
+	},
 	startBackupInterval: async () => {
 		if (backupInterval) await clearInterval(backupInterval);
 		await startBackupInterval();
@@ -95,7 +115,6 @@ let fn = {
 		}
 	},
 	runBackup: runBackup,
-	fetchStats: pushStats,
 	nextBackup: async () => {
 		return {
 			discord : {
@@ -144,23 +163,12 @@ let fn = {
 	}
 }
 
-let backupInterval = null;
-let timeToNextBackup = null;
-let lastBackupDuration = null;
-let lastBackupStartTime = null;
-let lastBackupEndTime = null;
-let lastBackupDurationString = null;
-
 // Module command handling
 process.on('message', async message => {
 	switch (message.function) {
-		case 'init':
-			[sS, mS] = modul.loadSettings(message)
-			startBackupInterval();
-			exportCommands();
-			break;
 		case 'execute':
-			fn[message.func](message.data)
+			if (!(message.func in fn)) modul.reject(new Error(`Command ${message.func} does not exist in module ${thisModule}`), message.promiseId, message.returnModule)
+			else fn[message.func](message.data)
 			.then(data => modul.resolve(data, message.promiseId, message.returnModule))
 			.catch(err => modul.reject(err, message.promiseId, message.returnModule))
 			break;
@@ -169,10 +177,6 @@ process.on('message', async message => {
 			break;
 	}
 });
-
-async function pushStats() {
-	return await modul.send('stats', 'pushStats', { timeToNextBackup: timeToNextBackup ? timeToNextBackup.fromNow() : 'Backups disabled', timeSinceLastBackup: (lastBackupEndTime != null) ? lastBackupEndTime.fromNow() : null, lastBackupDuration: lastBackupDurationString })
-}
 
 async function startBackupInterval() {
 	timeToNextBackup = moment().add(mS.backupIntervalInHours, 'hours');
@@ -186,10 +190,10 @@ async function startBackupInterval() {
 
 async function runBackup() {
 	lastBackupStartTime = moment();
-	await modul.pSend(process, { function: 'serverStdin', string: 'save-off\n' });
+	await this.call('serverWrapper', 'serverStdin', 'save-off\n');
 	process.stdout.write(mS.messages.backupStarting.console+'\n');
-	await modul.pSend(process, { function: 'serverStdin', string: mS.messages.backupStarting.minecraft+'\n' })
-	await modul.send('stats', 'pushStats', { status: 'Backing Up', timeToBackup: timeToNextBackup.fromNow() })
+	await this.call('serverWrapper', 'serverStdin', mS.messages.backupStarting.minecraft+'\n')
+	await modul.call('stats', 'pushStats', { status: 'Backing Up', timeToBackup: timeToNextBackup.fromNow() })
 	let backupDir = mS.overrideBackupDir ? mS.overrideBackupDir : mS.rootBackupDir+sS.serverName;
 	//children.spawn('robocopy', [sS.modules['properties'].settings.p['level-name'], `${backupDir}/${moment().format('MMMMDDYYYY_h-mm-ssA')}/Cookies`, (mS.threads > 1) ? `/MT:${mS.threads}` : '', '/E'], {shell: true, detached: true}).on('close', function (code) {
 	await util.exec(`ssh ${mS.remote.user}@${mS.remote.ip} -p ${mS.remote.port} "mkdir -p ${backupDir} && mkdir -p ${mS.remote.publicBackupDir}${sS.serverName}/"`, {})
@@ -207,20 +211,19 @@ async function runBackup() {
 		h: lastBackupDuration.hours()
 	}
 	lastBackupDurationString = `${(t.m>0) ? `${t.m}min, ` : ''}${(t.s>0) ? `${t.s}sec, ` : ''}${(t.ms>0) ? `${t.ms}ms` : ''}`;
-	await modul.pSend(process, { function: 'serverStdin', string: 'save-on\n' });
+	await this.call('serverWrapper', 'serverStdin', 'save-on\n');
 	process.stdout.write(mS.messages.backupEnded.console.replace("%duration%", lastBackupDurationString)+'\n');
-	await modul.pSend(process, { function: 'serverStdin', string: mS.messages.backupEnded.minecraft+'\n' })
+	await this.call('serverWrapper', 'serverStdin', mS.messages.backupEnded.minecraft+'\n')
 	await pushStats();
 	return lastBackupDurationString
 }
 
 async function exportCommands () {
-	modul.send('command', 'importCommands', [{
+	return await modul.call('command', 'importCommands', [{
 		name: 'backup',
 		exeFunc: 'runBackup',
 		module: thisModule,
 		description: {
-			grouping: 'Backups',
 			summary: `Starts a backup.`,
 			console: `${sS.c['white'].c}Starts a backup. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~backup${sS.c['reset'].c}`,
 			minecraft: [{
@@ -255,7 +258,6 @@ async function exportCommands () {
 		exeFunc: 'startBackupInterval',
 		module: thisModule,
 		description: {
-			grouping: 'Backups',
 			summary: `Starts automatic backups.`,
 			console: `${sS.c['white'].c}Starts automatic backups. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~startBackupInterval${sS.c['reset'].c}`,
 			minecraft: [{
@@ -290,7 +292,6 @@ async function exportCommands () {
 		exeFunc: 'clearBackupInterval',
 		module: thisModule,
 		description: {
-			grouping: 'Backups',
 			summary: `Stops automatic backups.`,
 			console: `${sS.c['white'].c}Stops automatic backups. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~clearBackupInterval${sS.c['reset'].c}`,
 			minecraft: [{
@@ -323,8 +324,8 @@ async function exportCommands () {
 	}, {
 		name: 'setBackupInterval',
 		exeFunc: 'setBackupInterval',
+		module: thisModule,
 		description: {
-			grouping: 'Backups',
 			summary: `Sets backup interval.`,
 			console: `${sS.c['white'].c}Sets backup interval. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~setBackupInterval${sS.c['reset'].c}`,
 			minecraft: [{
@@ -359,7 +360,6 @@ async function exportCommands () {
 		exeFunc: 'getbackupDir',
 		module: thisModule,
 		description: {
-			grouping: 'Backups',
 			summary: `Gets backup directory.`,
 			console: `${sS.c['white'].c}Gets backup directory. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~backupDir${sS.c['reset'].c}`,
 			minecraft: [{
@@ -392,8 +392,8 @@ async function exportCommands () {
 	}, {
 		name: 'nextBackup',
 		exeFunc: 'nextBackup',
+		module: thisModule
 		description: {
-			grouping: 'Backups',
 			summary: `Gets time to next backup.`,
 			console: `${sS.c['white'].c}Gets time to next backup. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~nextBackup${sS.c['reset'].c}`,
 			minecraft: [{
@@ -426,8 +426,8 @@ async function exportCommands () {
 	}, {
 		name: 'lastBackup',
 		exeFunc: 'lastBackup',
+		module: thisModule,
 		description: {
-			grouping: 'Minecraft',
 			summary: `Gets last backup info.`,
 			console: `${sS.c['white'].c}Gets last backup info. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~lastBackup${sS.c['reset'].c}`,
 			minecraft: [{

@@ -36,6 +36,8 @@ function serverStdout(string) {
 		let randomY = Math.random()*(maxY-minY)+minY;
 
 		let user = string.slice(37, string.indexOf(islandCreate)-1);
+		//STDIN HAS CHANGED TO await this.call('serverWrapper', 'serverStdin', string);
+
 		process.send({ function: 'serverStdin', string: `tp ${user} ${randomX} 68 ${randomY}\n` }); // Randomtp player
 		setTimeout(function(){
 			process.send({ function: 'serverStdin', string: `tp ${user} ${randomX} 68 ${randomY}\n` }); // Randomtp player

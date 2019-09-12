@@ -4,33 +4,17 @@ const thisModule = 'math';
 const math = require('mathjs')
 const modul = new [require('./modul.js')][0](thisModule);
 const util = require("./util/time.js")
-let fn = {}
+
+let commands = []
 
 // Set defaults
 var sS = {} // serverSettings
 var mS = {} // moduleSettings
 
-// Module command handling
-process.on('message', async message => {
-	switch (message.function) {
-		case 'init':
-			[sS, mS] = modul.loadSettings(message)
-			init(message);
-			break;
-		case 'execute':
-			fn[message.func](message.data)
-			.then(data => modul.resolve(data, message.promiseId, message.returnModule))
-			.catch(err => modul.reject(err, message.promiseId, message.returnModule))
-			break;
-		case 'pushSettings':
-			[sS, mS] = modul.loadSettings(message)
-			break;
-	}
-});
-
-async function init(message) {
-	fn = {
-		qm: async (message) => {
+let fn = {
+	init: async message => {
+		[sS, mS] = modul.loadSettings(message)
+		fn.qm = async (message) => {
 			let question = message.args.slice(1, message.args.length).join(' ');
 			let answer = math.evaluate(question).toString()
 			return {
@@ -58,12 +42,10 @@ async function init(message) {
 				}
 			}
 		}
-	}
-	modul.send('command', 'importCommands', [
-		{
+		commands = [{
 			name: 'qm',
 			exeFunc: 'qm',
-			module: 'math',
+			module: thisModule,
 			description: {
 				summary: `Accepts any math question and/or unit conversion.`,
 				console: `Accepts any math question and/or unit conversion. ${sS.c['white'].c}\nExamples:\n${sS.c['yellow'].c}~qm ${sS.c['cyan'].c}1 + 1\n${sS.c['yellow'].c}~qm ${sS.c['cyan'].c}1.2inch to cm\n${sS.c['yellow'].c}~qm ${sS.c['cyan'].c}1.2 * (2 + 4.5)\n${sS.c['yellow'].c}~qm ${sS.c['cyan'].c}sin(45 deg) ^ 2\n${sS.c['yellow'].c}~qm ${sS.c['cyan'].c}9 / 3 + 2i\n${sS.c['yellow'].c}~qm ${sS.c['cyan'].c}det([-1, 2; 3, 1])${sS.c['reset'].c}`,
@@ -127,7 +109,23 @@ async function init(message) {
 					}
 				}
 			}
-		}
-	])
-	.catch(err => lErr(err, `Command module failed to import coommands for ${thisModule}`))
+		}]
+		return await modul.call('command', 'importCommands', commands)
+		.catch(err => modul.lErr(err, `Command module failed to import coommands for ${thisModule}`))
+	}
 }
+
+// Module command handling
+process.on('message', async message => {
+	switch (message.function) {
+		case 'execute':
+			if (!(message.func in fn)) modul.reject(new Error(`Command ${message.func} does not exist in module ${thisModule}`), message.promiseId, message.returnModule)
+			else fn[message.func](message.data)
+			.then(data => modul.resolve(data, message.promiseId, message.returnModule))
+			.catch(err => modul.reject(err, message.promiseId, message.returnModule))
+			break;
+		case 'pushSettings':
+			[sS, mS] = modul.loadSettings(message)
+			break;
+	}
+});

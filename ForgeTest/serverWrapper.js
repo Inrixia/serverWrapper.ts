@@ -1,4 +1,5 @@
 // Spookelton Server Script - By Inrix \\
+const thisModule = 'serverWrapper'
 
 // Import core packages
 const fs = require('fs')
@@ -61,10 +62,10 @@ process.on('SIGINT', cleanExit); // catch ctrl-c
 process.on('SIGTERM', cleanExit); // catch term
 
 let fn = { // Object holding callable functions for modules
-	'emit': (...args) => {
+	emit: (...args) => {
 		wrapperModule.emit(...args)
 	},
-	'enableModule': async data => { 
+	enableModule: async data => { 
 		let thisModule = loadedModules[data.args[1]];
 		if (!thisModule) throw new Error(`Module ${data.args[1]} is not loaded.`)
 		await thisModule.enable(data.args[2])
@@ -90,7 +91,7 @@ let fn = { // Object holding callable functions for modules
 			}
 		}
 	},
-	'disableModule': async data => { 
+	disableModule: async data => { 
 		let thisModule = loadedModules[data.args[1]]
 		if (!thisModule) throw new Error(`Module ${data.args[1]} is not loaded.`)
 		await thisModule.disable(data.args[2])
@@ -116,7 +117,7 @@ let fn = { // Object holding callable functions for modules
 			}
 		}
 	},
-	'killModule': async data => { 
+	killModule: async data => { 
 		let thisModule = loadedModules[data.args[1]]
 		if (!thisModule) throw new Error(`Module ${data.args[1]} is not loaded.`)
 		await thisModule.kill()
@@ -142,7 +143,7 @@ let fn = { // Object holding callable functions for modules
 			}
 		}
 	},
-	'startModule': async data => { 
+	startModule: async data => { 
 		let thisModule = loadedModules[data.args[1]]
 		if (!thisModule) throw new Error(`Module ${data.args[1]} is not loaded.`)
 		await thisModule.start()
@@ -168,15 +169,15 @@ let fn = { // Object holding callable functions for modules
 			}
 		}
 	},
-	'restartModule':async data => { 
+	restartModule:async data => { 
 		if (!loadedModules[data.args[1]]) throw new Error(`Module ${data.args[1]} is not loaded.`)
 		return await loadedModules[data.args[1]].restart()
 	},
-	'reloadModule': async data => { 
+	reloadModule: async data => { 
 		if (!loadedModules[data.args[1]]) throw new Error(`Module ${data.args[1]} is not loaded.`)
 		return await loadedModules[data.args[1]].reload()
 	},
-	'loadModuleFunctions': async data => { 
+	loadModuleFunctions: async data => { 
 		let thisModule = loadedModules[data.args[1]]
 		if (!thisModule) throw new Error(`Module ${data.args[1]} is not loaded.`)
 		await thisModule.loadFunctions()
@@ -205,20 +206,18 @@ let fn = { // Object holding callable functions for modules
 			}
 		}
 	},
-	'restartModules': restartModules,
-	'unloadModules': unloadModules,
-	'reloadModules': reloadModules,
-	'listModules': async data => {
-		return loadedModules
+	restartModules: restartModules,
+	unloadModules: unloadModules,
+	reloadModules: reloadModules,
+	listModules: async message => {
+		let seperator = " "
 		let enabledModules = "";
 		let disabledModules = "";
 		let enabledModulesIng = [{"text":"Enabled: "}];
 		let disabledModulesIng = [{"text":"Disabled: "}];
-		return Object.keys(vars.loadedModules).map(function(moduleName, index){
-			let thisModule = vars.loadedModules[moduleName];
-			thisModule.color = sS.c[sS.modules[moduleName].color].c;
-			thisModule.enabled = sS.modules[moduleName].enabled;
-			thisModule.description = sS.modules[moduleName].description;
+		let moduleList = Object.keys(loadedModules).map((moduleName, index) => {
+			let thisModule = loadedModules[moduleName];
+			let discordName = thisModule.name
 			if (thisModule.enabled) {
 				enabledModulesIng = enabledModulesIng.concat([{
 					"text": `\n  ${moduleName} `,
@@ -233,13 +232,13 @@ let fn = { // Object holding callable functions for modules
 					"text": `]`,
 					"color": "white"
 				}, {
-					"text": !(index < Object.keys(vars.loadedModules).length-1) ? '\n' : ''
+					"text": !(index < Object.keys(loadedModules).length-1) ? '\n' : ''
 				}])
-				enabledModules += `${thisModule.color}${moduleName} ${sS.c['reset'].c}[${thisModule.process ? `${sS.c['green'].c}R${sS.c['reset'].c}` : `${sS.c['red'].c}S${sS.c['reset'].c}`}]${sS.c['reset'].c}${!(index < Object.keys(vars.loadedModules).length-1) ? '' : vars.seperator }`
+				enabledModules += `${thisModule.color.c}${moduleName} ${sS.c['reset'].c}[${thisModule.process ? `${sS.c['green'].c}R${sS.c['reset'].c}` : `${sS.c['red'].c}S${sS.c['reset'].c}`}]${sS.c['reset'].c}${!(index < Object.keys(loadedModules).length-1) ? '' : seperator }`
 			} else {
 				disabledModulesIng = disabledModulesIng.concat([{
 					"text": `\n  ${moduleName} `,
-					"color": sS.c[sS.modules[moduleName].color].m
+					"color": thisModule.color.m
 				}, {
 					"text": `[`,
 					"color": "white"
@@ -250,29 +249,28 @@ let fn = { // Object holding callable functions for modules
 					"text": `]`,
 					"color": "white"
 				}])
-				disabledModules += `${thisModule.color}${moduleName} ${sS.c['reset'].c}[${thisModule.process ? `${sS.c['green'].c}R${sS.c['reset'].c}` : `${sS.c['red'].c}S${sS.c['reset'].c}`}]${sS.c['reset'].c}${!(index < Object.keys(vars.loadedModules).length-1) ? '' : vars.seperator }`
+				disabledModules += `${thisModule.color.c}${moduleName} ${sS.c['reset'].c}[${thisModule.process ? `${sS.c['green'].c}R${sS.c['reset'].c}` : `${sS.c['red'].c}S${sS.c['reset'].c}`}]${sS.c['reset'].c}${!(index < Object.keys(loadedModules).length-1) ? '' : seperator }`
 			}
 			return {
-				discord : {
-					string: null,
-					embed: {
-						color: parseInt(sS.c[sS.modules[moduleName].discordColor||sS.modules[moduleName].color].h, 16),
-				    title: `${thisModule.name}`,
-				    description: `${thisModule.description}`,
-				    timestamp: new Date(),
-				    footer: {
-				      text: (vars.executionStartTime) ? `${(thisModule.process) ? 'Running' : 'Stopped'} • ${(thisModule.enabled) ? 'Enabled' : 'Disabled'} • Command executed in ${parseDuration(moment(vars.executionStartTime), moment(vars.executionEndTime))}` : ``
-						}
+				string: null,
+				embed: {
+					color: parseInt(sS.c[sS.modules[moduleName].discordColor||sS.modules[moduleName].color].h, 16),
+					title: `${thisModule.name}`,
+					description: `${thisModule.description}`,
+					timestamp: new Date(),
+					footer: {
+						text: `${(thisModule.process) ? 'Running' : 'Stopped'} • ${(thisModule.enabled) ? 'Enabled' : 'Disabled'}`
 					}
 				}
 			};
-		}).concat([{
-			discord: ``,
+		})
+		return {
+			discord: moduleList,
 			minecraft: `tellraw ${message.logTo.user} ${JSON.stringify(enabledModulesIng.concat(disabledModulesIng))}\n`,
-			console: `\n${sS.c['brightCyan'].c}Enabled wrapper modules${sS.c['reset'].c}: ${enabledModules}\n`+`${sS.c['brightCyan'].c}Disabled wrapper modules${sS.c['reset'].c}: ${disabledModules}\n`
-		}])
+			console: `${sS.c['brightCyan'].c}Enabled wrapper modules${sS.c['reset'].c}: ${enabledModules}\n`+`${sS.c['brightCyan'].c}Disabled wrapper modules${sS.c['reset'].c}: ${disabledModules}`
+		}
 	},
-	'backupSettings': async data => {
+	backupSettings: async data => {
 		await backupSettings()
 		return {
 			console: `${sS.c['brightCyan'].c}Backed up settings${sS.c['reset'].c}`,
@@ -293,7 +291,7 @@ let fn = { // Object holding callable functions for modules
 			}
 		}
 	},
-	'loadSettings': async data => {
+	loadSettings: async data => {
 		await loadSettings()
 		return {
 			console: `${sS.c['brightCyan'].c}Loaded settings${sS.c['reset'].c}`,
@@ -314,8 +312,8 @@ let fn = { // Object holding callable functions for modules
 			}
 		}
 	},
-	'saveSettings': async data => {
-		sS = data.sS;
+	saveSettings: async data => {
+		sS = data.sS||sS;
 		await wrapperModule.broadcast({function: 'pushSettings', sS: sS })
 		await saveSettings();
 		return {
@@ -336,9 +334,42 @@ let fn = { // Object holding callable functions for modules
 				}
 			}
 		}
+	},
+	serverStdin: async string => {
+		process.stdout.write(string)
+		if (server) server.stdin.write(string);
+		else throw new Error('Attempted to send input to server while not running.')
 	}
 }
 
+/*
+/ Private Util Functions
+*/
+async function lErr(err, name='') {
+	console.log(`${sS.c['brightRed'].c}ERROR: ${sS.c['reset'].c}${name ? `${name}` : ''} ${err.message}\n${err.stack}`,)
+}
+
+if (!('toJSON' in Error.prototype))
+Object.defineProperty(Error.prototype, 'toJSON', {
+    value: function () {
+        var alt = {};
+        Object.getOwnPropertyNames(this).forEach(function (key) {
+            alt[key] = this[key];
+        }, this);
+        return alt;
+    },
+    configurable: true,
+    writable: true
+});
+
+function pSend(dstProcess, message) {
+	return new Promise((resolve, reject) => {
+		dstProcess.send(message, (err, data) => {
+			if (err) reject(err);
+			resolve(data);
+		});
+	})
+}
 
 /*
 / Module class definition
@@ -349,6 +380,7 @@ class wrapperModule {
 		this.process = null;
 		this.subscribedEvents = [];
 		this.crashCount = 0;
+		this.crossModulePromises = {};
 		if (this.import) this.functions = require(sS.modulesDir+sS.modules[this.name].file);
 		if (this.name == 'stats' && !this.enabled) process.stdout.write(`${String.fromCharCode(27)}]0;${sS.serverName}  |  Stats Module Disabled${String.fromCharCode(7)}`);
 	}
@@ -359,7 +391,7 @@ class wrapperModule {
 			if (!loadedModules[this.name]) loadedModules[this.name] = this;
 			this.process = children.fork(sS.modulesDir+sS.modules[this.name].file, [], { detached: false }); // Spawn the modules childprocess
 			// Run the modules init funciton
-			await pSend(this.process, {function: 'init', sS: sS, color: this.color, commands: this.name=='command'?commands:null }).catch(err => lErr(err, `Failed to send init for module ${this.name}!`))
+			//await pSend(this.process, {function: 'init', sS: sS, color: this.color, commands: this.name=='command'?commands:null }).catch(err => lErr(err, `Failed to send init for module ${this.name}!`))
 			this.process.addListener('close', () => {
 				Object.keys(loadedModules).forEach(async moduleName => {
 					let thisModule = loadedModules[moduleName];
@@ -385,18 +417,14 @@ class wrapperModule {
 						moduleEvent.emit(message.event, message.args, true) // Emit in wrapper event handler
 						wrapperModule.emit(message.event, message.args, this.name) // Broadcast to other modules
 						break;
-					case 'serverStdin':
-						console.log(message.string)
-						if (server) server.stdin.write(message.string);
-						else lErr(new Error('Attempted to send input to server while not running.'))
-						break;
 					case 'unicast':
 						message.message.sourceModule = this.name;
 						await wrapperModule.unicast(message.module, message.message)
 						.catch(err => lErr(err, `Failed to unicast message "${JSON.stringify(message.message)} to module ${message.module}"\n`));		
 						break;
 					case 'execute':
-						fn[message.func](message.data).then(data => {
+						if (!(message.func in fn)) wrapperModule.reject(new Error(`Command ${message.func} does not exist in serverWrapper.js`), message.promiseId, message.returnModule)
+						else fn[message.func](message.data).then(data => {
 							wrapperModule.resolve(data, message.promiseId, message.returnModule)
 							.catch(err => {
 								lErr(err, `Failed to resolve promise ${message.promiseId}, to module ${message.returnModule}`)
@@ -416,11 +444,17 @@ class wrapperModule {
 						message.message.sourceModule = this.name;
 						await wrapperModule.broadcast(message.message)
 						.catch(err => lErr(err, `Failed to broadcast message "${JSON.stringify(message.message)}"\n`));
-						break;					
+						break;	
+					case 'promiseResolve':
+						this.promiseResolve(message);
+						break;
+					case 'promiseReject':
+						this.promiseReject(message);
+						break;				
 				}
 			})
-			return [{ event: 'moduleStarted', moduleName: this.name }]
-		} else return [{ event: 'moduleAlreadyStarted', moduleName: this.name}]
+			return await this.call('init', { 'sS': sS, commands: this.name=='command'?commands:null }).catch(err => lErr(err, `Failed to call init for module ${this.name}!`));
+		} else throw new Error(`Module ${this.name} has already been started!`)
 	}
 
 	static emit(event, args, exclude=null) {
@@ -433,6 +467,39 @@ class wrapperModule {
 				}).catch(err => lErr(err, `Failed to send event "${event}" to module ${modul}`))
 			}
 		})
+	}
+
+	call(func, data) {
+		let externalPromiseId = Math.random();
+		let externalPromise = {};
+		let promise = new Promise((resolve, reject) => {
+			externalPromise.resolve = resolve;
+			externalPromise.reject = reject;
+		});
+		this.crossModulePromises[externalPromiseId] = externalPromise;
+		pSend(this.process, {
+			function: 'execute',
+			func: func,
+			returnModule: 'serverWrapper',
+			promiseId: externalPromiseId,
+			data: data
+		})
+		return promise;
+	}
+
+	promiseResolve(message) {
+		if (this.crossModulePromises[message.promiseID] == undefined) console.log(`\u001b[91;1mERROR: \u001b[0mAttempting to resolve undefined promise with message`, message)
+		else {
+			this.crossModulePromises[message.promiseID].resolve(message.return);
+			delete this.crossModulePromises[message.promiseID];
+		}
+	}
+	promiseReject(message) {
+		if (this.crossModulePromises[message.promiseID] == undefined) console.log(`\u001b[91;1mERROR: \u001b[0mAttempting to reject undefined promise with message`, message)
+		else {
+			this.crossModulePromises[message.promiseID].reject(message.return);
+			delete this.crossModulePromises[message.promiseID];
+		}
 	}
 
 	static async resolve(data, promiseId, returnModule) {
@@ -453,31 +520,28 @@ class wrapperModule {
 	}
 
 	async restart() {
-		return [].concat(await this.kill(), await this.start())
+		await this.kill()
+		await this.start()
 	}
 
 	async reload() {
-		return [].concat(await this.kill(), this.enabled?(await this.start()):[], this.import?(await this.loadFunctions()):[])
+		await this.kill()
+		if (this.enabled) await this.start()
+		if (this.import) await this.loadFunctions()
 	}
-
 	async loadFunctions() {
 		if (this.import) this.functions = require(sS.modulesDir+sS.modules[this.name].file);
-		return [{ event: 'moduleFunctionsLoaded', moduleName: this.name }]
 	}
 
 	async kill() {
 		if (this.process) {
-			const moduleDeath = [{ event: 'moduleKilled', moduleName: this.name, exitInfo: await pSend(this.process, { function: 'kill' }) }]
+			await this.process.send({function: 'kill'})
 			if (this.name == 'stats') process.stdout.write(`${String.fromCharCode(27)}]0;${sS.serverName}  |  Stats Module Disabled${String.fromCharCode(7)}`);
-			if ((sS.modules['command']||{}).enabled && this.name == 'command') {
+			if (this.persistent) {
 				delete loadedModules['command'];
 				loadedModules['command'] = new wrapperModule('command');
-				return [].concat(moduleDeath, await loadedModules['command'].start());
-			} else {
-				this.process = null;
-				return moduleDeath;
-			}
-			
+				await loadedModules['command'].start()
+			} else this.process = null;
 		}
 		else throw new Error(`Cannot kill ${this.name} as it is not running.`)
 	}
@@ -485,13 +549,11 @@ class wrapperModule {
 	async enable(save) {
 		sS.modules[this.name].enabled = true;
 		if (save) await saveSettings();
-		return [{ event: 'moduleEnabled', moduleName: this.name }]
 	}
 
 	async disable(save) {
 		sS.modules[this.name].enabled = false;
 		if (save) await saveSettings();
-		return [{ event: 'moduleDisabled', moduleName: this.name }]
 	}
 
 	static async broadcast(message) {
@@ -512,14 +574,14 @@ class wrapperModule {
 	set enabled(enable) {
 		sS.modules[this.name].enabled = enable;
 		wrapperModule.broadcast({function: 'pushSettings', sS: sS })
-		.catch(err => lErr(err, `Failed to broadcast ${this.name} enabled: ${enable} update.`));
+		.catch(err => lErr(err, `Failed to broadcast setting change ${this.name} enabled: ${enable} update.`));
 	}
 
 	get description() { return sS.modules[this.name].description }
 	set description(descriptionString) {
 		sS.modules[this.name].description = descriptionString;
 		wrapperModule.broadcast({function: 'pushSettings', sS: sS })
-		.catch(err => lErr(err, `Failed to broadcast ${this.name} description: ${descriptionString} update.`));
+		.catch(err => lErr(err, `Failed to broadcast setting change ${this.name} description: ${descriptionString} update.`));
 	}
 
 	get color() { return sS.c[sS.modules[this.name].color] };
@@ -527,51 +589,74 @@ class wrapperModule {
 		if (moduleColor in sS.c) {
 			sS.modules[this.name].color = moduleColor;
 			wrapperModule.broadcast({function: 'pushSettings', sS: sS })
-			.catch(err => lErr(err, `Failed to broadcast ${this.name} color: ${moduleColor} update.`));
+			.catch(err => lErr(err, `Failed to broadcast setting change ${this.name} color: ${moduleColor} update.`));
 		} else throw new Error(`"${this.name}.color = ${moduleColor}" Invalid Colour.`);
+	}
+
+	get persistent() { sS.modules[this.name].persistent; }
+	set persistent(persistence) { 
+		sS.modules[this.name].persistent = persistence;
+		wrapperModule.broadcast({function: 'pushSettings', sS: sS })
+		.catch(err => lErr(err, `Failed to broadcast setting change ${this.name} persistent: ${persistence} update.`));
 	}
 }
 
+
+/*
+/ START
+*/
 (async () => {
 	backupSettings().catch(err => lErr(err, 'Failed to backup settings on launch.'));
-	loadModules().then(startEnabledModules).then(startServer)
-	.catch(err => lErr(err, 'Failed to start modules and launch server.'));
-})();
+	let loaded = await loadModules()
+	let started = await startEnabledModules()
+	await startServer()
+})().catch(err => lErr(err, 'Failed to start modules and launch server.'));
+/*
+/ START
+*/
+
 
 /*
 / Module management functions
 */
 async function loadModules() { // Loads in modules from server settings
-	return [null].concat(Object.keys(sS.modules)).reduce(async (returnArray, moduleName) => {
+	return Object.keys(sS.modules).map(moduleName => {
 		if (moduleName != undefined && !loadedModules[moduleName]) {
 			loadedModules[moduleName] = new wrapperModule(moduleName);
-			return [].concat(await returnArray, [{ event: 'moduleLoaded', moduleName: moduleName }])
-		} else return returnArray;
+		}
 	})
 }
 
 async function unloadModules() {
-	return [null].concat(Object.keys(loadedModules)).reduce(async (returnArray, moduleName) => {
-		const moduleDeath = loadedModules[moduleName].kill();
+	return Object.keys(loadedModules).map(moduleName => {
+		if (loadedModules[moduleName].process) loadedModules[moduleName].kill();
 		delete loadedModules[moduleName];
-		return [].concat(await returnArray, await moduleDeath)
 	})
 }
 
 async function startEnabledModules() {
-	return [null].concat(Object.keys(loadedModules)).reduce(async (returnArray, moduleName) => {
-		if (loadedModules[moduleName].enabled && !loadedModules[moduleName].process) return [].concat(await returnArray, await loadedModules[moduleName].start())
-	})
+	return await Promise.all(Object.keys(loadedModules).reduce((results, moduleName) => {
+		if (loadedModules[moduleName].enabled && !loadedModules[moduleName].process) {
+			const startTime = Date.now();
+			const result = loadedModules[moduleName].start()
+			results.push(result)
+			result.then(data => console.log(`Started ${loadedModules[moduleName].color.c}${moduleName}${sS.c.reset.c} in ${Date.now()-startTime}ms`))
+		}
+		return results
+	}, []))
 }
 
 async function reloadModules() {
-	return [].concat(await unloadModules(), await loadModules(), await startEnabledModules())
+	await unloadModules()
+	await loadModules()
+	await startEnabledModules()
 }
 
 async function restartModules() {
-	return [null].concat(Object.keys(loadedModules)).reduce(async (returnArray, moduleName) => {
-		if (loadedModules[moduleName].enabled) return [].concat(await returnArray, await loadedModules[moduleName].restart())
-	})
+	return await Promise.all(Object.keys(loadedModules).reduce((results, moduleName) => {
+		if (loadedModules[moduleName].enabled) results.push(loadedModules[moduleName].restart())
+		return results
+	}, []))
 }
 
 /*
@@ -581,10 +666,8 @@ function loadSettings() {
 	return new Promise((resolve, reject) => {
 		fs.readFile(sSFile, 'utf8', (err, data) => {
 			if (err) reject(err);
-			sS = JSON.parse();
-			wrapperModule.broadcast({function: 'pushSettings', sS: sS })
-			.catch(err => lErr(err, 'Failed to broadcast new settings to modules.'))
-			resolve();
+			sS = JSON.parse(data);
+			wrapperModule.broadcast({function: 'pushSettings', sS: sS }).then(data => resolve(data))
 		})
 	})
 }
@@ -608,7 +691,7 @@ function backupSettings() {
 }
 
 async function startServer() {
-	server = children.spawn('java', serverStartVars, { detached : false }); // This will be assigned the server server when it starts
+	server = children.spawn('java', serverStartVars, { detached : false });
 	server.stdin.write('list\n'); // Write list to the console so we can know when the server has finished starting
 
 	let postConsoleTimeout = (string) => { 
@@ -623,10 +706,12 @@ async function startServer() {
 		}
 	}
 	let started = () => {
-		if ((loadedModules['stats']||{}).process) { // If stats is enabled update the server status to enabled
-			pSend(loadedModules['stats'].process, { function: 'pushStats', serverStats: {status: "Running"} })
-			.catch(err => lErr(err, 'Failed to send server started status update.'));
-		}
+		if ((loadedModules['stats']||{}).process) loadedModules['stats'].call('startStatsInterval', {
+			serverPID: server.pid,
+			serverStats: {
+				status: 'Running'
+			}
+		}).catch(err => lErr(err, 'Failed to send server started status update.'));
 	}
 
 	setTimeout(() => {
@@ -634,24 +719,17 @@ async function startServer() {
 		started();
 	}, 120*1000) // Enable console broadcasting after 120 seconds if the check fails
 	server.stdout.on('data', string => sStdoutHandler(string))
-
-	if ((loadedModules['stats']||{}).process) { // If stats is enabled push a update
-		pSend(loadedModules['stats'].process, {
-			function: 'startStatsInterval',
-			sS: sS,
-			serverPID: server.pid,
-			serverStats: {
-				status: 'Starting...'
-			}
-		}).catch(err => lErr(err, 'Failed to send starting message to stats module.'));
-	}
+	if ((loadedModules['stats']||{}).process) loadedModules['stats'].call('startStatsInterval', {
+		serverPID: server.pid,
+		serverStats: {
+			status: 'Starting'
+		}
+	}).catch(err => lErr(err, 'Failed to send server starting message to stats module.'));
+		
 
 	// Server shutdown handling
 	server.on('exit', (code) => {
-		if ((loadedModules['stats']||{}).process) {
-			pSend(loadedModules['stats'].process, { function: 'pushStats', serverStats: {status: "Closed"} })
-			.catch(err => lErr(err, 'Failed to send server close message to stats module.'));  // If stats is enabled update the server status to enabled
-		}
+		wrapperModule.emit('pushStats', { status: "Closed" })
 		console.log(`Server closed with exit code: ${code}\nKilling modules...`);
 		Object.keys(loadedModules).forEach(moduleName => {
 			loadedModules[moduleName].kill();
@@ -663,7 +741,6 @@ async function startServer() {
 
 	// Server error handling
 	server.on('error', (err) => lErr(err, `Server encountered a error.`));
-
 
 	/*
 	/ Wrapper Console Handling
@@ -686,544 +763,501 @@ function restartWrapper() {
 	if (!newProcess) process.exit();
 }
 
-/*
-/ Private Util Functions
-*/
-async function lErr(err, name='') {
-	console.log(`${sS.c['brightRed'].c}ERROR: ${sS.c['reset'].c}${name ? `${name}` : ''} ${err.message}\n${err.stack}`,)
-}
-
-function pSend(dstProcess, message) {
-	return new Promise((resolve, reject) => {
-		dstProcess.send(message, (err, data) => {
-			if (err) reject(err);
-			resolve(data);
-		});
-	})
-}
-
-
-if (!('toJSON' in Error.prototype))
-Object.defineProperty(Error.prototype, 'toJSON', {
-    value: function () {
-        var alt = {};
-        Object.getOwnPropertyNames(this).forEach(function (key) {
-            alt[key] = this[key];
-        }, this);
-        return alt;
-    },
-    configurable: true,
-    writable: true
-});
-
-const commands = [
-	{
-		name: 'restartModules', 
-		exeFunc: 'restartModules',
-		module: 'serverWrapper',
-		description: {
-			summary: `Restarts all modules`,
-			console: `${sS.c['brightWhite'].c}Restarts all modules. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~restartModules${sS.c['reset'].c}`,
-			minecraft: [{
-				"text": `Restarts all modules. `,
-				"color": sS.c['brightWhite'].m
+const commands = [{
+	name: 'restartModules', 
+	exeFunc: 'restartModules',
+	module: thisModule,
+	description: {
+		summary: `Restarts all modules`,
+		console: `${sS.c['brightWhite'].c}Restarts all modules. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~restartModules${sS.c['reset'].c}`,
+		minecraft: [{
+			"text": `Restarts all modules. `,
+			"color": sS.c['brightWhite'].m
+		}, {
+			"text": `Example: `,
+			"color": sS.c['white'].m
 			}, {
-				"text": `Example: `,
-				"color": sS.c['white'].m
+			"text": `~restartModules`,
+			"color": sS.c['yellow'].m
+		}],
+		discord: {
+			string: null,
+			embed: {
+				title: "Restart All Modules",
+				description: "~restartModules",
+				color: parseInt(sS.c['orange'].h, 16),
+				timestamp: new Date(),
+				fields: [{
+					name: "Description",
+					value: "Restarts all modules."
 				}, {
-				"text": `~restartModules`,
-				"color": sS.c['yellow'].m
-			}],
-			discord: {
-				string: null,
-				embed: {
-					title: "Restart All Modules",
-					description: "~restartModules",
-					color: parseInt(sS.c['orange'].h, 16),
-					timestamp: new Date(),
-					fields: [{
-						name: "Description",
-						value: "Restarts all modules."
-					}, {
-						name: "Example",
-						value: "**~restartModules**"
-					}]
-				}
-			}
-		}
-	}, {
-		name: 'unloadModules', 
-		exeFunc: 'unloadModules',
-		module: 'serverWrapper',
-		description: {
-			summary: `Stops and unloads all modules.`,
-			console: `${sS.c['brightWhite'].c}Stops and unloads all modules except command and log. ${sS.c['reset'].c}\nExample: ${sS.c['yellow'].c}~unloadModules${sS.c['reset'].c}`,
-			minecraft: [{
-				"text": `Stops and unloads all modules except command and log.\n`,
-				"color": sS.c['brightWhite'].m
-			}, {
-				"text": `Example: `,
-				"color": sS.c['white'].m
-				}, {
-				"text": `~unloadModules`,
-				"color": sS.c['yellow'].m
-			}],
-			discord: {
-				string: null,
-				embed: {
-					title: "Unload All Modules",
-					description: "~unloadModules",
-					color: parseInt(sS.c['orange'].h, 16),
-					timestamp: new Date(),
-					fields: [{
-						name: "Description",
-						value: "Stops and unloads all modules except command and log."
-					}, {
-						name: "Example",
-						value: "**~unloadModules**"
-					}]
-				}
-			}
-		}
-	}, {
-		name: 'reloadModules', 
-		exeFunc: 'reloadModules',
-		module: 'serverWrapper',
-		description: {
-			summary: `Reloads and restarts all modules.`,
-			console: `${sS.c['brightWhite'].c}Reloads and restarts all modules. Will load and run any changes to modules. ${sS.c['reset'].c}\nExample: ${sS.c['yellow'].c}~reloadModules${sS.c['reset'].c}`,
-			minecraft: [{
-					"text": `Reloads and restarts all modules. `,
-					"color": sS.c['brightWhite'].m
-				}, {
-					"text": `Example: `,
-					"color": sS.c['white'].m
-					}, {
-					"text": `~reloadModules`,
-					"color": sS.c['yellow'].m
-				}],
-			discord: {
-				string: null,
-				embed: {
-					title: "Reload Modules",
-					description: "~reloadModules",
-					color: parseInt(sS.c['orange'].h, 16),
-					timestamp: new Date(),
-					fields: [{
-						name: "Description",
-						value: "Reloads and restarts all modules. Will load and run any changes to modules."
-					}, {
-						name: "Example",
-						value: "**~reloadModules**"
-					}]
-				}
-			}
-		}
-	}, {
-		name: 'listModules', 
-		exeFunc: 'listModules',
-		module: 'serverWrapper',
-		description: {
-			grouping: 'Wrapper Core',
-			summary: `Gets status of all modules currently installed in the wrapper.`,
-			console: `${sS.c['brightWhite'].c}Gets status of all modules currently installed. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~listModules${sS.c['reset'].c}`,
-			minecraft: [{
-				"text": `Gets status of all modules currently insalled. `,
-				"color": sS.c['brightWhite'].m
-			}, {
-				"text": `Example: `,
-				"color": sS.c['white'].m
-				}, {
-				"text": `~listModules`,
-				"color": sS.c['yellow'].m
-			}],
-			discord: {
-				string: null,
-				embed: {
-					title: "List Modules",
-					description: "~listModules",
-					color: parseInt(sS.c['orange'].h, 16),
-					timestamp: new Date(),
-					fields: [{
-						name: "Description",
-						value: "Gets status of all modules currently installed."
-					}, {
-						name: "Example",
-						value: "**~listModules**"
-						}]
-					}
-				}
-			}
-	}, {
-		name: 'enableModule', 
-		exeFunc: 'enableModule',
-		module: 'serverWrapper',
-		description: {
-			grouping: 'Wrapper Core',
-			summary: `Enables any given module.`,
-			console: `${sS.c['brightWhite'].c}Enables any given module and saves settings if true. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~enableModule ${sS.c['brightBlue'].c}discord ${sS.c['orange'].c}true${sS.c['reset'].c}`,
-			minecraft: [{
-				"text": `Enables any given module and saves settings if true. `,
-				"color": sS.c['brightWhite'].m
-			}, {
-				"text": `Example: `,
-				"color": sS.c['white'].m
-				}, {
-				"text": `~enableModule discord`,
-				"color": sS.c['yellow'].m
-			}],
-			discord: {
-				string: null,
-				embed: {
-					title: "Enable Module",
-					description: "~enableModule",
-					color: parseInt(sS.c['orange'].h, 16),
-					timestamp: new Date(),
-					fields: [{
-						name: "Description",
-						value: "Enables any given module. Excepts an optional parameter (true), Saves the change made to any setting."
-					}, {
-						name: "Example",
-						value: "**~enableModule** discord true"
-					}]
-				}
-			}
-		}
-	}, {
-		name: 'disableModule', 
-		exeFunc: 'disableModule',
-		module: 'serverWrapper',
-		description: {
-			grouping: 'Wrapper Core',
-			summary: `Disables any given module.`,
-			console: `${sS.c['brightWhite'].c}Disables any given module and saves settings if true. ${sS.c['reset'].c}\nExample: ${sS.c['yellow'].c}~disableModule ${sS.c['brightBlue'].c}discord ${sS.c['orange'].c}true${sS.c['reset'].c}`,
-			minecraft: [{
-					"text": `Disables any given module and saves settings if true.\n`,
-					"color": sS.c['brightWhite'].m
-				}, {
-					"text": `Example: `,
-					"color": sS.c['white'].m
-					}, {
-					"text": `~disableModule `,
-					"color": sS.c['yellow'].m
-				}, {
-					"text": `discord `,
-					"color": sS.c['brightBlue'].m
-				}, {
-					"text": `true`,
-					"color": sS.c['yellow'].m
-				}],
-			discord: {
-				string: null,
-				embed: {
-					title: "Disable Module",
-					description: "~disableModule",
-					color: parseInt(sS.c['orange'].h, 16),
-					timestamp: new Date(),
-					fields: [{
-						name: "Description",
-						value: "Disables any given module. Excepts an optional parameter which if true, saves the updated settings."
-					}, {
-						name: "Example",
-						value: "**~disableModule** discord true"
-					}]
-				}
-			}
-		}
-	}, {
-		name: 'reloadModule', 
-		exeFunc: 'reloadModule',
-		module: 'serverWrapper',
-		description: {
-			grouping: 'Wrapper Core',
-			summary: `Reloads any given module.`,
-			console: `${sS.c['brightWhite'].c}Reloads any given module. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~reloadModule ${sS.c['brightBlue'].c}discord${sS.c['reset'].c}`,
-			minecraft: [{
-				"text": `Reloads any given module. `,
-				"color": sS.c['brightWhite'].m
-			}, {
-				"text": `Example: `,
-				"color": sS.c['white'].m
-				}, {
-				"text": `~reloadModule `,
-				"color": sS.c['yellow'].m
-			}, {
-				"text": `discord`,
-				"color": sS.c['brightBlue'].m
-			}],
-			discord: {
-				string: null,
-				embed: {
-					title: "Reload Module",
-					description: "~reloadModule",
-					color: parseInt(sS.c['orange'].h, 16),
-					timestamp: new Date(),
-					fields: [{
-						name: "Description",
-						value: "Reloads any given module."
-					}, {
-						name: "Example",
-						value: "**~reloadModule** discord."
-					}]
-				}
-			}
-		}
-	}, {
-		name: 'killModule', 
-		exeFunc: 'killModule',
-		module: 'serverWrapper',
-		description: {
-			grouping: 'Wrapper Core',
-			summary: `Stops any given module.`,
-			console: `${sS.c['brightWhite'].c}Stops any given module. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~killModule ${sS.c['brightBlue'].c}discord${sS.c['reset'].c}`,
-			minecraft: [{
-				"text": `Stops any given module. `,
-				"color": sS.c['brightWhite'].m
-			}, {
-				"text": `Example: `,
-				"color": sS.c['white'].m
-			}, {
-				"text": `~killModule `,
-				"color": sS.c['yellow'].m
-			}, {
-				"text": `discord`,
-				"color": sS.c['brightBlue'].m
-			}],
-			discord: {
-				string: null,
-				embed: {
-					title: "Kill Module",
-					description: "~killModule",
-					color: parseInt(sS.c['orange'].h, 16),
-					timestamp: new Date(),
-					fields: [{
-						name: "Description",
-						value: "Stops any given module."
-					}, {
-						name: "Example",
-						value: "**~killModule** discord"
-					}]
-				}
-			}
-		}
-	}, {
-		name: 'startModule', 
-		exeFunc: 'startModule',
-		module: 'serverWrapper',
-		description: {
-			grouping: 'Wrapper Core',
-			summary: `Starts any given module.`,
-			console: `${sS.c['brightWhite'].c}Starts any given module. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~startModule ${sS.c['brightBlue'].c}discord${sS.c['reset'].c}`,
-			minecraft: [{
-				"text": `Starts any given module. `,
-				"color": sS.c['brightWhite'].m
-			}, {
-				"text": `Example: `,
-				"color": sS.c['white'].m
-				}, {
-				"text": `~startModule `,
-				"color": sS.c['yellow'].m
-			}, {
-				"text": `discord`,
-				"color": sS.c['brightBlue'].m
-			}],
-			discord: {
-				string: null,
-				embed: {
-					title: "Start Module",
-					description: "~startModule",
-					color: parseInt(sS.c['orange'].h, 16),
-					timestamp: new Date(),
-					fields: [{
-						name: "Description",
-						value: "Starts any given module."
-					}, {
-						name: "Example",
-						value: "**~startModule** discord"
-					}]
-				}
-			}
-		}
-	}, {
-		name: 'restartModule', 
-		exeFunc: 'restartModule',
-		module: 'serverWrapper',
-		description: {
-			grouping: 'Wrapper Core',
-			summary: `Restarts any given module`,
-			console: `${sS.c['brightWhite'].c}Restarts any given module. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~restartModule ${sS.c['brightBlue'].c}discord${sS.c['reset'].c}`,
-			minecraft: [{
-				"text": `Restarts any given module. `,
-				"color": sS.c['brightWhite'].m
-			}, {
-				"text": `Example: `,
-				"color": sS.c['white'].m
-				}, {
-				"text": `~restartModule `,
-				"color": sS.c['yellow'].m
-			}, {
-				"text": `discord`,
-				"color": sS.c['brightBlue'].m
-			}],
-			discord: {
-				string: null,
-				embed: {
-					title: "Restart Module",
-					description: "~restartModule",
-					color: parseInt(sS.c['orange'].h, 16),
-					timestamp: new Date(),
-					fields: [{
-						name: "Description",
-						value: "Restarts any given module."
-					}, {
-						name: "Example",
-						value: "**~restartModule** discord"
-					}]
-				}
-			}
-		}
-	}, {
-		name: 'loadModuleFunctions', 
-		exeFunc: 'loadModuleFunctions',
-		module: 'serverWrapper',
-		description: {
-			grouping: 'Wrapper Core',
-			summary: `Loads any given modules functions.`,
-			console: `${sS.c['brightWhite'].c}Loads any given modules functions. ${sS.c['reset'].c}\nExample: ${sS.c['yellow'].c}~loadModuleFunctions ${sS.c['brightBlue'].c}discord${sS.c['reset'].c}`,
-			minecraft: [{
-				"text": `Loads any given module functions.\n`,
-				"color": sS.c['brightWhite'].m
-			}, {
-				"text": `Example: `,
-				"color": sS.c['white'].m
-				}, {
-				"text": `~loadModuleFunctions `,
-				"color": sS.c['yellow'].m
-			}, {
-				"text": `discord`,
-				"color": sS.c['brightBlue'].m
-			}],
-			discord: {
-				string: null,
-				embed: {
-					title: "Load Module",
-					description: "~loadModuleFunctions",
-					color: parseInt(sS.c['orange'].h, 16),
-					timestamp: new Date(),
-					fields: [{
-						name: "Description",
-						value: "Loads any given modules functions."
-					}, {
-						name: "Example",
-						value: "**~loadModuleFunctions** discord"
-					}]
-				}
-			}
-		}
-	}, {
-		name: 'loadSettings', 
-		exeFunc: 'loadSettings',
-		module: 'serverWrapper',
-		description: {
-			grouping: 'Wrapper Core',
-			summary: `Loads wrapper settings file.`,
-			console: `${sS.c['brightWhite'].c}Loads wrapper settings file. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~loadSettings${sS.c['reset'].c}`,
-			minecraft: [{
-				"text": `Loads wrapper settings file. `,
-				"color": sS.c['brightWhite'].m
-			}, {
-				"text": `Example: `,
-				"color": sS.c['white'].m
-				}, {
-				"text": `~loadSettings`,
-				"color": sS.c['yellow'].m
-			}],
-			discord: {
-				string: null,
-				embed: {
-					title: "Load Settings",
-					description: "~loadSettings",
-					color: parseInt(sS.c['orange'].h, 16),
-					timestamp: new Date(),
-					fields: [{
-							name: "Description",
-							value: "Loads wrapper settings file."
-						}, {
-							name: "Example",
-							value: "**~loadSettings**"
-					}]
-				}
-			}
-		}
-	}, {
-		name: 'backupSettings', 
-		exeFunc: 'backupSettings',
-		module: 'serverWrapper',
-		description: {
-			grouping: 'Wrapper Core',
-			summary: `Backups all settings.`,
-			console: `${sS.c['brightWhite'].c}Backups current wrapper settings. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~backupSettings${sS.c['reset'].c}`,
-			minecraft: [{
-				"text": `Backups current wrapper settings. `,
-				"color": sS.c['brightWhite'].m
-			}, {
-				"text": `Example: `,
-				"color": sS.c['white'].m
-				}, {
-				"text": `~backupSettings`,
-				"color": sS.c['yellow'].m
-			}],
-			discord: {
-				string: null,
-				embed: {
-					title: "Backup Settings",
-					description: "~backupSettings",
-					color: parseInt(sS.c['orange'].h, 16),
-					timestamp: new Date(),
-					fields: [{
-						name: "Description",
-						value: "Backups current wrapper settings."
-					}, {
-						name: "Example",
-						value: "**~backupSettings**"
-					}]
-				}
-			}
-		}
-	}, {
-		name: 'saveSettings', 
-		exeFunc: 'saveSettings',
-		module: 'serverWrapper',
-		description: {
-			grouping: 'Wrapper Core',
-			summary: `Saves current wrapper settings.`,
-			console: `${sS.c['brightWhite'].c}Saves current wrapper settings. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~saveSettings${sS.c['reset'].c}`,
-			minecraft: [{
-				"text": `Saves current wrapper settings. `,
-				"color": sS.c['brightWhite'].m
-			}, {
-				"text": `Example: `,
-				"color": sS.c['white'].m
-				}, {
-				"text": `~saveSettings`,
-				"color": sS.c['yellow'].m
-			}],
-			discord: {
-				string: null,
-				embed: {
-					title: "Save Settings",
-					description: "~saveSettings",
-					color: parseInt(sS.c['orange'].h, 16),
-					timestamp: new Date(),
-					fields: [{
-						name: "Description",
-						value: "Saves current wrapper settings."
-					}, {
-						name: "Example",
-						value: "**~saveSettings**"
-					}]
-				}
+					name: "Example",
+					value: "**~restartModules**"
+				}]
 			}
 		}
 	}
-]
+}, {
+	name: 'unloadModules', 
+	exeFunc: 'unloadModules',
+	module: thisModule,
+	description: {
+		summary: `Stops and unloads all modules.`,
+		console: `${sS.c['brightWhite'].c}Stops and unloads all modules except command and log. ${sS.c['reset'].c}\nExample: ${sS.c['yellow'].c}~unloadModules${sS.c['reset'].c}`,
+		minecraft: [{
+			"text": `Stops and unloads all modules except command and log.\n`,
+			"color": sS.c['brightWhite'].m
+		}, {
+			"text": `Example: `,
+			"color": sS.c['white'].m
+			}, {
+			"text": `~unloadModules`,
+			"color": sS.c['yellow'].m
+		}],
+		discord: {
+			string: null,
+			embed: {
+				title: "Unload All Modules",
+				description: "~unloadModules",
+				color: parseInt(sS.c['orange'].h, 16),
+				timestamp: new Date(),
+				fields: [{
+					name: "Description",
+					value: "Stops and unloads all modules except command and log."
+				}, {
+					name: "Example",
+					value: "**~unloadModules**"
+				}]
+			}
+		}
+	}
+}, {
+	name: 'reloadModules', 
+	exeFunc: 'reloadModules',
+	module: thisModule,
+	description: {
+		summary: `Reloads and restarts all modules.`,
+		console: `${sS.c['brightWhite'].c}Reloads and restarts all modules. Will load and run any changes to modules. ${sS.c['reset'].c}\nExample: ${sS.c['yellow'].c}~reloadModules${sS.c['reset'].c}`,
+		minecraft: [{
+				"text": `Reloads and restarts all modules. `,
+				"color": sS.c['brightWhite'].m
+			}, {
+				"text": `Example: `,
+				"color": sS.c['white'].m
+				}, {
+				"text": `~reloadModules`,
+				"color": sS.c['yellow'].m
+			}],
+		discord: {
+			string: null,
+			embed: {
+				title: "Reload Modules",
+				description: "~reloadModules",
+				color: parseInt(sS.c['orange'].h, 16),
+				timestamp: new Date(),
+				fields: [{
+					name: "Description",
+					value: "Reloads and restarts all modules. Will load and run any changes to modules."
+				}, {
+					name: "Example",
+					value: "**~reloadModules**"
+				}]
+			}
+		}
+	}
+}, {
+	name: 'listModules', 
+	exeFunc: 'listModules',
+	module: thisModule,
+	description: {
+		summary: `Gets status of all modules currently installed in the wrapper.`,
+		console: `${sS.c['brightWhite'].c}Gets status of all modules currently installed. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~listModules${sS.c['reset'].c}`,
+		minecraft: [{
+			"text": `Gets status of all modules currently insalled. `,
+			"color": sS.c['brightWhite'].m
+		}, {
+			"text": `Example: `,
+			"color": sS.c['white'].m
+			}, {
+			"text": `~listModules`,
+			"color": sS.c['yellow'].m
+		}],
+		discord: {
+			string: null,
+			embed: {
+				title: "List Modules",
+				description: "~listModules",
+				color: parseInt(sS.c['orange'].h, 16),
+				timestamp: new Date(),
+				fields: [{
+					name: "Description",
+					value: "Gets status of all modules currently installed."
+				}, {
+					name: "Example",
+					value: "**~listModules**"
+					}]
+				}
+			}
+		}
+}, {
+	name: 'enableModule', 
+	exeFunc: 'enableModule',
+	module: thisModule,
+	description: {
+		summary: `Enables any given module.`,
+		console: `${sS.c['brightWhite'].c}Enables any given module and saves settings if true. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~enableModule ${sS.c['brightBlue'].c}discord ${sS.c['orange'].c}true${sS.c['reset'].c}`,
+		minecraft: [{
+			"text": `Enables any given module and saves settings if true. `,
+			"color": sS.c['brightWhite'].m
+		}, {
+			"text": `Example: `,
+			"color": sS.c['white'].m
+			}, {
+			"text": `~enableModule discord`,
+			"color": sS.c['yellow'].m
+		}],
+		discord: {
+			string: null,
+			embed: {
+				title: "Enable Module",
+				description: "~enableModule",
+				color: parseInt(sS.c['orange'].h, 16),
+				timestamp: new Date(),
+				fields: [{
+					name: "Description",
+					value: "Enables any given module. Excepts an optional parameter (true), Saves the change made to any setting."
+				}, {
+					name: "Example",
+					value: "**~enableModule** discord true"
+				}]
+			}
+		}
+	}
+}, {
+	name: 'disableModule', 
+	exeFunc: 'disableModule',
+	module: thisModule,
+	description: {
+		summary: `Disables any given module.`,
+		console: `${sS.c['brightWhite'].c}Disables any given module and saves settings if true. ${sS.c['reset'].c}\nExample: ${sS.c['yellow'].c}~disableModule ${sS.c['brightBlue'].c}discord ${sS.c['orange'].c}true${sS.c['reset'].c}`,
+		minecraft: [{
+				"text": `Disables any given module and saves settings if true.\n`,
+				"color": sS.c['brightWhite'].m
+			}, {
+				"text": `Example: `,
+				"color": sS.c['white'].m
+				}, {
+				"text": `~disableModule `,
+				"color": sS.c['yellow'].m
+			}, {
+				"text": `discord `,
+				"color": sS.c['brightBlue'].m
+			}, {
+				"text": `true`,
+				"color": sS.c['yellow'].m
+			}],
+		discord: {
+			string: null,
+			embed: {
+				title: "Disable Module",
+				description: "~disableModule",
+				color: parseInt(sS.c['orange'].h, 16),
+				timestamp: new Date(),
+				fields: [{
+					name: "Description",
+					value: "Disables any given module. Excepts an optional parameter which if true, saves the updated settings."
+				}, {
+					name: "Example",
+					value: "**~disableModule** discord true"
+				}]
+			}
+		}
+	}
+}, {
+	name: 'reloadModule', 
+	exeFunc: 'reloadModule',
+	module: thisModule,
+	description: {
+		summary: `Reloads any given module.`,
+		console: `${sS.c['brightWhite'].c}Reloads any given module. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~reloadModule ${sS.c['brightBlue'].c}discord${sS.c['reset'].c}`,
+		minecraft: [{
+			"text": `Reloads any given module. `,
+			"color": sS.c['brightWhite'].m
+		}, {
+			"text": `Example: `,
+			"color": sS.c['white'].m
+			}, {
+			"text": `~reloadModule `,
+			"color": sS.c['yellow'].m
+		}, {
+			"text": `discord`,
+			"color": sS.c['brightBlue'].m
+		}],
+		discord: {
+			string: null,
+			embed: {
+				title: "Reload Module",
+				description: "~reloadModule",
+				color: parseInt(sS.c['orange'].h, 16),
+				timestamp: new Date(),
+				fields: [{
+					name: "Description",
+					value: "Reloads any given module."
+				}, {
+					name: "Example",
+					value: "**~reloadModule** discord."
+				}]
+			}
+		}
+	}
+}, {
+	name: 'killModule', 
+	exeFunc: 'killModule',
+	module: thisModule,
+	description: {
+		summary: `Stops any given module.`,
+		console: `${sS.c['brightWhite'].c}Stops any given module. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~killModule ${sS.c['brightBlue'].c}discord${sS.c['reset'].c}`,
+		minecraft: [{
+			"text": `Stops any given module. `,
+			"color": sS.c['brightWhite'].m
+		}, {
+			"text": `Example: `,
+			"color": sS.c['white'].m
+		}, {
+			"text": `~killModule `,
+			"color": sS.c['yellow'].m
+		}, {
+			"text": `discord`,
+			"color": sS.c['brightBlue'].m
+		}],
+		discord: {
+			string: null,
+			embed: {
+				title: "Kill Module",
+				description: "~killModule",
+				color: parseInt(sS.c['orange'].h, 16),
+				timestamp: new Date(),
+				fields: [{
+					name: "Description",
+					value: "Stops any given module."
+				}, {
+					name: "Example",
+					value: "**~killModule** discord"
+				}]
+			}
+		}
+	}
+}, {
+	name: 'startModule', 
+	exeFunc: 'startModule',
+	module: thisModule,
+	description: {
+		summary: `Starts any given module.`,
+		console: `${sS.c['brightWhite'].c}Starts any given module. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~startModule ${sS.c['brightBlue'].c}discord${sS.c['reset'].c}`,
+		minecraft: [{
+			"text": `Starts any given module. `,
+			"color": sS.c['brightWhite'].m
+		}, {
+			"text": `Example: `,
+			"color": sS.c['white'].m
+			}, {
+			"text": `~startModule `,
+			"color": sS.c['yellow'].m
+		}, {
+			"text": `discord`,
+			"color": sS.c['brightBlue'].m
+		}],
+		discord: {
+			string: null,
+			embed: {
+				title: "Start Module",
+				description: "~startModule",
+				color: parseInt(sS.c['orange'].h, 16),
+				timestamp: new Date(),
+				fields: [{
+					name: "Description",
+					value: "Starts any given module."
+				}, {
+					name: "Example",
+					value: "**~startModule** discord"
+				}]
+			}
+		}
+	}
+}, {
+	name: 'restartModule', 
+	exeFunc: 'restartModule',
+	module: thisModule,
+	description: {
+		summary: `Restarts any given module`,
+		console: `${sS.c['brightWhite'].c}Restarts any given module. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~restartModule ${sS.c['brightBlue'].c}discord${sS.c['reset'].c}`,
+		minecraft: [{
+			"text": `Restarts any given module. `,
+			"color": sS.c['brightWhite'].m
+		}, {
+			"text": `Example: `,
+			"color": sS.c['white'].m
+			}, {
+			"text": `~restartModule `,
+			"color": sS.c['yellow'].m
+		}, {
+			"text": `discord`,
+			"color": sS.c['brightBlue'].m
+		}],
+		discord: {
+			string: null,
+			embed: {
+				title: "Restart Module",
+				description: "~restartModule",
+				color: parseInt(sS.c['orange'].h, 16),
+				timestamp: new Date(),
+				fields: [{
+					name: "Description",
+					value: "Restarts any given module."
+				}, {
+					name: "Example",
+					value: "**~restartModule** discord"
+				}]
+			}
+		}
+	}
+}, {
+	name: 'loadModuleFunctions', 
+	exeFunc: 'loadModuleFunctions',
+	module: thisModule,
+	description: {
+		summary: `Loads any given modules functions.`,
+		console: `${sS.c['brightWhite'].c}Loads any given modules functions. ${sS.c['reset'].c}\nExample: ${sS.c['yellow'].c}~loadModuleFunctions ${sS.c['brightBlue'].c}discord${sS.c['reset'].c}`,
+		minecraft: [{
+			"text": `Loads any given module functions.\n`,
+			"color": sS.c['brightWhite'].m
+		}, {
+			"text": `Example: `,
+			"color": sS.c['white'].m
+			}, {
+			"text": `~loadModuleFunctions `,
+			"color": sS.c['yellow'].m
+		}, {
+			"text": `discord`,
+			"color": sS.c['brightBlue'].m
+		}],
+		discord: {
+			string: null,
+			embed: {
+				title: "Load Module",
+				description: "~loadModuleFunctions",
+				color: parseInt(sS.c['orange'].h, 16),
+				timestamp: new Date(),
+				fields: [{
+					name: "Description",
+					value: "Loads any given modules functions."
+				}, {
+					name: "Example",
+					value: "**~loadModuleFunctions** discord"
+				}]
+			}
+		}
+	}
+}, {
+	name: 'loadSettings', 
+	exeFunc: 'loadSettings',
+	module: thisModule,
+	description: {
+		summary: `Loads wrapper settings file.`,
+		console: `${sS.c['brightWhite'].c}Loads wrapper settings file. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~loadSettings${sS.c['reset'].c}`,
+		minecraft: [{
+			"text": `Loads wrapper settings file. `,
+			"color": sS.c['brightWhite'].m
+		}, {
+			"text": `Example: `,
+			"color": sS.c['white'].m
+			}, {
+			"text": `~loadSettings`,
+			"color": sS.c['yellow'].m
+		}],
+		discord: {
+			string: null,
+			embed: {
+				title: "Load Settings",
+				description: "~loadSettings",
+				color: parseInt(sS.c['orange'].h, 16),
+				timestamp: new Date(),
+				fields: [{
+						name: "Description",
+						value: "Loads wrapper settings file."
+					}, {
+						name: "Example",
+						value: "**~loadSettings**"
+				}]
+			}
+		}
+	}
+}, {
+	name: 'backupSettings', 
+	exeFunc: 'backupSettings',
+	module: thisModule,
+	description: {
+		summary: `Backups all settings.`,
+		console: `${sS.c['brightWhite'].c}Backups current wrapper settings. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~backupSettings${sS.c['reset'].c}`,
+		minecraft: [{
+			"text": `Backups current wrapper settings. `,
+			"color": sS.c['brightWhite'].m
+		}, {
+			"text": `Example: `,
+			"color": sS.c['white'].m
+			}, {
+			"text": `~backupSettings`,
+			"color": sS.c['yellow'].m
+		}],
+		discord: {
+			string: null,
+			embed: {
+				title: "Backup Settings",
+				description: "~backupSettings",
+				color: parseInt(sS.c['orange'].h, 16),
+				timestamp: new Date(),
+				fields: [{
+					name: "Description",
+					value: "Backups current wrapper settings."
+				}, {
+					name: "Example",
+					value: "**~backupSettings**"
+				}]
+			}
+		}
+	}
+}, {
+	name: 'saveSettings', 
+	exeFunc: 'saveSettings',
+	module: thisModule,
+	description: {
+		summary: `Saves current wrapper settings.`,
+		console: `${sS.c['brightWhite'].c}Saves current wrapper settings. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~saveSettings${sS.c['reset'].c}`,
+		minecraft: [{
+			"text": `Saves current wrapper settings. `,
+			"color": sS.c['brightWhite'].m
+		}, {
+			"text": `Example: `,
+			"color": sS.c['white'].m
+			}, {
+			"text": `~saveSettings`,
+			"color": sS.c['yellow'].m
+		}],
+		discord: {
+			string: null,
+			embed: {
+				title: "Save Settings",
+				description: "~saveSettings",
+				color: parseInt(sS.c['orange'].h, 16),
+				timestamp: new Date(),
+				fields: [{
+					name: "Description",
+					value: "Saves current wrapper settings."
+				}, {
+					name: "Example",
+					value: "**~saveSettings**"
+				}]
+			}
+		}
+	}
+}]
