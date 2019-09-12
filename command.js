@@ -239,9 +239,9 @@ process.on('message', async message => {
 });
 
 fn.processCommand = async function (message) {
-	if (message.string[0] != '~' || message.string[0] != '?') return;
 	message.string = message.string.replace(/\s\s+/g, ' '); // Compact multiple spaces/tabs down to one
 	message.string = message.string.replace('\r', '')
+	if (message.string[0] != '~' && message.string[0] != '?') return;
 	message.logTo = {
 		console: true,
 		discord: (message.author) ? { channel: message.channel.id } : null,
