@@ -10,6 +10,8 @@ let mS = {} // moduleSettings
 let serverStats = { serverName: '', status: 'Init', pid: '', mem: '', cpu: '', uptime: '', timeToBackup: 'Backups Disabled' }; // Default stats
 let statsInterval = null;
 
+let moduleStart = null;
+
 const modul = new [require('./modul.js')][0](thisModule)
 let fn = {
 	init: async message => {
@@ -20,13 +22,13 @@ let fn = {
 		})
 		clearInterval(statsInterval);
 		fn.startInterval();
-		fn.exportCommands = async () => {}
 	}, 
 	startStatsInterval: async message => { // Start sending frequent stats updates
-		serverStats.pid = message.serverPID||serverStats.pid;
-		Object.assign(serverStats, message.serverStats);
+		if (message.stats.status == 'Starting') moduleStart = Date.now();
+		else if (message.stats.status == 'Running') moduleStart = null;
+		Object.assign(serverStats, message.stats);
 		await updateServerStats();
-		await sendStatsUpdate();
+		sendStatsUpdate();
 		clearInterval(statsInterval);
 		fn.startInterval();
 	},
@@ -57,6 +59,11 @@ process.on('message', message => {
 });
 
 async function sendStatsUpdate() {
+	if (moduleStart != null && sS.lastStartTime) {
+		let timeSinceStart = Date.now()-moduleStart;
+		if (sS.lastStartTime-timeSinceStart < 0) moduleStart = null;
+		serverStats.status = `Remaining boot time: ${sS.lastStartTime-timeSinceStart}ms`
+	} 
 	let sName = `${serverStats.serverName} - ${serverStats.status}`
 	let PID = `PID: ${serverStats.pid}`
 	let Mem = `Mem: ${Math.round(serverStats.mem/1024/1024)}MB`

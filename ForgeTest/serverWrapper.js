@@ -858,10 +858,17 @@ async function startServer() {
 		["FML", new RegExp("FML", 'g'), `${sS.c['brightMagenta'].c}FML${sS.c['reset'].c}`]
 	]
 	const colorArrLen = colorArr.length
+	const serverStartTime = Date.now();
 
-	console.log(`${sS.c['brightCyan'].c}Starting server...${sS.c['reset'].c}`)
+	console.log(`${sS.c['brightCyan'].c}Starting server... ${sS.c['reset'].c}${sS.lastStartTime?`Last start took: ${sS.c['brightCyan'].c}${sS.lastStartTime}${sS.c['reset'].c}ms`:''}${sS.c['reset'].c}`)
 	server = children.spawn('java', serverStartVars, { detached : false });
 	server.stderr.on('data', err => {lErr({message: err, stack:''}, 'Failed to start server.')});
+	if ((loadedModules['stats']||{}).process) loadedModules['stats'].call('startStatsInterval', {
+		stats: {
+			serverPID: server.pid,
+			status: 'Starting'
+		}
+	}).catch(err => lErr(err, 'Failed to send server starting message to stats module.'));
 	server.stdin.write('list\n'); // Write list to the console so we can know when the server has finished starting'
 
 	let color = string => {
@@ -880,31 +887,28 @@ async function startServer() {
 	let sStdoutHandler = (string) => {
 		color(string.toString()) // Write line to wrapper console
 		if (string.indexOf("players online") > -1) { // "list" command has completed, server is now online
+			clearInterval(otherStart);
 			sStdoutHandler = postConsoleTimeout;
 			started();
 		}
 	}
 	let started = () => {
+		sS.lastStartTime = Date.now()-serverStartTime
+		console.log(`Server started in ${sS.c['brightCyan'].c}${sS.lastStartTime}${sS.c['reset'].c}ms`)
 		if ((loadedModules['stats']||{}).process) loadedModules['stats'].call('startStatsInterval', {
-			serverPID: server.pid,
-			serverStats: {
+			stats: {
+				pid: server.pid,
 				status: 'Running'
 			}
 		}).catch(err => lErr(err, 'Failed to send server started status update.'));
+		saveSettings();
 	}
 
-	setTimeout(() => {
+	let otherStart = setTimeout(() => {
 		sStdoutHandler = postConsoleTimeout;
 		started();
 	}, 120*1000) // Enable console broadcasting after 120 seconds if the check fails
-	server.stdout.on('data', string => sStdoutHandler(string))
-	if ((loadedModules['stats']||{}).process) loadedModules['stats'].call('startStatsInterval', {
-		serverPID: server.pid,
-		serverStats: {
-			status: 'Starting'
-		}
-	}).catch(err => lErr(err, 'Failed to send server starting message to stats module.'));
-		
+	server.stdout.on('data', string => sStdoutHandler(string))		
 
 	// Server shutdown handling
 	server.on('exit', code => {
