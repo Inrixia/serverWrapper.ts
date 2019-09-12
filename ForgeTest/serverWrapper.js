@@ -833,6 +833,7 @@ async function startServer() {
 
 	console.log(`${sS.c['brightCyan'].c}Starting server...${sS.c['reset'].c}`)
 	server = children.spawn('java', serverStartVars, { detached : false });
+	server.stderr.on('data', err => {lErr({message: err, stack:''}, 'Failed to start server.')});
 	server.stdin.write('list\n'); // Write list to the console so we can know when the server has finished starting'
 
 	let color = string => {
@@ -878,9 +879,9 @@ async function startServer() {
 		
 
 	// Server shutdown handling
-	server.on('exit', (code) => {
+	server.on('exit', code => {
 		wrapperModule.emit('pushStats', { status: "Closed" })
-		console.log(`Server closed with exit code: ${code}\nKilling modules...`);
+		console.log(`Server ${sS.c['brightRed'].c}closed${sS.c['reset'].c} with exit code: ${sS.c['brightCyan'].c}${code}${sS.c['brightRed'].c}\nKilling modules...${sS.c['reset'].c}`);
 		Object.keys(loadedModules).forEach(moduleName => {
 			loadedModules[moduleName].kill();
 		});
