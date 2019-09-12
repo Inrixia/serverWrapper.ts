@@ -142,7 +142,6 @@ module.exports = class Module {
 		if (logTo.console && logObj.console) process.stdout.write(logObj.console+'\n');
 		if (logTo.minecraft && logObj.minecraft) await this.call('serverWrapper', 'serverStdin', logObj.minecraft);
 		if (logTo.discord && logObj.discord) await this.call('discord', 'discordStdin', { msg: logObj.discord, channel: logTo.discord.channel||null }, this.thisModule)
-		return true;
 	}
 	async lErr(err, name='', logTo=null) {
 		return await this.logg({

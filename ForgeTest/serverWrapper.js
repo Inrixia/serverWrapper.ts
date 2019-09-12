@@ -66,8 +66,8 @@ let fn = { // Object holding callable functions for modules
 		wrapperModule.emit(...args)
 	},
 	enableModule: async data => { 
-		let thisModule = loadedModules[data.args[1]];
 		if (!thisModule) throw new Error(`Module ${data.args[1]} is not loaded.`)
+		let thisModule = loadedModules[data.args[1]]
 		await thisModule.enable(data.args[2])
 		return {
 			console: `${sS.c['brightCyan'].c}Enabled module${sS.c['reset'].c}: ${thisModule.color.c}${thisModule.name}${sS.c['reset'].c}`,
@@ -92,8 +92,8 @@ let fn = { // Object holding callable functions for modules
 		}
 	},
 	disableModule: async data => { 
-		let thisModule = loadedModules[data.args[1]]
 		if (!thisModule) throw new Error(`Module ${data.args[1]} is not loaded.`)
+		let thisModule = loadedModules[data.args[1]]
 		await thisModule.disable(data.args[2])
 		return {
 			console: `${sS.c['brightCyan'].c}Disabled module${sS.c['reset'].c}: ${thisModule.color.c}${thisModule.name}${sS.c['reset'].c}`,
@@ -118,8 +118,8 @@ let fn = { // Object holding callable functions for modules
 		}
 	},
 	killModule: async data => { 
-		let thisModule = loadedModules[data.args[1]]
 		if (!thisModule) throw new Error(`Module ${data.args[1]} is not loaded.`)
+		let thisModule = loadedModules[data.args[1]]
 		await thisModule.kill()
 		return {
 			console: `${sS.c['brightCyan'].c}Killed module${sS.c['reset'].c}: ${thisModule.color.c}${thisModule.name}${sS.c['reset'].c}`,
@@ -144,8 +144,8 @@ let fn = { // Object holding callable functions for modules
 		}
 	},
 	startModule: async data => { 
-		let thisModule = loadedModules[data.args[1]]
 		if (!thisModule) throw new Error(`Module ${data.args[1]} is not loaded.`)
+		let thisModule = loadedModules[data.args[1]]
 		await thisModule.start()
 		return {
 			console: `${sS.c['brightCyan'].c}Started module${sS.c['reset'].c}: ${thisModule.color.c}${thisModule.name}${sS.c['reset'].c}`,
@@ -171,15 +171,59 @@ let fn = { // Object holding callable functions for modules
 	},
 	restartModule:async data => { 
 		if (!loadedModules[data.args[1]]) throw new Error(`Module ${data.args[1]} is not loaded.`)
-		return await loadedModules[data.args[1]].restart()
+		let thisModule = loadedModules[data.args[1]]
+		await loadedModules[data.args[1]].restart()
+		return {
+			console: `${sS.c['brightCyan'].c}Restarted module${sS.c['reset'].c}: ${thisModule.color.c}${thisModule.name}${sS.c['reset'].c}`,
+			minecraft: `tellraw ${data.logTo.user} ${JSON.stringify(
+				[{
+					"text": `Restarted module `,
+					"color": sS.c['brightCyan'].m
+				}, {
+					"text": thisModule.name,
+					"color": thisModule.color.m
+				}]
+			)}\n`,
+			discord : {
+				string: null,
+				embed: {
+					color: parseInt(thisModule.color.h, 16),
+					title: `Restarted module: ${thisModule.name}`,
+					description: null,
+					timestamp: new Date()
+				}
+			}
+		}
 	},
 	reloadModule: async data => { 
 		if (!loadedModules[data.args[1]]) throw new Error(`Module ${data.args[1]} is not loaded.`)
-		return await loadedModules[data.args[1]].reload()
+		let thisModule = loadedModules[data.args[1]]
+		await loadedModules[data.args[1]].reload()
+		return {
+			console: `${sS.c['brightCyan'].c}Reloaded module${sS.c['reset'].c}: ${thisModule.color.c}${thisModule.name}${sS.c['reset'].c}`,
+			minecraft: `tellraw ${data.logTo.user} ${JSON.stringify(
+				[{
+					"text": `Reloaded module `,
+					"color": sS.c['brightCyan'].m
+				}, {
+					"text": thisModule.name,
+					"color": thisModule.color.m
+				}]
+			)}\n`,
+			discord : {
+				string: null,
+				embed: {
+					color: parseInt(thisModule.color.h, 16),
+					title: `Reloaded module: ${thisModule.name}`,
+					description: null,
+					timestamp: new Date()
+				}
+			}
+		}
 	},
 	loadModuleFunctions: async data => { 
-		let thisModule = loadedModules[data.args[1]]
 		if (!thisModule) throw new Error(`Module ${data.args[1]} is not loaded.`)
+		let thisModule = loadedModules[data.args[1]]
 		await thisModule.loadFunctions()
 		return {
 			console: `${sS.c['brightCyan'].c}Loaded${sS.c['reset'].c} ${thisModule.color.c}${thisModule.name}${sS.c['reset'].c}'s functions`,
@@ -206,9 +250,51 @@ let fn = { // Object holding callable functions for modules
 			}
 		}
 	},
-	restartModules: restartModules,
-	unloadModules: unloadModules,
-	reloadModules: reloadModules,
+	restartModules: restartModules, // No return as command.js will be restarted and not listen for output
+	unloadModules: async data => {
+		await unloadModules()
+		return {
+			console: `${sS.c['brightCyan'].c}Unloaded all non persistent modules...${sS.c['reset'].c}`,
+			minecraft: `tellraw ${data.logTo.user} ${JSON.stringify(
+				[{
+					"text": `Unloaded all non persistent modules...`,
+					"color": sS.c['brightCyan'].m
+				}]
+			)}\n`,
+			discord : {
+				string: null,
+				embed: {
+					color: parseInt(sS.c['brightCyan'].h, 16),
+					title: `Unloaded all non persistent modules...`,
+					description: null,
+					timestamp: new Date()
+				}
+			}
+		}
+	},
+	reloadModules: async data => {
+		await unloadModules()
+		await loadModules()
+		await startEnabledModules()
+		return {
+			console: `${sS.c['brightCyan'].c}Reloaded all modules...${sS.c['reset'].c}`,
+			minecraft: `tellraw ${data.logTo.user} ${JSON.stringify(
+				[{
+					"text": `Reloaded all modules...`,
+					"color": sS.c['brightCyan'].m
+				}]
+			)}\n`,
+			discord : {
+				string: null,
+				embed: {
+					color: parseInt(sS.c['brightCyan'].h, 16),
+					title: `Reloaded all modules...`,
+					description: null,
+					timestamp: new Date()
+				}
+			}
+		}
+	},
 	listModules: async message => {
 		let seperator = " "
 		let enabledModules = "";
@@ -252,23 +338,27 @@ let fn = { // Object holding callable functions for modules
 				disabledModules += `${thisModule.color.c}${moduleName} ${sS.c['reset'].c}[${thisModule.process ? `${sS.c['green'].c}R${sS.c['reset'].c}` : `${sS.c['red'].c}S${sS.c['reset'].c}`}]${sS.c['reset'].c}${!(index < Object.keys(loadedModules).length-1) ? '' : seperator }`
 			}
 			return {
-				string: null,
-				embed: {
-					color: parseInt(sS.c[sS.modules[moduleName].discordColor||sS.modules[moduleName].color].h, 16),
-					title: `${thisModule.name}`,
-					description: `${thisModule.description}`,
-					timestamp: new Date(),
-					footer: {
-						text: `${(thisModule.process) ? 'Running' : 'Stopped'} • ${(thisModule.enabled) ? 'Enabled' : 'Disabled'}`
+				discord: {
+					string: null,
+					embed: {
+						color: parseInt(sS.c[sS.modules[moduleName].discordColor||sS.modules[moduleName].color].h, 16),
+						title: `${thisModule.name}`,
+						description: `${thisModule.description}`,
+						timestamp: new Date(),
+						footer: {
+							text: `${(thisModule.process) ? 'Running' : 'Stopped'} • ${(thisModule.enabled) ? 'Enabled' : 'Disabled'}`
+						}
 					}
-				}
+				},
+				minecraft: null,
+				console: null
 			};
 		})
-		return {
-			discord: moduleList,
+		return [{
+			discord: null,
 			minecraft: `tellraw ${message.logTo.user} ${JSON.stringify(enabledModulesIng.concat(disabledModulesIng))}\n`,
 			console: `${sS.c['brightCyan'].c}Enabled wrapper modules${sS.c['reset'].c}: ${enabledModules}\n`+`${sS.c['brightCyan'].c}Disabled wrapper modules${sS.c['reset'].c}: ${disabledModules}`
-		}
+		}].concat(moduleList)
 	},
 	backupSettings: async data => {
 		await backupSettings()
@@ -629,8 +719,10 @@ async function loadModules() { // Loads in modules from server settings
 
 async function unloadModules() {
 	return Object.keys(loadedModules).map(moduleName => {
-		if (loadedModules[moduleName].process) loadedModules[moduleName].kill();
-		delete loadedModules[moduleName];
+		if (!sS.modules[moduleName].persistent) {
+			if (loadedModules[moduleName].process) loadedModules[moduleName].kill();
+			delete loadedModules[moduleName];
+		}
 	})
 }
 
@@ -644,12 +736,6 @@ async function startEnabledModules() {
 		}
 		return results
 	}, []))
-}
-
-async function reloadModules() {
-	await unloadModules()
-	await loadModules()
-	await startEnabledModules()
 }
 
 async function restartModules() {
@@ -803,9 +889,9 @@ const commands = [{
 	module: thisModule,
 	description: {
 		summary: `Stops and unloads all modules.`,
-		console: `${sS.c['brightWhite'].c}Stops and unloads all modules except command and log. ${sS.c['reset'].c}\nExample: ${sS.c['yellow'].c}~unloadModules${sS.c['reset'].c}`,
+		console: `${sS.c['brightWhite'].c}Stops and unloads all non-persistent modules. ${sS.c['reset'].c}\nExample: ${sS.c['yellow'].c}~unloadModules${sS.c['reset'].c}`,
 		minecraft: [{
-			"text": `Stops and unloads all modules except command and log.\n`,
+			"text": `Stops and unloads all non-persistent modules.\n`,
 			"color": sS.c['brightWhite'].m
 		}, {
 			"text": `Example: `,
@@ -823,7 +909,7 @@ const commands = [{
 				timestamp: new Date(),
 				fields: [{
 					name: "Description",
-					value: "Stops and unloads all modules except command and log."
+					value: "Stops and unloads all non-persistent modules."
 				}, {
 					name: "Example",
 					value: "**~unloadModules**"

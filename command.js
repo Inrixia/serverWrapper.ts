@@ -281,25 +281,27 @@ fn.processCommand = async function (message) {
 		}
 	}, message.logTo);
 	let exeStart = new Date();
-	let result = await commands[commandName.toLowerCase()].execute(message)
+	let commandOutput = await commands[commandName.toLowerCase()].execute(message)
 	.catch(err => {
 		// TODO Add unknown command handling
 		modul.lErr(err, `Error while executing command "${message.string}"`, message.logTo)
 	});
-	if (!Array.isArray(result.discord)) result.discord = [result.discord]
-	result.discord = result.discord.map(discord => {
-		let footerText = (((discord||{}).embed||{}).footer||{}).text
-		let exeTime = `Executed in ${util.getDuration(exeStart, new Date())}`;
-		if (footerText != undefined) discord.embed.footer.text = `${footerText} • ${exeTime}`
-		else {
-			discord = discord||{};
-			embed = discord.embed||{};
-			embed.footer = discord.embed.footer||{}
-			embed.footer.text = exeTime
+	if (!commandOutput) return;
+	if (!Array.isArray(commandOutput)) commandOutput = [commandOutput]
+	commandOutput.forEach(async result => {
+		if (result.discord) {
+			let footerText = (((result.discord||{}).embed||{}).footer||{}).text
+			let exeTime = `Executed in ${util.getDuration(exeStart, new Date())}`;
+			if (footerText != undefined) result.discord.embed.footer.text = `${footerText} • ${exeTime}`
+			else {
+				result.discord = result.discord||{};
+				embed = result.discord.embed||{};
+				embed.footer = result.discord.embed.footer||{}
+				embed.footer.text = exeTime
+			}
 		}
-		return discord;
+		await modul.logg(result, message.logTo)
 	})
-	return await modul.logg(result, message.logTo)
 }
 
 async function getCommandArgs(string) {

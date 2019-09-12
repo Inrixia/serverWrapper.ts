@@ -195,7 +195,7 @@
     },
     "discord": {
       "file": "discord.js",
-      "enabled": false,
+      "enabled": true,
       "persistent": false,
       "color": "brightBlue",
       "discordColor": "discordBlue",

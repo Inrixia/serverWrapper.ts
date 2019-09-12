@@ -31,8 +31,7 @@ let fn = {
 		let channel = managementChannel;
 		if (message.channel) channel = discord.guilds.get('155507830076604416').channels.get(message.channel)
 		else if (message.userID) channel = discord.users.get(message.userID);
-		if (Array.isArray(message.msg)) message.msg.forEach(mssg => channel.send(mssg))
-		else await channel.send(message.msg)
+		await channel.send(message.msg)
 	}
 }
 
