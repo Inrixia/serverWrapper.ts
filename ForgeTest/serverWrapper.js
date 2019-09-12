@@ -54,9 +54,30 @@ if (((sS.modules['discord']||{}).settings||{}).discord_token == "") {
 		process.stdout.write(`${sS.c['brightRed'].c}Disabled Module${sS.c['reset'].c}: ${sS.modules['discord'].color.c}discord.js${sS.c['reset'].c}, No Token Found!\n`);
 }
 
+let triedSafeExit = false;
+let termOut = `${sS.c['brightRed'].c}Caught Ctrl-C, Terminating Processes...${sS.c['reset'].c}`;
+consoleReadline.on('SIGINT', () => {
+	if (server && !triedSafeExit) {
+		console.log(`${sS.c['brightRed'].c}Caught Ctrl-C, closing server gracefully... Ctrl-C again to terminate!${sS.c['reset'].c}`)
+		server.stdin.write('stop\n');
+	} else {
+		console.log(termOut)
+		cleanExit();
+	}
+	if (triedSafeExit) {
+		console.log(termOut)
+		cleanExit();
+	}
+	triedSafeExit = true;
+})
+
+consoleReadline.on('SIGTSTP', () => {
+	console.log('Caught SIGTSTP, Dont use Ctrl-Z.');
+});
+
 const cleanExit = () => {
 	if (server && server.process) server.process.kill();
-	process.kill();
+	process.exit();
 };
 process.on('SIGINT', cleanExit); // catch ctrl-c
 process.on('SIGTERM', cleanExit); // catch term
@@ -250,7 +271,27 @@ let fn = { // Object holding callable functions for modules
 			}
 		}
 	},
-	restartModules: restartModules, // No return as command.js will be restarted and not listen for output
+	restartModules: async data => {
+		await restartModules()
+		return {
+			console: `${sS.c['brightCyan'].c}Restarted all modules...${sS.c['reset'].c}`,
+			minecraft: `tellraw ${data.logTo.user} ${JSON.stringify(
+				[{
+					"text": `Restarted all modules...`,
+					"color": sS.c['brightCyan'].m
+				}]
+			)}\n`,
+			discord : {
+				string: null,
+				embed: {
+					color: parseInt(sS.c['brightCyan'].h, 16),
+					title: `Restarted all modules...`,
+					description: null,
+					timestamp: new Date()
+				}
+			}
+		}
+	},
 	unloadModules: async data => {
 		await unloadModules()
 		return {
@@ -739,10 +780,9 @@ async function startEnabledModules() {
 }
 
 async function restartModules() {
-	return await Promise.all(Object.keys(loadedModules).reduce((results, moduleName) => {
-		if (loadedModules[moduleName].enabled) results.push(loadedModules[moduleName].restart())
-		return results
-	}, []))
+	Object.keys(loadedModules).forEach(moduleName => {
+		if (loadedModules[moduleName].enabled) loadedModules[moduleName].restart()
+	})
 }
 
 /*
