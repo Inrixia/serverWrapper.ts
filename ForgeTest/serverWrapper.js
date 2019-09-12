@@ -584,7 +584,9 @@ class wrapperModule {
 						break;				
 				}
 			})
-			return await this.call('init', { 'sS': sS, commands: this.name=='command'?commands:null }).catch(err => lErr(err, `Failed to call init for module ${this.name}!`));
+			let init = await this.call('init', { 'sS': sS, commands: this.name=='command'?commands:null }).catch(err => lErr(err, `Failed to call init for module ${this.name}!`));
+			await this.call('exportCommands', null).catch(err => lErr(err, `Failed to export commands for module ${this.name}!`));
+			return init;
 		} else throw new Error(`Module ${this.name} has already been started!`)
 	}
 

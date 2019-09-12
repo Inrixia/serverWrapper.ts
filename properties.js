@@ -20,77 +20,78 @@ const modul = new [require('./modul.js')][0](thisModule)
 let fn = {
 	init: async message => {
 		[sS, mS] = modul.loadSettings(message)
-		commands = [{
-			name: 'getProperty',
-			exeFunc: 'showProperty',
-			module: thisModule,
-			description: {
-				summary: `Gets given server property.`,
-				console: `${sS.c['white'].c}Gets given server property. ${sS.c['brightWhite'].c}\nExample: ${sS.c['yellow'].c}~getProperty server-port${sS.c['reset'].c}`,
-				minecraft: [{
-					"text": `Gets given server property.\n`,
-					"color": sS.c['brightWhite'].m
-				}, {
-					"text": `Example: `,
-					"color": sS.c['white'].m
-				}, {
-					"text": `~getProperty server-port`,
-					"color": sS.c['yellow'].m
-				}],
-				discord: {
-					string: null,
-					embed: {
-						title: "Get Server Property",
-						description: "~getProperty",
-						color: parseInt(sS.c['orange'].h, 16),
-						timestamp: new Date(),
-						fields: [{
-							name: "Description",
-							value: "Gets given server property from server.properties file."
-						}, {
-							name: "Example",
-							value: "**~getProperty** server-port"
-						}]
-					}
-				}
-			}
-		}, {
-			name: 'getProperties',
-			exeFunc: 'showProperties',
-			module: thisModule,
-			description: {
-				summary: `Gets server.properties file contents.`,
-				console: `${sS.c['white'].c}Gets server.properties file contents. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~getProperties${sS.c['reset'].c}`,
-				minecraft: [{
-					"text": `Gets server.properties file contents. `,
-					"color": sS.c['brightWhite'].m
-				}, {
-					"text": `Example: `,
-					"color": sS.c['white'].m
+		modul.event.on('fetchCommands', () => fn.exportCommands())
+		fn.exportCommands = async () => {
+			return await modul.call('command', 'importCommands', [{
+				name: 'getProperty',
+				exeFunc: 'showProperty',
+				module: thisModule,
+				description: {
+					summary: `Gets given server property.`,
+					console: `${sS.c['white'].c}Gets given server property. ${sS.c['brightWhite'].c}\nExample: ${sS.c['yellow'].c}~getProperty server-port${sS.c['reset'].c}`,
+					minecraft: [{
+						"text": `Gets given server property.\n`,
+						"color": sS.c['brightWhite'].m
 					}, {
-					"text": `~getProperties`,
-					"color": sS.c['yellow'].m
-				}],
-				discord: {
-					string: null,
-					embed: {
-						title: "Get Server Properties",
-						description: "~getProperties",
-						color: parseInt(sS.c['orange'].h, 16),
-						timestamp: new Date(),
-						fields: [{
-							name: "Description",
-							value: "Gets server.properties file contents."
-						}, {
-							name: "Example",
-							value: "**~getProperties**"
-						}]
+						"text": `Example: `,
+						"color": sS.c['white'].m
+					}, {
+						"text": `~getProperty server-port`,
+						"color": sS.c['yellow'].m
+					}],
+					discord: {
+						string: null,
+						embed: {
+							title: "Get Server Property",
+							description: "~getProperty",
+							color: parseInt(sS.c['orange'].h, 16),
+							timestamp: new Date(),
+							fields: [{
+								name: "Description",
+								value: "Gets given server property from server.properties file."
+							}, {
+								name: "Example",
+								value: "**~getProperty** server-port"
+							}]
+						}
 					}
 				}
-			}
-		}]
-		return await modul.call('command', 'importCommands', commands)
-		.catch(err => modul.lErr(err, `Command module failed to import coommands for ${thisModule}`))
+			}, {
+				name: 'getProperties',
+				exeFunc: 'showProperties',
+				module: thisModule,
+				description: {
+					summary: `Gets server.properties file contents.`,
+					console: `${sS.c['white'].c}Gets server.properties file contents. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~getProperties${sS.c['reset'].c}`,
+					minecraft: [{
+						"text": `Gets server.properties file contents. `,
+						"color": sS.c['brightWhite'].m
+					}, {
+						"text": `Example: `,
+						"color": sS.c['white'].m
+						}, {
+						"text": `~getProperties`,
+						"color": sS.c['yellow'].m
+					}],
+					discord: {
+						string: null,
+						embed: {
+							title: "Get Server Properties",
+							description: "~getProperties",
+							color: parseInt(sS.c['orange'].h, 16),
+							timestamp: new Date(),
+							fields: [{
+								name: "Description",
+								value: "Gets server.properties file contents."
+							}, {
+								name: "Example",
+								value: "**~getProperties**"
+							}]
+						}
+					}
+				}
+			}])
+		}
 	},
 	getProperty: async propertyKey => {
 		return await pProp()[propertyKey];

@@ -31,6 +31,248 @@ let fn = {
 				lastBackupDuration: lastBackupDurationString 
 			})
 		})
+		modul.event.on('fetchCommands', () => fn.exportCommands())
+		fn.exportCommands = async () => {
+			return await modul.call('command', 'importCommands', [{
+				name: 'backup',
+				exeFunc: 'runBackup',
+				module: thisModule,
+				description: {
+					summary: `Starts a backup.`,
+					console: `${sS.c['white'].c}Starts a backup. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~backup${sS.c['reset'].c}`,
+					minecraft: [{
+						"text": `Starts a backup. `,
+						"color": sS.c['brightWhite'].m
+					}, {
+						"text": 'Example: ',
+						"color": sS.c['white'].m
+					}, {
+						"text": '~backup ',
+						"color": sS.c['yellow'].m
+					}],
+					discord: {
+						string: null,
+						embed: {
+							title: "Backup",
+							description: "~backup",
+							color: parseInt(sS.c['orange'].h, 16),
+							timestamp: new Date(),
+							fields: [{
+								name: "Description",
+								value: "Starts a backup."
+							}, {
+								name: "Example",
+								value: "**~backup**"
+							}]
+						}
+					}
+				}
+			}, {
+				name: 'startBackupInterval',
+				exeFunc: 'startBackupInterval',
+				module: thisModule,
+				description: {
+					summary: `Starts automatic backups.`,
+					console: `${sS.c['white'].c}Starts automatic backups. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~startBackupInterval${sS.c['reset'].c}`,
+					minecraft: [{
+						"text": `Starts automatic backups. `,
+						"color": sS.c['brightWhite'].m
+					}, {
+						"text": 'Example: ',
+						"color": sS.c['white'].m
+					}, {
+						"text": '~startBackupInterval ',
+						"color": sS.c['yellow'].m
+					}],
+					discord: {
+						string: null,
+						embed: {
+							title: "Start Backup Interval",
+							description: "~startBackupInterval",
+							color: parseInt(sS.c['orange'].h, 16),
+							timestamp: new Date(),
+							fields: [{
+								name: "Description",
+								value: "Starts automatic backups."
+							}, {
+								name: "Example",
+								value: "**~startBackupInterval**"
+							}]
+						}
+					}
+				}
+			}, {
+				name: 'clearBackupInterval',
+				exeFunc: 'clearBackupInterval',
+				module: thisModule,
+				description: {
+					summary: `Stops automatic backups.`,
+					console: `${sS.c['white'].c}Stops automatic backups. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~clearBackupInterval${sS.c['reset'].c}`,
+					minecraft: [{
+						"text": `Stops automatic backups. `,
+						"color": sS.c['brightWhite'].m
+					}, {
+						"text": 'Example: ',
+						"color": sS.c['white'].m
+					}, {
+						"text": '~clearBackupInterval ',
+						"color": sS.c['yellow'].m
+					}],
+					discord: {
+						string: null,
+						embed: {
+							title: "Clear Backup Interval",
+							description: "~clearBackupInterval",
+							color: parseInt(sS.c['orange'].h, 16),
+							timestamp: new Date(),
+							fields: [{
+								name: "Description",
+								value: "Stops automatic backups."
+							}, {
+								name: "Example",
+								value: "**~clearBackupInterval**"
+							}]
+						}
+					}
+				}
+			}, {
+				name: 'setBackupInterval',
+				exeFunc: 'setBackupInterval',
+				module: thisModule,
+				description: {
+					summary: `Sets backup interval.`,
+					console: `${sS.c['white'].c}Sets backup interval. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~setBackupInterval${sS.c['reset'].c}`,
+					minecraft: [{
+						"text": `Sets backup interval. `,
+						"color": sS.c['brightWhite'].m
+					}, {
+						"text": 'Example: ',
+						"color": sS.c['white'].m
+					}, {
+						"text": '~setBackupInterval ',
+						"color": sS.c['yellow'].m
+					}],
+					discord: {
+						string: null,
+						embed: {
+							title: "Set Backup Interval",
+							description: "~setBackupInterval",
+							color: parseInt(sS.c['orange'].h, 16),
+							timestamp: new Date(),
+							fields: [{
+								name: "Description",
+								value: "Sets backup interval."
+							}, {
+								name: "Example",
+								value: "**~setBackupInterval**"
+							}]
+						}
+					}
+				}
+			}, {
+				name: 'backupDir',
+				exeFunc: 'getbackupDir',
+				module: thisModule,
+				description: {
+					summary: `Gets backup directory.`,
+					console: `${sS.c['white'].c}Gets backup directory. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~backupDir${sS.c['reset'].c}`,
+					minecraft: [{
+						"text": `Gets backup directory. `,
+						"color": sS.c['brightWhite'].m
+					}, {
+						"text": 'Example: ',
+						"color": sS.c['white'].m
+					}, {
+						"text": '~backupDir',
+						"color": sS.c['yellow'].m
+					}],
+					discord: {
+						string: null,
+						embed: {
+							title: "Get Backup Directory",
+							description: "~backupDir",
+							color: parseInt(sS.c['orange'].h, 16),
+							timestamp: new Date(),
+							fields: [{
+								name: "Description",
+								value: "Gets backup directory."
+							}, {
+								name: "Example",
+								value: "**~backupDir**"
+							}]
+						}
+					}
+				}
+			}, {
+				name: 'nextBackup',
+				exeFunc: 'nextBackup',
+				module: thisModule,
+				description: {
+					summary: `Gets time to next backup.`,
+					console: `${sS.c['white'].c}Gets time to next backup. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~nextBackup${sS.c['reset'].c}`,
+					minecraft: [{
+						"text": `Gets time to next backup. `,
+						"color": sS.c['brightWhite'].m
+					}, {
+						"text": 'Example: ',
+						"color": sS.c['white'].m
+					}, {
+						"text": '~nextBackup',
+						"color": sS.c['yellow'].m
+					}],
+					discord: {
+						string: null,
+						embed: {
+							title: "Next Backup",
+							description: "~nextBackup",
+							color: parseInt(sS.c['orange'].h, 16),
+							timestamp: new Date(),
+							fields: [{
+								name: "Description",
+								value: "Gets time to next backup."
+							}, {
+								name: "Example",
+								value: "**~nextBackup**"
+							}]
+						}
+					}
+				}
+			}, {
+				name: 'lastBackup',
+				exeFunc: 'lastBackup',
+				module: thisModule,
+				description: {
+					summary: `Gets last backup info.`,
+					console: `${sS.c['white'].c}Gets last backup info. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~lastBackup${sS.c['reset'].c}`,
+					minecraft: [{
+						"text": `Gets last backup info. `,
+						"color": sS.c['brightWhite'].m
+					}, {
+						"text": `Example: `,
+						"color": sS.c['white'].m
+					}, {
+						"text": `~lastBackup`,
+						"color": sS.c['yellow'].m
+					}],
+					discord: {
+						string: null,
+						embed: {
+							title: "Last Backup",
+							description: "~lastBackup",
+							color: parseInt(sS.c['orange'].h, 16),
+							timestamp: new Date(),
+							fields: [{
+								name: "Description",
+								value: "Gets last backup info, time etc."
+							}, {
+								name: "Example",
+								value: "**~lastBackup**"
+							}]
+						}
+					}
+				}
+			}]
+		}
 	},
 	startBackupInterval: async () => {
 		if (backupInterval) await clearInterval(backupInterval);
@@ -216,247 +458,4 @@ async function runBackup() {
 	await this.call('serverWrapper', 'serverStdin', mS.messages.backupEnded.minecraft+'\n')
 	await pushStats();
 	return lastBackupDurationString
-}
-
-async function exportCommands () {
-	return await modul.call('command', 'importCommands', [{
-		name: 'backup',
-		exeFunc: 'runBackup',
-		module: thisModule,
-		description: {
-			summary: `Starts a backup.`,
-			console: `${sS.c['white'].c}Starts a backup. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~backup${sS.c['reset'].c}`,
-			minecraft: [{
-				"text": `Starts a backup. `,
-				"color": sS.c['brightWhite'].m
-			}, {
-				"text": 'Example: ',
-				"color": sS.c['white'].m
-			}, {
-				"text": '~backup ',
-				"color": sS.c['yellow'].m
-			}],
-			discord: {
-				string: null,
-				embed: {
-					title: "Backup",
-					description: "~backup",
-					color: parseInt(sS.c['orange'].h, 16),
-					timestamp: new Date(),
-					fields: [{
-						name: "Description",
-						value: "Starts a backup."
-					}, {
-						name: "Example",
-						value: "**~backup**"
-					}]
-				}
-			}
-		}
-	}, {
-		name: 'startBackupInterval',
-		exeFunc: 'startBackupInterval',
-		module: thisModule,
-		description: {
-			summary: `Starts automatic backups.`,
-			console: `${sS.c['white'].c}Starts automatic backups. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~startBackupInterval${sS.c['reset'].c}`,
-			minecraft: [{
-				"text": `Starts automatic backups. `,
-				"color": sS.c['brightWhite'].m
-			}, {
-				"text": 'Example: ',
-				"color": sS.c['white'].m
-			}, {
-				"text": '~startBackupInterval ',
-				"color": sS.c['yellow'].m
-			}],
-			discord: {
-				string: null,
-				embed: {
-					title: "Start Backup Interval",
-					description: "~startBackupInterval",
-					color: parseInt(sS.c['orange'].h, 16),
-					timestamp: new Date(),
-					fields: [{
-						name: "Description",
-						value: "Starts automatic backups."
-					}, {
-						name: "Example",
-						value: "**~startBackupInterval**"
-					}]
-				}
-			}
-		}
-	}, {
-		name: 'clearBackupInterval',
-		exeFunc: 'clearBackupInterval',
-		module: thisModule,
-		description: {
-			summary: `Stops automatic backups.`,
-			console: `${sS.c['white'].c}Stops automatic backups. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~clearBackupInterval${sS.c['reset'].c}`,
-			minecraft: [{
-				"text": `Stops automatic backups. `,
-				"color": sS.c['brightWhite'].m
-			}, {
-				"text": 'Example: ',
-				"color": sS.c['white'].m
-			}, {
-				"text": '~clearBackupInterval ',
-				"color": sS.c['yellow'].m
-			}],
-			discord: {
-				string: null,
-				embed: {
-					title: "Clear Backup Interval",
-					description: "~clearBackupInterval",
-					color: parseInt(sS.c['orange'].h, 16),
-					timestamp: new Date(),
-					fields: [{
-						name: "Description",
-						value: "Stops automatic backups."
-					}, {
-						name: "Example",
-						value: "**~clearBackupInterval**"
-					}]
-				}
-			}
-		}
-	}, {
-		name: 'setBackupInterval',
-		exeFunc: 'setBackupInterval',
-		module: thisModule,
-		description: {
-			summary: `Sets backup interval.`,
-			console: `${sS.c['white'].c}Sets backup interval. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~setBackupInterval${sS.c['reset'].c}`,
-			minecraft: [{
-				"text": `Sets backup interval. `,
-				"color": sS.c['brightWhite'].m
-			}, {
-				"text": 'Example: ',
-				"color": sS.c['white'].m
-			}, {
-				"text": '~setBackupInterval ',
-				"color": sS.c['yellow'].m
-			}],
-			discord: {
-				string: null,
-				embed: {
-					title: "Set Backup Interval",
-					description: "~setBackupInterval",
-					color: parseInt(sS.c['orange'].h, 16),
-					timestamp: new Date(),
-					fields: [{
-						name: "Description",
-						value: "Sets backup interval."
-					}, {
-						name: "Example",
-						value: "**~setBackupInterval**"
-					}]
-				}
-			}
-		}
-	}, {
-		name: 'backupDir',
-		exeFunc: 'getbackupDir',
-		module: thisModule,
-		description: {
-			summary: `Gets backup directory.`,
-			console: `${sS.c['white'].c}Gets backup directory. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~backupDir${sS.c['reset'].c}`,
-			minecraft: [{
-				"text": `Gets backup directory. `,
-				"color": sS.c['brightWhite'].m
-			}, {
-				"text": 'Example: ',
-				"color": sS.c['white'].m
-			}, {
-				"text": '~backupDir',
-				"color": sS.c['yellow'].m
-			}],
-			discord: {
-				string: null,
-				embed: {
-					title: "Get Backup Directory",
-					description: "~backupDir",
-					color: parseInt(sS.c['orange'].h, 16),
-					timestamp: new Date(),
-					fields: [{
-						name: "Description",
-						value: "Gets backup directory."
-					}, {
-						name: "Example",
-						value: "**~backupDir**"
-					}]
-				}
-			}
-		}
-	}, {
-		name: 'nextBackup',
-		exeFunc: 'nextBackup',
-		module: thisModule
-		description: {
-			summary: `Gets time to next backup.`,
-			console: `${sS.c['white'].c}Gets time to next backup. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~nextBackup${sS.c['reset'].c}`,
-			minecraft: [{
-				"text": `Gets time to next backup. `,
-				"color": sS.c['brightWhite'].m
-			}, {
-				"text": 'Example: ',
-				"color": sS.c['white'].m
-			}, {
-				"text": '~nextBackup',
-				"color": sS.c['yellow'].m
-			}],
-			discord: {
-				string: null,
-				embed: {
-					title: "Next Backup",
-					description: "~nextBackup",
-					color: parseInt(sS.c['orange'].h, 16),
-					timestamp: new Date(),
-					fields: [{
-						name: "Description",
-						value: "Gets time to next backup."
-					}, {
-						name: "Example",
-						value: "**~nextBackup**"
-					}]
-				}
-			}
-		}
-	}, {
-		name: 'lastBackup',
-		exeFunc: 'lastBackup',
-		module: thisModule,
-		description: {
-			summary: `Gets last backup info.`,
-			console: `${sS.c['white'].c}Gets last backup info. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~lastBackup${sS.c['reset'].c}`,
-			minecraft: [{
-				"text": `Gets last backup info. `,
-				"color": sS.c['brightWhite'].m
-			}, {
-				"text": `Example: `,
-				"color": sS.c['white'].m
-			}, {
-				"text": `~lastBackup`,
-				"color": sS.c['yellow'].m
-			}],
-			discord: {
-				string: null,
-				embed: {
-					title: "Last Backup",
-					description: "~lastBackup",
-					color: parseInt(sS.c['orange'].h, 16),
-					timestamp: new Date(),
-					fields: [{
-						name: "Description",
-						value: "Gets last backup info, time etc."
-					}, {
-						name: "Example",
-						value: "**~lastBackup**"
-					}]
-				}
-			}
-		}
-	}])
-	.catch(err => lErr(err, `Command module failed to import coommands for ${thisModule}`))
 }

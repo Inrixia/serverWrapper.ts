@@ -15,6 +15,7 @@ let mS = {} // moduleSettings
 let fn = {
 	init: async message => {
 		[sS, mS] = modul.loadSettings(message),
+		modul.event.on('fetchCommands', () => fn.exportCommands())
 		fn.tpo = async message => { 
 			let vars = await tpo({
 				username: message.args[1],
@@ -81,100 +82,100 @@ let fn = {
 				}
 			}
 		}
-		commands = [{
-			name: 'tpo',
-			exeFunc: 'tpo',
-			module: thisModule,
-			description: {
-				console: `${sS.c['brightWhite'].c}Set the coordinates of a given player in their playerdata to the coordinates specified. ${sS.c['reset'].c}\nExample: ${sS.c['yellow'].c}~tpo ${sS.c['brightBlue'].c}Username ${sS.c['orange'].c}0 ${sS.c['white'].c}100 ${sS.c['brightBlue'].c}0${sS.c['reset'].c}`,
-				minecraft: [{
-					"text": `Teleports player to given chunk coords.\n`,
-					"color": sS.c['brightWhite'].m
-				}, {
-					"text": 'Example: ',
-					"color": sS.c['white'].m
-				}, {
-					"text": '~tpo ',
-					"color": sS.c['brightYellow'].m
-				}, {
-					"text": 'Username ',
-					"color": sS.c['brightBlue'].m
-				}, {
-					"text": '0 ',
-					"color": sS.c['orange'].m
-				}, {
-					"text": '100 ',
-					"color": sS.c['white'].m
-				}, {
-					"text": '0 ',
-					"color": sS.c['brightBlue'].m
-				}, {
-					"text": "sets user coords to ",
-					"color": sS.c['white'].m
-				}, {
-					"text": '160 ',
-					"color": sS.c['orange'].m
-				}, {
-					"text": '100 ',
-					"color": sS.c['white'].m
-				}, {
-					"text": '160',
-					"color": sS.c['brightBlue'].m
-				}],
-				discord: {
-					string: null,
-					embed: {
-						title: "Set a offline player's coords",
-						description: "~tpo",
-						color: parseInt(sS.c['orange'].h, 16),
-						timestamp: new Date(),
-						fields: [{
-							name: "Description",
-							value: "Takes Username, x, y and z coords given, and sets the player's playerdata coords to them."
-						}, {
-							name: "Example",
-							value: "**~tpo** Username 10 0 10 set player's coords to 10 0 10"
-						}]
+		fn.exportCommands = async () => {
+			return await modul.call('command', 'importCommands', [{
+				name: 'tpo',
+				exeFunc: 'tpo',
+				module: thisModule,
+				description: {
+					console: `${sS.c['brightWhite'].c}Set the coordinates of a given player in their playerdata to the coordinates specified. ${sS.c['reset'].c}\nExample: ${sS.c['yellow'].c}~tpo ${sS.c['brightBlue'].c}Username ${sS.c['orange'].c}0 ${sS.c['white'].c}100 ${sS.c['brightBlue'].c}0${sS.c['reset'].c}`,
+					minecraft: [{
+						"text": `Teleports player to given chunk coords.\n`,
+						"color": sS.c['brightWhite'].m
+					}, {
+						"text": 'Example: ',
+						"color": sS.c['white'].m
+					}, {
+						"text": '~tpo ',
+						"color": sS.c['brightYellow'].m
+					}, {
+						"text": 'Username ',
+						"color": sS.c['brightBlue'].m
+					}, {
+						"text": '0 ',
+						"color": sS.c['orange'].m
+					}, {
+						"text": '100 ',
+						"color": sS.c['white'].m
+					}, {
+						"text": '0 ',
+						"color": sS.c['brightBlue'].m
+					}, {
+						"text": "sets user coords to ",
+						"color": sS.c['white'].m
+					}, {
+						"text": '160 ',
+						"color": sS.c['orange'].m
+					}, {
+						"text": '100 ',
+						"color": sS.c['white'].m
+					}, {
+						"text": '160',
+						"color": sS.c['brightBlue'].m
+					}],
+					discord: {
+						string: null,
+						embed: {
+							title: "Set a offline player's coords",
+							description: "~tpo",
+							color: parseInt(sS.c['orange'].h, 16),
+							timestamp: new Date(),
+							fields: [{
+								name: "Description",
+								value: "Takes Username, x, y and z coords given, and sets the player's playerdata coords to them."
+							}, {
+								name: "Example",
+								value: "**~tpo** Username 10 0 10 set player's coords to 10 0 10"
+							}]
+						}
 					}
 				}
-			}
-		}, {
-			name: 'getSpawn',
-			exeFunc: 'getSpawn',
-			module: thisModule,
-			description: {
-				summary: `Gets server spawn coords.`,
-				console: `${sS.c['white'].c}Gets server spawn coords. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~getSpawn${sS.c['reset'].c}`,
-				minecraft: [{
-					"text": `Gets server spawn coords. `,
-					"color": sS.c['brightWhite'].m
-				}, {
-					"text": `Example: `,
-					"color": sS.c['white'].m
-				}, {
-					"text": `~getSpawn`,
-					"color": sS.c['yellow'].m
-				}],
-				discord: {
-					string: null,
-					embed: {
-						title: "Get Spawn Coords",
-						description: "~getSpawn",
-						color: parseInt(sS.c['orange'].h, 16),
-						timestamp: new Date(),
-						fields: [{
-							name: "Description",
-							value: "Gets server spawn coords."
-						}, {
-							name: "Example",
-							value: "**~getSpawn**"
-						}]
+			}, {
+				name: 'getSpawn',
+				exeFunc: 'getSpawn',
+				module: thisModule,
+				description: {
+					summary: `Gets server spawn coords.`,
+					console: `${sS.c['white'].c}Gets server spawn coords. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~getSpawn${sS.c['reset'].c}`,
+					minecraft: [{
+						"text": `Gets server spawn coords. `,
+						"color": sS.c['brightWhite'].m
+					}, {
+						"text": `Example: `,
+						"color": sS.c['white'].m
+					}, {
+						"text": `~getSpawn`,
+						"color": sS.c['yellow'].m
+					}],
+					discord: {
+						string: null,
+						embed: {
+							title: "Get Spawn Coords",
+							description: "~getSpawn",
+							color: parseInt(sS.c['orange'].h, 16),
+							timestamp: new Date(),
+							fields: [{
+								name: "Description",
+								value: "Gets server spawn coords."
+							}, {
+								name: "Example",
+								value: "**~getSpawn**"
+							}]
+						}
 					}
 				}
-			}
-		}]
-		return await modul.call('command', 'importCommands', commands)
-		.catch(err => modul.lErr(err, `Command module failed to import coommands for ${thisModule}`))
+			}])
+		}
 	},
 };
 

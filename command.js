@@ -12,6 +12,8 @@ const fn = {
 	init: async (data) => {
 		[sS, mS] = modul.loadSettings(data)
 		modul.event.on('consoleStdout', message => fn.processCommand({ string: message }).catch(err => modul.lErr(err)))
+		modul.emit('fetchCommands')
+		fn.exportCommands = async () => {}
 		fn.importCommands(data.commands);
 		fn.importCommands([{
 			name: 'tpc',

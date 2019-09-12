@@ -7,7 +7,11 @@ var sP = {}; // ServerProperties
 // Import core packages
 const modul = new [require('./modul.js')][0](thisModule)
 let fn = {
-	init: async message => [sS, mS] = modul.loadSettings(message)
+	init: async message => {
+		[sS, mS] = modul.loadSettings(message)
+		//modul.event.on('fetchCommands', () => fn.exportCommands()) Only enabled if module has commands to export
+		fn.exportCommands = async () => {};
+	}
 };
 
 // Module command handling

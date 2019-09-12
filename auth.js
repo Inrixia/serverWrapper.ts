@@ -13,166 +13,169 @@ const fn = {
 		[sS, mS] = modul.loadSettings(message)
 		modul.event.on('serverStdout', message => processServerMessage(message).catch(err => modul.lErr(err, null, message.logTo)))
 		modul.event.on('discordMessage', message => processDiscordMessage(message).catch(err => modul.lErr(err, null, message.logTo)))
-		commands = [{
-			name: 'cwAdd', 
-			exeFunc: 'commandWhitelistAdd',
-			module: thisModule,
-			description: {
-				summary: `Adds given whitelisted command to a discord role or user.\nFor a specific time if given, otherwise infinite.`,
-				console: `${sS.c['white'].c}Adds given whitelisted command to a discord role or user. ${sS.c['reset'].c}\nExamples  [Discord Only]:\n${sS.c['yellow'].c}~cwAdd ${sS.c['brightBlue'].c}~listmodules ${sS.c['orange'].c}@DiscordUser ${sS.c['cyan'].c}1 hour\n${sS.c['reset'].c}${sS.c['yellow'].c}~cwAdd ${sS.c['brightBlue'].c}!forge tps ${sS.c['orange'].c}@DiscordUser\n${sS.c['reset'].c}${sS.c['yellow'].c}~cwAdd ${sS.c['brightBlue'].c}!tp ${sS.c['orange'].c}@DiscordRole ${sS.c['cyan'].c}5.2 minutes\n${sS.c['reset'].c}${sS.c['yellow'].c}~cwAdd ${sS.c['brightBlue'].c}~getSpawn ${sS.c['orange'].c}@DiscordRole${sS.c['reset'].c}`,
-				minecraft: [{
-					"text": `Adds given whitelisted command to a discord role or user. For a specific time if given, otherwise infinite.\n`,
-					"color": sS.c['brightWhite'].m
-				}, {
-					"text": `Examples [Discord Only]:\n`,
-					"color": sS.c['white'].m
-				}, {
-					"text": `~cwAdd `,
-					"color": sS.c['yellow'].m
-				}, {
-					"text": `~listmodules `,
-					"color": sS.c['brightBlue'].m
-				}, {
-					"text": `@DiscordUser `,
-					"color": sS.c['brightRed'].m
-				}, {
-					"text": `1 hour\n`,
-					"color": sS.c['cyan'].m
-				}, {
-					"text": `~cwAdd `,
-					"color": sS.c['yellow'].m
-				}, {
-					"text": `"!forge tps" `,
-					"color": sS.c['brightBlue'].m
-				}, {
-					"text": `@DiscordUser\n`,
-					"color": sS.c['brightRed'].m
-				}, {
-					"text": `~cwAdd `,
-					"color": sS.c['yellow'].m
-				}, {
-					"text": `!tp `,
-					"color": sS.c['brightBlue'].m
-				}, {
-					"text": `@DiscordRole `,
-					"color": sS.c['brightRed'].m
-				}, {
-					"text": `5.2 minutes\n`,
-					"color": sS.c['cyan'].m
-				}, {
-					"text": `~cwAdd `,
-					"color": sS.c['yellow'].m
-				}, {
-					"text": `~getSpawn `,
-					"color": sS.c['brightBlue'].m
-				}, {
-					"text": `@DiscordRole `,
-					"color": sS.c['brightRed'].m
-				}],
-				discord: {
-					string: null,
-					embed: {
-						title: "Command Whitelist Remove",
-						description: "~cwRemove",
-						color: parseInt(sS.c['orange'].h, 16),
-						timestamp: new Date(),
-						fields: [{
-							name: "Description",
-							value: "Adds given whitelisted command to a discord role or user. \nIf a time is specified the user/role will have access to the command for that duration. Otherwise the permission is given with no expiry."
-						}, {
-							name: "Examples [Discord Only]:",
-							value: `**~cwAdd** ~listModules @DiscordUser 1 hour\n**~cwAdd** "forge tps" @DiscordUser\n**~cwAdd** !tp @DiscordRole 5.2 minutes\n**~cwAdd** ~getSpawn @DiscordRole`
-						}]
+		modul.event.on('fetchCommands', () => fn.exportCommands())
+		fn.exportCommands = async () => {
+			return await modul.call('command', 'importCommands', [{
+				name: 'cwAdd', 
+				exeFunc: 'commandWhitelistAdd',
+				module: thisModule,
+				description: {
+					summary: `Adds given whitelisted command to a discord role or user.\nFor a specific time if given, otherwise infinite.`,
+					console: `${sS.c['white'].c}Adds given whitelisted command to a discord role or user. ${sS.c['reset'].c}\nExamples  [Discord Only]:\n${sS.c['yellow'].c}~cwAdd ${sS.c['brightBlue'].c}~listmodules ${sS.c['orange'].c}@DiscordUser ${sS.c['cyan'].c}1 hour\n${sS.c['reset'].c}${sS.c['yellow'].c}~cwAdd ${sS.c['brightBlue'].c}!forge tps ${sS.c['orange'].c}@DiscordUser\n${sS.c['reset'].c}${sS.c['yellow'].c}~cwAdd ${sS.c['brightBlue'].c}!tp ${sS.c['orange'].c}@DiscordRole ${sS.c['cyan'].c}5.2 minutes\n${sS.c['reset'].c}${sS.c['yellow'].c}~cwAdd ${sS.c['brightBlue'].c}~getSpawn ${sS.c['orange'].c}@DiscordRole${sS.c['reset'].c}`,
+					minecraft: [{
+						"text": `Adds given whitelisted command to a discord role or user. For a specific time if given, otherwise infinite.\n`,
+						"color": sS.c['brightWhite'].m
+					}, {
+						"text": `Examples [Discord Only]:\n`,
+						"color": sS.c['white'].m
+					}, {
+						"text": `~cwAdd `,
+						"color": sS.c['yellow'].m
+					}, {
+						"text": `~listmodules `,
+						"color": sS.c['brightBlue'].m
+					}, {
+						"text": `@DiscordUser `,
+						"color": sS.c['brightRed'].m
+					}, {
+						"text": `1 hour\n`,
+						"color": sS.c['cyan'].m
+					}, {
+						"text": `~cwAdd `,
+						"color": sS.c['yellow'].m
+					}, {
+						"text": `"!forge tps" `,
+						"color": sS.c['brightBlue'].m
+					}, {
+						"text": `@DiscordUser\n`,
+						"color": sS.c['brightRed'].m
+					}, {
+						"text": `~cwAdd `,
+						"color": sS.c['yellow'].m
+					}, {
+						"text": `!tp `,
+						"color": sS.c['brightBlue'].m
+					}, {
+						"text": `@DiscordRole `,
+						"color": sS.c['brightRed'].m
+					}, {
+						"text": `5.2 minutes\n`,
+						"color": sS.c['cyan'].m
+					}, {
+						"text": `~cwAdd `,
+						"color": sS.c['yellow'].m
+					}, {
+						"text": `~getSpawn `,
+						"color": sS.c['brightBlue'].m
+					}, {
+						"text": `@DiscordRole `,
+						"color": sS.c['brightRed'].m
+					}],
+					discord: {
+						string: null,
+						embed: {
+							title: "Command Whitelist Remove",
+							description: "~cwRemove",
+							color: parseInt(sS.c['orange'].h, 16),
+							timestamp: new Date(),
+							fields: [{
+								name: "Description",
+								value: "Adds given whitelisted command to a discord role or user. \nIf a time is specified the user/role will have access to the command for that duration. Otherwise the permission is given with no expiry."
+							}, {
+								name: "Examples [Discord Only]:",
+								value: `**~cwAdd** ~listModules @DiscordUser 1 hour\n**~cwAdd** "forge tps" @DiscordUser\n**~cwAdd** !tp @DiscordRole 5.2 minutes\n**~cwAdd** ~getSpawn @DiscordRole`
+							}]
+						}
 					}
 				}
-			}
-		}, {
-			name: 'cwRemove', 
-			exeFunc: 'commandWhitelistRemove',
-			module: thisModule,
-			description: {
-				summary: `Removes given whitelisted commands from a discord role or user.`,
-				console: `${sS.c['white'].c}Removes given whitelisted commands from a discord role or user. ${sS.c['reset'].c}\nExamples:\n${sS.c['yellow'].c}~cw_remove ${sS.c['brightBlue'].c}@DiscordUser ${sS.c['brightWhite'].c}\n${sS.c['yellow'].c}~cw_remove ${sS.c['brightBlue'].c}@DiscordRole${sS.c['reset'].c}`,
-				minecraft: [{
-					"text": `Removes given whitelisted commands from a discord role or user.\n`,
-					"color": sS.c['brightWhite'].m
-				}, {
-					"text": `Examples:\n`,
-					"color": sS.c['white'].m
-				}, {
-					"text": `~cw_remove `,
-					"color": sS.c['yellow'].m
-				}, {
-					"text": `@DiscordUser\n`,
-					"color": sS.c['brightBlue'].m
-				}, {
-					"text": `~cw_remove `,
-					"color": sS.c['yellow'].m
-				}, {
-					"text": `@DiscordUser`,
-					"color": sS.c['brightBlue'].m
-				}],
-				discord: {
-					string: null,
-					embed: {
-						title: "Command Whitelist Remove",
-						description: "~cwRemove",
-						color: parseInt(sS.c['orange'].h, 16),
-						timestamp: new Date(),
-						fields: [{
-							name: "Description",
-							value: "Removes given whitelisted commands from a discord role or user."
-						}, {
-							name: "Example",
-							value: "**~cw_remove** @DiscordUser\n**~cw_remove** @DiscordRole"
-						}]
-					}
-				}
-			}
-		}, {
-			name: 'cwRemove',
-			exeFunc: 'commandWhitelistRemove',
-			module: thisModule,
-			description: {
-				summary: `Removes all whitelisted commands from a discord role or user.`,
-				console: `${sS.c['white'].c}Removes all whitelisted commands from a discord role or user. ${sS.c['reset'].c}\nExample: ${sS.c['yellow'].c}~cwRemove ${sS.c['brightBlue'].c}@DiscordUser\n${sS.c['yellow'].c}~cwRemove ${sS.c['brightBlue'].c}@DiscordRole${sS.c['reset'].c}`,
-				minecraft: [{
-					"text": `Removes all whitelisted commands from a discord role or user.\n`,
-					"color": sS.c['brightWhite'].m
-				}, {
-				"text": `Examples:\n`,
-				"color": sS.c['white'].m
-				}, {
-				"text": `~cwRemove `,
-				"color": sS.c['yellow'].m
+			}, {
+				name: 'cwRemove', 
+				exeFunc: 'commandWhitelistRemove',
+				module: thisModule,
+				description: {
+					summary: `Removes given whitelisted commands from a discord role or user.`,
+					console: `${sS.c['white'].c}Removes given whitelisted commands from a discord role or user. ${sS.c['reset'].c}\nExamples:\n${sS.c['yellow'].c}~cw_remove ${sS.c['brightBlue'].c}@DiscordUser ${sS.c['brightWhite'].c}\n${sS.c['yellow'].c}~cw_remove ${sS.c['brightBlue'].c}@DiscordRole${sS.c['reset'].c}`,
+					minecraft: [{
+						"text": `Removes given whitelisted commands from a discord role or user.\n`,
+						"color": sS.c['brightWhite'].m
+					}, {
+						"text": `Examples:\n`,
+						"color": sS.c['white'].m
+					}, {
+						"text": `~cw_remove `,
+						"color": sS.c['yellow'].m
 					}, {
 						"text": `@DiscordUser\n`,
 						"color": sS.c['brightBlue'].m
-				}, {
-				"text": `~cwRemove `,
-				"color": sS.c['yellow'].m
+					}, {
+						"text": `~cw_remove `,
+						"color": sS.c['yellow'].m
 					}, {
 						"text": `@DiscordUser`,
 						"color": sS.c['brightBlue'].m
-				}],
-				discord: {
-					string: null,
-					embed: {
-						title: "Command Whitelist Remove-All",
-						description: "~cwRemove",
-						color: parseInt(sS.c['orange'].h, 16),
-						timestamp: new Date(),
-						fields: [{
-							name: "Description",
-							value: "Removes all whitelisted commands from a discord role or user."
-						}, {
-							name: "Examples",
-							value: "**~cwRemove** @DiscordUser\n**~cwRemove** @DiscordRole"
-						}]
+					}],
+					discord: {
+						string: null,
+						embed: {
+							title: "Command Whitelist Remove",
+							description: "~cwRemove",
+							color: parseInt(sS.c['orange'].h, 16),
+							timestamp: new Date(),
+							fields: [{
+								name: "Description",
+								value: "Removes given whitelisted commands from a discord role or user."
+							}, {
+								name: "Example",
+								value: "**~cw_remove** @DiscordUser\n**~cw_remove** @DiscordRole"
+							}]
+						}
 					}
 				}
-			}
-		}]
+			}, {
+				name: 'cwRemove',
+				exeFunc: 'commandWhitelistRemove',
+				module: thisModule,
+				description: {
+					summary: `Removes all whitelisted commands from a discord role or user.`,
+					console: `${sS.c['white'].c}Removes all whitelisted commands from a discord role or user. ${sS.c['reset'].c}\nExample: ${sS.c['yellow'].c}~cwRemove ${sS.c['brightBlue'].c}@DiscordUser\n${sS.c['yellow'].c}~cwRemove ${sS.c['brightBlue'].c}@DiscordRole${sS.c['reset'].c}`,
+					minecraft: [{
+						"text": `Removes all whitelisted commands from a discord role or user.\n`,
+						"color": sS.c['brightWhite'].m
+					}, {
+					"text": `Examples:\n`,
+					"color": sS.c['white'].m
+					}, {
+					"text": `~cwRemove `,
+					"color": sS.c['yellow'].m
+						}, {
+							"text": `@DiscordUser\n`,
+							"color": sS.c['brightBlue'].m
+					}, {
+					"text": `~cwRemove `,
+					"color": sS.c['yellow'].m
+						}, {
+							"text": `@DiscordUser`,
+							"color": sS.c['brightBlue'].m
+					}],
+					discord: {
+						string: null,
+						embed: {
+							title: "Command Whitelist Remove-All",
+							description: "~cwRemove",
+							color: parseInt(sS.c['orange'].h, 16),
+							timestamp: new Date(),
+							fields: [{
+								name: "Description",
+								value: "Removes all whitelisted commands from a discord role or user."
+							}, {
+								name: "Examples",
+								value: "**~cwRemove** @DiscordUser\n**~cwRemove** @DiscordRole"
+							}]
+						}
+					}
+				}
+			}])
+		}
 	},
 	commandWhitelistAdd: async message => {
 		// ~commandwhitelist add !list @Inrix 1 hour

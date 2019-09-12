@@ -20,6 +20,7 @@ let fn = {
 		})
 		clearInterval(statsInterval);
 		fn.startInterval();
+		fn.exportCommands = async () => {}
 	}, 
 	startStatsInterval: async message => { // Start sending frequent stats updates
 		serverStats.pid = message.serverPID||serverStats.pid;
