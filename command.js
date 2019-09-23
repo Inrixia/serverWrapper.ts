@@ -56,6 +56,39 @@ const fn = {
 						}
 					}
 				}
+			}, {
+				name: 'fetchCommands',
+				exeFunc: 'fetchCommands',
+				module: thisModule,
+				description: {
+					console: `${sS.c['brightWhite'].c}Calls for all modules to give their commands. ${sS.c['reset'].c}\nExamples: ${sS.c['yellow'].c}~fetchCommands${sS.c['reset'].c}`,
+					minecraft: [{
+						"text": `Calls for all modules to give their commands. `,
+						"color": sS.c['brightWhite'].m
+					}, {
+						"text": `Examples: \n`,
+						"color": sS.c['white'].m
+					}, {
+						"text": `~fetchCommands `,
+						"color": sS.c['yellow'].m
+					}],
+					discord: {
+						string: null,
+						embed: {
+							title: "Fetch Commands",
+							description: "~help",
+							color: parseInt(sS.c['orange'].h, 16),
+							timestamp: new Date(),
+							fields: [{
+								name: "Description",
+								value: "Calls for all modules to give their commands."
+							}, {
+								name: "Examples",
+								value: "**~fetchCommands**"
+							}]
+						}
+					}
+				}
 			}])
 		})
 		modul.emit('fetchCommands')
@@ -104,6 +137,9 @@ const fn = {
 		});
 		return helpSummary
 	},
+	fetchCommands: async data => {
+		await modul.emit('fetchCommands');
+	}
 }
 
 // Set defaults
@@ -205,7 +241,7 @@ function commandMatch(string, commandString) {
 class command {
 	constructor(obj) {
 		this.name = obj.name;
-		this.module = obj.module
+		this.module = obj.module;
 		this.description = obj.description;
 		this.exeFunc = obj.exeFunc;
 		commands[this.name.toLowerCase()] = this;

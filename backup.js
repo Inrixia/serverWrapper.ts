@@ -135,9 +135,9 @@ let fn = {
 				exeFunc: 'setBackupInterval',
 				module: thisModule,
 				description: {
-					console: `${sS.c['white'].c}Sets backup interval. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~setBackupInterval${sS.c['reset'].c}`,
+					console: `${sS.c['white'].c}Sets backup interval in hours. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~setBackupInterval ${sS.c['brightBlue'].c}1${sS.c['reset'].c}`,
 					minecraft: [{
-						"text": `Sets backup interval. `,
+						"text": `Sets backup interval in hours. `,
 						"color": sS.c['brightWhite'].m
 					}, {
 						"text": 'Example: ',
@@ -145,6 +145,9 @@ let fn = {
 					}, {
 						"text": '~setBackupInterval ',
 						"color": sS.c['yellow'].m
+					}, {
+						"text": '1',
+						"color": sS.c['brightBlue'].m
 					}],
 					discord: {
 						string: null,
@@ -155,10 +158,10 @@ let fn = {
 							timestamp: new Date(),
 							fields: [{
 								name: "Description",
-								value: "Sets backup interval."
+								value: "Sets backup interval in hours."
 							}, {
 								name: "Example",
-								value: "**~setBackupInterval**"
+								value: "**~setBackupInterval** 1"
 							}]
 						}
 					}
@@ -317,7 +320,7 @@ let fn = {
 		await clearInterval(backupInterval);
 		mS.backupIntervalInHours = data.args[1];
 		timeToNextBackup = moment().add(data.args[1], 'hours');
-		if (message.args[2]) await modul.saveSettings(sS, mS);
+		if (data.args[2]) await modul.saveSettings(sS, mS);
 		return await startBackupInterval()
 	},
 	setBackupDir: async (data) => {
@@ -348,7 +351,7 @@ let fn = {
 		}
 	},
 	runBackup: runBackup,
-	nextBackup: async () => {
+	nextBackup: async message => {
 		return {
 			discord : {
 				string: null,
@@ -419,26 +422,33 @@ async function startBackupInterval() {
 		lastBackupDuration: lastBackupDurationString 
 	})
 	backupInterval = setInterval(async () => {
-		await runBackup();
+		await runBackup().catch(err => modul.lErr(err, 'Backup failed!'));
 		timeToNextBackup = moment().add(mS.backupIntervalInHours, 'hours');
 	}, mS.backupIntervalInHours*60*60*1000);
 	return timeToNextBackup;
 }
 
 async function runBackup() {
+	return await backup().catch(async err => {
+		await modul.call('serverWrapper', 'serverStdin', 'save-on\n');
+		throw err;
+	})
+}
+
+async function backup() {
 	lastBackupStartTime = moment();
-	await this.call('serverWrapper', 'serverStdin', 'save-off\n');
+	await modul.call('serverWrapper', 'serverStdin', 'save-off\n');
 	process.stdout.write(mS.messages.backupStarting.console+'\n');
-	await this.call('serverWrapper', 'serverStdin', mS.messages.backupStarting.minecraft+'\n')
+	await modul.call('serverWrapper', 'serverStdin', mS.messages.backupStarting.minecraft+'\n')
 	await modul.call('stats', 'pushStats', { status: 'Backing Up', timeToBackup: timeToNextBackup.fromNow() })
 	let backupDir = mS.overrideBackupDir ? mS.overrideBackupDir : `${mS.rootBackupDir}/${sS.serverName}`;
 	//children.spawn('robocopy', [sS.modules['properties'].settings.p['level-name'], `${backupDir}/${moment().format('MMMMDDYYYY_h-mm-ssA')}/Cookies`, (mS.threads > 1) ? `/MT:${mS.threads}` : '', '/E'], {shell: true, detached: true}).on('close', function (code) {
-	await util.exec(`ssh ${mS.remote.user}@${mS.remote.ip} -p ${mS.remote.port} "mkdir -p ${backupDir} && mkdir -p ${mS.remote.publicBackupDir} && mkdir -p ${mS.remote.publicBackupDir}/${sS.serverName}/"`, {})
-	await util.exec(`rsync-snapshot --src ${sS.server_dir} -p ${mS.remote.port} --shell "ssh -p ${mS.remote.port}" --dst ${mS.remote.user}@${mS.remote.ip}:${backupDir} --setRsyncArg exclude='*.log' --setRsyncArg exclude='*.zip' --setRsyncArg exclude='*.rar' --setRsyncArg exclude='*node_modules*' --maxSnapshots 100000`)
+	await util.pExec(`ssh ${mS.remote.user}@${mS.remote.ip} -p ${mS.remote.port} "mkdir -p ${backupDir} && mkdir -p ${mS.remote.publicBackupDir} && mkdir -p ${mS.remote.publicBackupDir}/${sS.serverName}/"`, {})
+	await util.pExec(`rsync-snapshot --src ${sS.server_dir} -p ${mS.remote.port} --shell "ssh -p ${mS.remote.port}" --dst ${mS.remote.user}@${mS.remote.ip}:${backupDir} --setRsyncArg exclude='*.log' --setRsyncArg exclude='*.zip' --setRsyncArg exclude='*.rar' --setRsyncArg exclude='*node_modules*' --maxSnapshots 100000`)
 	let info = await util.exec(`ssh ${mS.remote.user}@${mS.remote.ip} -p ${mS.remote.port} "ls /mnt/redlive/LiveArchives/${sS.serverName}"`)
 	let latestFolder = info.split(/\r?\n/).slice(-3, -2)[0];
 	//console.log(`ln -s ${backupDir}/${latestFolder}/${sS.serverName}/${sS.modules['properties'].settings.p['level-name']} ${mS.remote.publicBackupDir}${sS.serverName}/${latestFolder} && ln -s ${backupDir}/latest/${sS.serverName}/${sS.modules['properties'].settings.p['level-name']} ${mS.remote.publicBackupDir}${sS.serverName}/latest`)
-	await util.exec(`ssh ${mS.remote.user}@${mS.remote.ip} -p ${mS.remote.port} "ln -s ${backupDir}/${latestFolder}/${sS.serverName}/${sS.modules['properties'].settings.p['level-name']} ${mS.remote.publicBackupDir}${sS.serverName}/${latestFolder} && ln -s ${backupDir}/latest/${sS.serverName}/${sS.modules['properties'].settings.p['level-name']} ${mS.remote.publicBackupDir}${sS.serverName}/latest"`)
+	await util.pExec(`ssh ${mS.remote.user}@${mS.remote.ip} -p ${mS.remote.port} "ln -s ${backupDir}/${latestFolder}/${sS.serverName}/${sS.modules['properties'].settings.p['level-name']} ${mS.remote.publicBackupDir}${sS.serverName}/${latestFolder} && ln -s ${backupDir}/latest/${sS.serverName}/${sS.modules['properties'].settings.p['level-name']} ${mS.remote.publicBackupDir}${sS.serverName}/latest"`)
 	lastBackupEndTime = moment();
 	lastBackupDuration = moment.duration(lastBackupEndTime.diff(lastBackupStartTime));
 	let t = {
@@ -448,9 +458,9 @@ async function runBackup() {
 		h: lastBackupDuration.hours()
 	}
 	lastBackupDurationString = `${(t.m>0) ? `${t.m}min, ` : ''}${(t.s>0) ? `${t.s}sec, ` : ''}${(t.ms>0) ? `${t.ms}ms` : ''}`;
-	await this.call('serverWrapper', 'serverStdin', 'save-on\n');
+	await modul.call('serverWrapper', 'serverStdin', 'save-on\n');
 	process.stdout.write(mS.messages.backupEnded.console.replace("%duration%", lastBackupDurationString)+'\n');
-	await this.call('serverWrapper', 'serverStdin', mS.messages.backupEnded.minecraft+'\n')
+	await modul.call('serverWrapper', 'serverStdin', mS.messages.backupEnded.minecraft+'\n')
 	await modul.call('stats', 'pushStats', {
 		status: 'Running',
 		timeToNextBackup: timeToNextBackup?timeToNextBackup.fromNow():'Backups disabled', 
