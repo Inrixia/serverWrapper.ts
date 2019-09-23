@@ -1,8 +1,8 @@
 const thisModule = 'moduleName';
 
 // Set defaults
-var sS = {}; // serverSettings
-var sP = {}; // ServerProperties
+let sS = {}; // serverSettings
+let mS = {}; // ServerProperties
 
 // Import core packages
 const modul = new [require('./modul.js')][0](thisModule)

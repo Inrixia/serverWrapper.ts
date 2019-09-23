@@ -887,13 +887,13 @@ async function startServer() {
 	let sStdoutHandler = (string) => {
 		color(string.toString()) // Write line to wrapper console
 		if (string.indexOf("players online") > -1) { // "list" command has completed, server is now online
+			sS.lastStartTime = Date.now()-serverStartTime
 			clearInterval(otherStart);
 			sStdoutHandler = postConsoleTimeout;
 			started();
 		}
 	}
 	let started = () => {
-		sS.lastStartTime = Date.now()-serverStartTime
 		console.log(`Server started in ${sS.c['brightCyan'].c}${sS.lastStartTime}${sS.c['reset'].c}ms`)
 		if ((loadedModules['stats']||{}).process) loadedModules['stats'].call('startStatsInterval', {
 			stats: {

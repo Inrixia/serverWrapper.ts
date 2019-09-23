@@ -2,7 +2,7 @@ const thisModule = 'util';
 
 // Set defaults
 var sS = {}; // serverSettings
-var sP = {}; // ServerProperties
+let mS = {}; // ServerProperties
 
 // Import core packages
 const modul = new [require('./modul.js')][0](thisModule)

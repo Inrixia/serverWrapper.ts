@@ -26,7 +26,6 @@ let fn = {
 				channel.send(`[BOX] > ${message}\n`, { split: true })
 			})
 		})
-		await buildMatches()
 		await openDiscord();
 	},
 	discordStdin: async message => {
@@ -182,41 +181,5 @@ async function serverStdout(string) {
 	if(!serverStarted) {
 		serverStarted = true;
 		sendChat("Server Started");
-	} else {
-		for (eventKey in mS.chatLink.eventTranslation) {
-			let event = mS.chatLink.eventTranslation[eventKey];
-			if (event.match != false) {
-				if ((string.search(event.matchRegex) > -1 && (string.indexOf('>') == -1) )) { // || eventKey == "PlayerMessage"
-					let match = Array.from(string.match(event.matchRegex));
-					let content = event.content;
-					if (event.matchRelation) event.matchRelation.forEach(async (matchedWord, i) => {
-						if (event.send.content) content = content.replace(matchedWord, match[i+1]);
-						if (event.send.embed) {
-							for (key in event.embed) {
-								if (typeof event.embed[key] == "object") { 
-									for (childKey in event.embed[key]) {
-										if (typeof event.embed[key][childKey] == "object") {
-											for (granChildKey in event.embed[key][childKey]) {
-												if (typeof event.embed[key][childKey] != "object") event.embed[key][childKey][granChildKey].replace(matchedWord, match[i+1])
-											}
-										} else event.embed[key][childKey] = event.embed[key][childKey].replace(matchedWord, match[i+1])
-									}
-								} else event.embed[key] = event.embed[key].replace(matchedWord, match[i+1])
-							}
-						}
-					})
-				}
-			}
-		}
 	}
-}
-
-async function buildMatches() {
-	for (key in mS.chatLink.eventTranslation) {
-		if (mS.chatLink.eventTranslation[key].match) {
-			mS.chatLink.eventTranslation[key].matchRelation = mS.chatLink.eventTranslation[key].match.match(/\%(.*?)\%/g);
-			mS.chatLink.eventTranslation[key].matchRegex = `.* ${mS.chatLink.eventTranslation[key].match.replace(/\%(.*?)\%/g, '(.*?)')}\\r\\n$`;
-		}
-	}
-	return;
 }

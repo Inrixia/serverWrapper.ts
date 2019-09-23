@@ -227,592 +227,602 @@
           "475502976656736257"
         ],
         "chatLink": {
-          "channelId": "614637977502744576",
-          "eventTranslation": {
-            "Started": {
-              "match": false,
-              "content": "**Server Started**",
-              "embed": {
-                "description": "Server Started"
-              },
-              "send": {
-                "embed": true,
-                "content": false
+          "channelId": "614637977502744576"
+        }
+      }
+    },
+    "event": {
+      "file": "event.js",
+      "enabled": true,
+      "persistent": false,
+      "color": "brightRed",
+      "import": false,
+      "description": "Handles server events.",
+      "settings": {
+        "eventTranslation": {
+          "Started": {
+            "match": false,
+            "content": "**Server Started**",
+            "embed": {
+              "description": "Server Started"
+            },
+            "send": {
+              "embed": true,
+              "content": false
+            }
+          },
+          "PlayerMessage": {
+            "match": "<%username%> %message%",
+            "content": "**<%username%>** %message%",
+            "embed": {
+              "description": "%message%",
+              "author": {
+                "name": "%username%",
+                "icon_url": "%img_username%"
               }
             },
-            "PlayerMessage": {
-              "match": "<%username%> %message%",
-              "content": "**<%username%>** %message%",
-              "embed": {
-                "description": "%message%",
-                "author": {
-                  "name": "%username%",
-                  "icon_url": "%img_username%"
-                }
-              },
-              "send": {
-                "embed": true,
-                "content": false
+            "send": {
+              "embed": true,
+              "content": false
+            }
+          },
+          "Stopped": {
+            "match": "Stopping the server",
+            "content": "**Server stopping...**",
+            "embed": {
+              "description": "**Server stopping...**"
+            },
+            "send": {
+              "embed": true,
+              "content": false
+            }
+          },
+          "PlayerJoined": {
+            "match": "%username% joined the game",
+            "content": "**<%username%>** joined the server!",
+            "embed": {
+              "description": "**%username%** joined the game!",
+              "author": {
+                "name": "%username%",
+                "icon_url": "%username%"
               }
             },
-            "Stopped": {
-              "match": "Stopping the server",
-              "content": "**Server stopping...**",
-              "embed": {
-                "description": "**Server stopping...**"
-              },
-              "send": {
-                "embed": true,
-                "content": false
+            "send": {
+              "embed": true,
+              "content": false
+            }
+          },
+          "PlayerLeft": {
+            "match": "%username% left the game",
+            "content": "**<%username%>** left the server!",
+            "embed": {
+              "description": "**%username%** left the game!",
+              "author": {
+                "name": "%username%",
+                "icon_url": "%username%"
               }
             },
-            "PlayerJoined": {
-              "match": "%username% joined the game",
-              "content": "**<%username%>** joined the server!",
-              "embed": {
-                "description": "**%username%** joined the game!",
-                "author": {
-                  "name": "%username%",
-                  "icon_url": "%username%"
-                }
-              },
-              "send": {
-                "embed": true,
-                "content": false
+            "send": {
+              "embed": true,
+              "content": false
+            }
+          },
+          "PlayerAdvancement": {
+            "match": "%username% has made the advancement [%advancement%]",
+            "content": "**<%username%>** gained the achievement **%advancement%**!",
+            "embed": {
+              "author": {
+                "name": "%username% has made the advancement %advancement%",
+                "icon_url": "%username%"
               }
             },
-            "PlayerLeft": {
-              "match": "%username% left the game",
-              "content": "**<%username%>** left the server!",
-              "embed": {
-                "description": "**%username%** left the game!",
-                "author": {
-                  "name": "%username%",
-                  "icon_url": "%username%"
-                }
-              },
-              "send": {
-                "embed": true,
-                "content": false
+            "send": {
+              "embed": true,
+              "content": false
+            }
+          },
+          "PlayerGoal": {
+            "match": "%username% has reached the goal [%goal%]",
+            "content": "**<%username%>** reached the goal **%goal%**!",
+            "embed": {
+              "author": {
+                "name": "%username% has reached the goal %goal%",
+                "icon_url": "%username%"
               }
             },
-            "PlayerAdvancement": {
-              "match": "%username% has made the advancement [%advancement%]",
-              "content": "**<%username%>** gained the achievement **%advancement%**!",
-              "embed": {
-                "author": {
-                  "name": "%username% has made the advancement %advancement%",
-                  "icon_url": "%username%"
-                }
-              },
-              "send": {
-                "embed": true,
-                "content": false
+            "send": {
+              "embed": true,
+              "content": false
+            }
+          },
+          "KilledInFire": {
+            "match": "%entity% went up in flames",
+            "content": "**<%entity%>** went up in flames",
+            "embed": {
+              "author": {
+                "name": "%entity% went up in flames",
+                "icon_url": "%entity%"
               }
             },
-            "PlayerGoal": {
-              "match": "%username% has reached the goal [%goal%]",
-              "content": "**<%username%>** reached the goal **%goal%**!",
-              "embed": {
-                "author": {
-                  "name": "%username% has reached the goal %goal%",
-                  "icon_url": "%username%"
-                }
-              },
-              "send": {
-                "embed": true,
-                "content": false
+            "send": {
+              "embed": true,
+              "content": false
+            }
+          },
+          "DiedOnFire": {
+            "match": "%entity% burned to death",
+            "content": "**<%entity%>** burned to death",
+            "embed": {
+              "author": {
+                "name": "%entity% burned to death",
+                "icon_url": "%entity%"
               }
             },
-            "KilledInFire": {
-              "match": "%entity% went up in flames",
-              "content": "**<%entity%>** went up in flames",
-              "embed": {
-                "author": {
-                  "name": "%entity% went up in flames",
-                  "icon_url": "%entity%"
-                }
-              },
-              "send": {
-                "embed": true,
-                "content": false
+            "send": {
+              "embed": true,
+              "content": false
+            }
+          },
+          "DiedInLava": {
+            "match": "%entity% tried to swim in lava",
+            "content": "**<%entity%>** tried to swim in lava",
+            "embed": {
+              "author": {
+                "name": "%entity% tried to swim in lava",
+                "icon_url": "%entity%"
               }
             },
-            "DiedOnFire": {
-              "match": "%entity% burned to death",
-              "content": "**<%entity%>** burned to death",
-              "embed": {
-                "author": {
-                  "name": "%entity% burned to death",
-                  "icon_url": "%entity%"
-                }
-              },
-              "send": {
-                "embed": true,
-                "content": false
+            "send": {
+              "embed": true,
+              "content": false
+            }
+          },
+          "DiedInWall": {
+            "match": "%entity% suffocated in a wall",
+            "content": "**<%entity%>** suffocated in a wall",
+            "embed": {
+              "author": {
+                "name": "%entity% suffocated in a wall",
+                "icon_url": "%entity%"
               }
             },
-            "DiedInLava": {
-              "match": "%entity% tried to swim in lava",
-              "content": "**<%entity%>** tried to swim in lava",
-              "embed": {
-                "author": {
-                  "name": "%entity% tried to swim in lava",
-                  "icon_url": "%entity%"
-                }
-              },
-              "send": {
-                "embed": true,
-                "content": false
+            "send": {
+              "embed": true,
+              "content": false
+            }
+          },
+          "Drowned": {
+            "match": "%entity% drowned",
+            "content": "**<%entity%>** drowned",
+            "embed": {
+              "author": {
+                "name": "%entity% drowned",
+                "icon_url": "%entity%"
               }
             },
-            "DiedInWall": {
-              "match": "%entity% suffocated in a wall",
-              "content": "**<%entity%>** suffocated in a wall",
-              "embed": {
-                "author": {
-                  "name": "%entity% suffocated in a wall",
-                  "icon_url": "%entity%"
-                }
-              },
-              "send": {
-                "embed": true,
-                "content": false
+            "send": {
+              "embed": true,
+              "content": false
+            }
+          },
+          "DrownedEscaping": {
+            "match": "%entityA% drowned whilst trying to escape %entityB%",
+            "content": "**<%entityA%>** drowned whilst trying to escape **<%entityB%>**",
+            "embed": {
+              "author": {
+                "name": "%entityA% drowned whilst trying to escape %entityB%",
+                "icon_url": "%entityA%"
               }
             },
-            "Drowned": {
-              "match": "%entity% drowned",
-              "content": "**<%entity%>** drowned",
-              "embed": {
-                "author": {
-                  "name": "%entity% drowned",
-                  "icon_url": "%entity%"
-                }
-              },
-              "send": {
-                "embed": true,
-                "content": false
+            "send": {
+              "embed": true,
+              "content": false
+            }
+          },
+          "Starved": {
+            "match": "%entity% starved to death",
+            "content": "**<%entity%>** starved to death",
+            "embed": {
+              "author": {
+                "name": "%entity% starved to death",
+                "icon_url": "%entity%"
               }
             },
-            "DrownedEscaping": {
-              "match": "%entityA% drowned whilst trying to escape %entityB%",
-              "content": "**<%entityA%>** drowned whilst trying to escape **<%entityB%>**",
-              "embed": {
-                "author": {
-                  "name": "%entityA% drowned whilst trying to escape %entityB%",
-                  "icon_url": "%entityA%"
-                }
-              },
-              "send": {
-                "embed": true,
-                "content": false
+            "send": {
+              "embed": true,
+              "content": false
+            }
+          },
+          "Pricked": {
+            "match": "%entity% was pricked to death",
+            "content": "**<%entity%>** was pricked to death",
+            "embed": {
+              "author": {
+                "name": "%entity% was pricked to death",
+                "icon_url": "%entity%"
               }
             },
-            "Starved": {
-              "match": "%entity% starved to death",
-              "content": "**<%entity%>** starved to death",
-              "embed": {
-                "author": {
-                  "name": "%entity% starved to death",
-                  "icon_url": "%entity%"
-                }
-              },
-              "send": {
-                "embed": true,
-                "content": false
+            "send": {
+              "embed": true,
+              "content": false
+            }
+          },
+          "HuggedACactus": {
+            "match": "%entity% hugged a cactus",
+            "content": "**<%entity%>** hugged a cactus",
+            "embed": {
+              "author": {
+                "name": "%entity% hugged a cactus",
+                "icon_url": "%entity%"
               }
             },
-            "Pricked": {
-              "match": "%entity% was pricked to death",
-              "content": "**<%entity%>** was pricked to death",
-              "embed": {
-                "author": {
-                  "name": "%entity% was pricked to death",
-                  "icon_url": "%entity%"
-                }
-              },
-              "send": {
-                "embed": true,
-                "content": false
+            "send": {
+              "embed": true,
+              "content": false
+            }
+          },
+          "WalkedIntoCactus": {
+            "match": "%entityA% walked into a cactus while trying to escape %entityB%",
+            "content": "**<%entity%>** walked into a cactus while trying to escape **<%entityB%>**",
+            "embed": {
+              "author": {
+                "name": "%entityA% walked into a cactus while trying to escape %entityB%",
+                "icon_url": "%entityA%"
               }
             },
-            "HuggedACactus": {
-              "match": "%entity% hugged a cactus",
-              "content": "**<%entity%>** hugged a cactus",
-              "embed": {
-                "author": {
-                  "name": "%entity% hugged a cactus",
-                  "icon_url": "%entity%"
-                }
-              },
-              "send": {
-                "embed": true,
-                "content": false
+            "send": {
+              "embed": true,
+              "content": false
+            }
+          },
+          "HitTheGroundTooHard": {
+            "match": "%entity% hit the ground too hard",
+            "content": "**<%entity%>** hit the ground too hard",
+            "embed": {
+              "author": {
+                "name": "%entity% hit the ground too hard",
+                "icon_url": "%entity%"
               }
             },
-            "WalkedIntoCactus": {
-              "match": "%entityA% walked into a cactus while trying to escape %entityB%",
-              "content": "**<%entity%>** walked into a cactus while trying to escape **<%entityB%>**",
-              "embed": {
-                "author": {
-                  "name": "%entityA% walked into a cactus while trying to escape %entityB%",
-                  "icon_url": "%entityA%"
-                }
-              },
-              "send": {
-                "embed": true,
-                "content": false
+            "send": {
+              "embed": true,
+              "content": false
+            }
+          },
+          "DiedOutOfWorld": {
+            "match": "%entity% fell out of the world",
+            "content": "**<%entity%>** fell out of the world",
+            "embed": {
+              "author": {
+                "name": "%entity% fell out of the world",
+                "icon_url": "%entity%"
               }
             },
-            "HitTheGroundTooHard": {
-              "match": "%entity% hit the ground too hard",
-              "content": "**<%entity%>** hit the ground too hard",
-              "embed": {
-                "author": {
-                  "name": "%entity% hit the ground too hard",
-                  "icon_url": "%entity%"
-                }
-              },
-              "send": {
-                "embed": true,
-                "content": false
+            "send": {
+              "embed": true,
+              "content": false
+            }
+          },
+          "Died": {
+            "match": "%entity% died",
+            "content": "**<%entity%>** died",
+            "embed": {
+              "author": {
+                "name": "%entity% died",
+                "icon_url": "%entity%"
               }
             },
-            "DiedOutOfWorld": {
-              "match": "%entity% fell out of the world",
-              "content": "**<%entity%>** fell out of the world",
-              "embed": {
-                "author": {
-                  "name": "%entity% fell out of the world",
-                  "icon_url": "%entity%"
-                }
-              },
-              "send": {
-                "embed": true,
-                "content": false
+            "send": {
+              "embed": true,
+              "content": false
+            }
+          },
+          "Exploded": {
+            "match": "%entity% blew up",
+            "content": "**<%entity%>** blew up",
+            "embed": {
+              "author": {
+                "name": "%entity% blew up",
+                "icon_url": "%entity%"
               }
             },
-            "Died": {
-              "match": "%entity% died",
-              "content": "**<%entity%>** died",
-              "embed": {
-                "author": {
-                  "name": "%entity% died",
-                  "icon_url": "%entity%"
-                }
-              },
-              "send": {
-                "embed": true,
-                "content": false
+            "send": {
+              "embed": true,
+              "content": false
+            }
+          },
+          "ExplodedBy": {
+            "match": "%entityA% was blown up by %entityB%",
+            "content": "**<%entityA%>** was blown up by **<%entityB%>**",
+            "embed": {
+              "author": {
+                "name": "%entityA% was blown up by %entityB%",
+                "icon_url": "%entity%"
               }
             },
-            "Exploded": {
-              "match": "%entity% blew up",
-              "content": "**<%entity%>** blew up",
-              "embed": {
-                "author": {
-                  "name": "%entity% blew up",
-                  "icon_url": "%entity%"
-                }
-              },
-              "send": {
-                "embed": true,
-                "content": false
+            "send": {
+              "embed": true,
+              "content": false
+            }
+          },
+          "KilledByMagic": {
+            "match": "%entity% was killed by magic",
+            "content": "**<%entity%>** was killed by magic",
+            "embed": {
+              "author": {
+                "name": "%entity% was killed by magic",
+                "icon_url": "%entity%"
               }
             },
-            "ExplodedBy": {
-              "match": "%entityA% was blown up by %entityB%",
-              "content": "**<%entityA%>** was blown up by **<%entityB%>**",
-              "embed": {
-                "author": {
-                  "name": "%entityA% was blown up by %entityB%",
-                  "icon_url": "%entity%"
-                }
-              },
-              "send": {
-                "embed": true,
-                "content": false
+            "send": {
+              "embed": true,
+              "content": false
+            }
+          },
+          "SlainBy": {
+            "match": "%entityA% was slain by %entityB%",
+            "content": "**<%entityA%>** was slain by **%entityB%**",
+            "embed": {
+              "author": {
+                "name": "%entityA% was slain by %entityB%",
+                "icon_url": "%entityA%"
               }
             },
-            "KilledByMagic": {
-              "match": "%entity% was killed by magic",
-              "content": "**<%entity%>** was killed by magic",
-              "embed": {
-                "author": {
-                  "name": "%entity% was killed by magic",
-                  "icon_url": "%entity%"
-                }
-              },
-              "send": {
-                "embed": true,
-                "content": false
+            "send": {
+              "embed": true,
+              "content": false
+            }
+          },
+          "ShotBy": {
+            "match": "%entityA% was shot by %entityB%",
+            "content": "**<%entityA%>** was shot by **%entityB%**",
+            "embed": {
+              "author": {
+                "name": "%entityA% was shot by %entityB%",
+                "icon_url": "%entityA%"
               }
             },
-            "SlainBy": {
-              "match": "%entityA% was slain by %entityB%",
-              "content": "**<%entityA%>** was slain by **%entityB%**",
-              "embed": {
-                "author": {
-                  "name": "%entityA% was slain by %entityB%",
-                  "icon_url": "%entityA%"
-                }
-              },
-              "send": {
-                "embed": true,
-                "content": false
+            "send": {
+              "embed": true,
+              "content": false
+            }
+          },
+          "ShotByUsing": {
+            "match": "%entityA% was shot by %entityB% using %bowName%",
+            "content": "**<%entityA%>** was shot by **%entityB% using %bowName%**",
+            "embed": {
+              "author": {
+                "name": "%entityA% was shot by %entityB% using %bowName%",
+                "icon_url": "%entityA%"
               }
             },
-            "ShotBy": {
-              "match": "%entityA% was shot by %entityB%",
-              "content": "**<%entityA%>** was shot by **%entityB%**",
-              "embed": {
-                "author": {
-                  "name": "%entityA% was shot by %entityB%",
-                  "icon_url": "%entityA%"
-                }
-              },
-              "send": {
-                "embed": true,
-                "content": false
+            "send": {
+              "embed": true,
+              "content": false
+            }
+          },
+          "FireballedBy": {
+            "match": "%entityA% was fireballed by %entityB%",
+            "content": "**<%entityA%>** was fireballed by **%entityB%**",
+            "embed": {
+              "author": {
+                "name": "%entityA% was fireballed by %entityB%",
+                "icon_url": "%entityA%"
               }
             },
-            "ShotByUsing": {
-              "match": "%entityA% was shot by %entityB% using %bowName%",
-              "content": "**<%entityA%>** was shot by **%entityB% using %bowName%**",
-              "embed": {
-                "author": {
-                  "name": "%entityA% was shot by %entityB% using %bowName%",
-                  "icon_url": "%entityA%"
-                }
-              },
-              "send": {
-                "embed": true,
-                "content": false
+            "send": {
+              "embed": true,
+              "content": false
+            }
+          },
+          "PummeledBy": {
+            "match": "%entityA% was pummeled by %entityB%",
+            "content": "**<%entityA%>** was pummeled by **%entityB%**",
+            "embed": {
+              "author": {
+                "name": "%entityA% was pummeled by %entityB%",
+                "icon_url": "%entityA%"
               }
             },
-            "FireballedBy": {
-              "match": "%entityA% was fireballed by %entityB%",
-              "content": "**<%entityA%>** was fireballed by **%entityB%**",
-              "embed": {
-                "author": {
-                  "name": "%entityA% was fireballed by %entityB%",
-                  "icon_url": "%entityA%"
-                }
-              },
-              "send": {
-                "embed": true,
-                "content": false
+            "send": {
+              "embed": true,
+              "content": false
+            }
+          },
+          "KilledBy": {
+            "match": "%entityA% was killed by %entityB%",
+            "content": "**<%entityA%>** was killed by **%entityB%**",
+            "embed": {
+              "author": {
+                "name": "%entityA% was killed by %entityB%",
+                "icon_url": "%entityA%"
               }
             },
-            "PummeledBy": {
-              "match": "%entityA% was pummeled by %entityB%",
-              "content": "**<%entityA%>** was pummeled by **%entityB%**",
-              "embed": {
-                "author": {
-                  "name": "%entityA% was pummeled by %entityB%",
-                  "icon_url": "%entityA%"
-                }
-              },
-              "send": {
-                "embed": true,
-                "content": false
+            "send": {
+              "embed": true,
+              "content": false
+            }
+          },
+          "ElytraCrashed": {
+            "match": "%entity% experienced kinetic energy",
+            "content": "**<%entity%>** experienced kinetic energy",
+            "embed": {
+              "author": {
+                "name": "%entity% experienced kinetic energy",
+                "icon_url": "%entity%"
               }
             },
-            "KilledBy": {
-              "match": "%entityA% was killed by %entityB%",
-              "content": "**<%entityA%>** was killed by **%entityB%**",
-              "embed": {
-                "author": {
-                  "name": "%entityA% was killed by %entityB%",
-                  "icon_url": "%entityA%"
-                }
-              },
-              "send": {
-                "embed": true,
-                "content": false
+            "send": {
+              "embed": true,
+              "content": false
+            }
+          },
+          "FellFromHighPlace": {
+            "match": "%entity% fell from a high place",
+            "content": "**<%entity%>** fell from a high place",
+            "embed": {
+              "author": {
+                "name": "%entity% fell from a high place",
+                "icon_url": "%entity%"
               }
             },
-            "ElytraCrashed": {
-              "match": "%entity% experienced kinetic energy",
-              "content": "**<%entity%>** experienced kinetic energy",
-              "embed": {
-                "author": {
-                  "name": "%entity% experienced kinetic energy",
-                  "icon_url": "%entity%"
-                }
-              },
-              "send": {
-                "embed": true,
-                "content": false
+            "send": {
+              "embed": true,
+              "content": false
+            }
+          },
+          "FellFromLadder": {
+            "match": "%entity% fell off a ladder",
+            "content": "**<%entity%>** fell off a ladder",
+            "embed": {
+              "author": {
+                "name": "%entity% fell off a ladder",
+                "icon_url": "%entity%"
               }
             },
-            "FellFromHighPlace": {
-              "match": "%entity% fell from a high place",
-              "content": "**<%entity%>** fell from a high place",
-              "embed": {
-                "author": {
-                  "name": "%entity% fell from a high place",
-                  "icon_url": "%entity%"
-                }
-              },
-              "send": {
-                "embed": true,
-                "content": false
+            "send": {
+              "embed": true,
+              "content": false
+            }
+          },
+          "FellFromVines": {
+            "match": "%entity% fell off some vines",
+            "content": "**<%entity%>** fell off some vines",
+            "embed": {
+              "author": {
+                "name": "%entity% fell off some vines",
+                "icon_url": "%entity%"
               }
             },
-            "FellFromLadder": {
-              "match": "%entity% fell off a ladder",
-              "content": "**<%entity%>** fell off a ladder",
-              "embed": {
-                "author": {
-                  "name": "%entity% fell off a ladder",
-                  "icon_url": "%entity%"
-                }
-              },
-              "send": {
-                "embed": true,
-                "content": false
+            "send": {
+              "embed": true,
+              "content": false
+            }
+          },
+          "FellOutOfWater": {
+            "match": "%entity% fell out of the water",
+            "content": "**<%entity%>** out of the water",
+            "embed": {
+              "author": {
+                "name": "%entity% fell out of the water",
+                "icon_url": "%entity%"
               }
             },
-            "FellFromVines": {
-              "match": "%entity% fell off some vines",
-              "content": "**<%entity%>** fell off some vines",
-              "embed": {
-                "author": {
-                  "name": "%entity% fell off some vines",
-                  "icon_url": "%entity%"
-                }
-              },
-              "send": {
-                "embed": true,
-                "content": false
+            "send": {
+              "embed": true,
+              "content": false
+            }
+          },
+          "FellIntoFire": {
+            "match": "%entity% fell into a patch of fire",
+            "content": "**<%entity%>** fell into a patch of fire",
+            "embed": {
+              "author": {
+                "name": "%entity% fell into a patch of fire",
+                "icon_url": "%entity%"
               }
             },
-            "FellOutOfWater": {
-              "match": "%entity% fell out of the water",
-              "content": "**<%entity%>** out of the water",
-              "embed": {
-                "author": {
-                  "name": "%entity% fell out of the water",
-                  "icon_url": "%entity%"
-                }
-              },
-              "send": {
-                "embed": true,
-                "content": false
+            "send": {
+              "embed": true,
+              "content": false
+            }
+          },
+          "FellIntoCacti": {
+            "match": "%entity% fell into a patch of cacti",
+            "content": "**<%entity%>** fell into a patch of cacti",
+            "embed": {
+              "author": {
+                "name": "%entity% fell into a patch of cacti",
+                "icon_url": "%entity%"
               }
             },
-            "FellIntoFire": {
-              "match": "%entity% fell into a patch of fire",
-              "content": "**<%entity%>** fell into a patch of fire",
-              "embed": {
-                "author": {
-                  "name": "%entity% fell into a patch of fire",
-                  "icon_url": "%entity%"
-                }
-              },
-              "send": {
-                "embed": true,
-                "content": false
+            "send": {
+              "embed": true,
+              "content": false
+            }
+          },
+          "DoomedToFall": {
+            "match": "%entityA% was doomed to fall by %entityB%",
+            "content": "**<%entityA%>** was doomed to fall by %entityB%",
+            "embed": {
+              "author": {
+                "name": "%entityA% was doomed to fall by %entityB%",
+                "icon_url": "%entity%"
               }
             },
-            "FellIntoCacti": {
-              "match": "%entity% fell into a patch of cacti",
-              "content": "**<%entity%>** fell into a patch of cacti",
-              "embed": {
-                "author": {
-                  "name": "%entity% fell into a patch of cacti",
-                  "icon_url": "%entity%"
-                }
-              },
-              "send": {
-                "embed": true,
-                "content": false
+            "send": {
+              "embed": true,
+              "content": false
+            }
+          },
+          "ShootOffVines": {
+            "match": "%entityA% was shot off some vines by %entityB%",
+            "content": "**<%entityA%>** was shot off some vines by %entityB%",
+            "embed": {
+              "author": {
+                "name": "%entityA% was shot off some vines by %entityB%",
+                "icon_url": "%entity%"
               }
             },
-            "DoomedToFall": {
-              "match": "%entityA% was doomed to fall by %entityB%",
-              "content": "**<%entityA%>** was doomed to fall by %entityB%",
-              "embed": {
-                "author": {
-                  "name": "%entityA% was doomed to fall by %entityB%",
-                  "icon_url": "%entity%"
-                }
-              },
-              "send": {
-                "embed": true,
-                "content": false
+            "send": {
+              "embed": true,
+              "content": false
+            }
+          },
+          "BlownFromHigh": {
+            "match": "%entityA% was blown from a high place by %entityB%",
+            "content": "**<%entityA%>** was blown from a high place by %entityB%",
+            "embed": {
+              "author": {
+                "name": "%entityA% was blown from a high place by %entityB%",
+                "icon_url": "%entity%"
               }
             },
-            "ShootOffVines": {
-              "match": "%entityA% was shot off some vines by %entityB%",
-              "content": "**<%entityA%>** was shot off some vines by %entityB%",
-              "embed": {
-                "author": {
-                  "name": "%entityA% was shot off some vines by %entityB%",
-                  "icon_url": "%entity%"
-                }
-              },
-              "send": {
-                "embed": true,
-                "content": false
+            "send": {
+              "embed": true,
+              "content": false
+            }
+          },
+          "SquashedByAnvil": {
+            "match": "%entityA% was squashed by a falling anvil",
+            "content": "**<%entityA%>** was squashed by a falling anvil",
+            "embed": {
+              "author": {
+                "name": "%entityA% was squashed by a falling anvil",
+                "icon_url": "%entity%"
               }
             },
-            "BlownFromHigh": {
-              "match": "%entityA% was blown from a high place by %entityB%",
-              "content": "**<%entityA%>** was blown from a high place by %entityB%",
-              "embed": {
-                "author": {
-                  "name": "%entityA% was blown from a high place by %entityB%",
-                  "icon_url": "%entity%"
-                }
-              },
-              "send": {
-                "embed": true,
-                "content": false
+            "send": {
+              "embed": true,
+              "content": false
+            }
+          },
+          "SquashedByBlock": {
+            "match": "%entityA% was squashed by a falling block",
+            "content": "**<%entityA%>** was squashed by a falling block",
+            "embed": {
+              "author": {
+                "name": "%entityA% was squashed by a falling block",
+                "icon_url": "%entity%"
               }
             },
-            "SquashedByAnvil": {
-              "match": "%entityA% was squashed by a falling anvil",
-              "content": "**<%entityA%>** was squashed by a falling anvil",
-              "embed": {
-                "author": {
-                  "name": "%entityA% was squashed by a falling anvil",
-                  "icon_url": "%entity%"
-                }
-              },
-              "send": {
-                "embed": true,
-                "content": false
+            "send": {
+              "embed": true,
+              "content": false
+            }
+          },
+          "ElytraKilled": {
+            "match": "%entity% removed an elytra while flying",
+            "content": "**<%entity%>** removed an elytra while flying",
+            "embed": {
+              "author": {
+                "name": "%entity% removed an elytra while flying",
+                "icon_url": "%entity%"
               }
             },
-            "SquashedByBlock": {
-              "match": "%entityA% was squashed by a falling block",
-              "content": "**<%entityA%>** was squashed by a falling block",
-              "embed": {
-                "author": {
-                  "name": "%entityA% was squashed by a falling block",
-                  "icon_url": "%entity%"
-                }
-              },
-              "send": {
-                "embed": true,
-                "content": false
-              }
-            },
-            "ElytraKilled": {
-              "match": "%entity% removed an elytra while flying",
-              "content": "**<%entity%>** removed an elytra while flying",
-              "embed": {
-                "author": {
-                  "name": "%entity% removed an elytra while flying",
-                  "icon_url": "%entity%"
-                }
-              },
-              "send": {
-                "embed": true,
-                "content": false
-              }
+            "send": {
+              "embed": true,
+              "content": false
             }
           }
         }
@@ -937,5 +947,5 @@
   },
   "server_dir": "/home/hotpink/wrapperModules/ForgeTest",
   "serverName": "ForgeTest",
-  "lastStartTime": 9598
+  "lastStartTime": 5931
 }
