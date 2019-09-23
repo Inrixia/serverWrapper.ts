@@ -36,7 +36,6 @@ let fn = {
 				exeFunc: 'runBackup',
 				module: thisModule,
 				description: {
-					summary: `Starts a backup.`,
 					console: `${sS.c['white'].c}Starts a backup. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~backup${sS.c['reset'].c}`,
 					minecraft: [{
 						"text": `Starts a backup. `,
@@ -70,7 +69,6 @@ let fn = {
 				exeFunc: 'startBackupInterval',
 				module: thisModule,
 				description: {
-					summary: `Starts automatic backups.`,
 					console: `${sS.c['white'].c}Starts automatic backups. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~startBackupInterval${sS.c['reset'].c}`,
 					minecraft: [{
 						"text": `Starts automatic backups. `,
@@ -104,7 +102,6 @@ let fn = {
 				exeFunc: 'clearBackupInterval',
 				module: thisModule,
 				description: {
-					summary: `Stops automatic backups.`,
 					console: `${sS.c['white'].c}Stops automatic backups. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~clearBackupInterval${sS.c['reset'].c}`,
 					minecraft: [{
 						"text": `Stops automatic backups. `,
@@ -138,7 +135,6 @@ let fn = {
 				exeFunc: 'setBackupInterval',
 				module: thisModule,
 				description: {
-					summary: `Sets backup interval.`,
 					console: `${sS.c['white'].c}Sets backup interval. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~setBackupInterval${sS.c['reset'].c}`,
 					minecraft: [{
 						"text": `Sets backup interval. `,
@@ -172,7 +168,6 @@ let fn = {
 				exeFunc: 'getbackupDir',
 				module: thisModule,
 				description: {
-					summary: `Gets backup directory.`,
 					console: `${sS.c['white'].c}Gets backup directory. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~backupDir${sS.c['reset'].c}`,
 					minecraft: [{
 						"text": `Gets backup directory. `,
@@ -206,7 +201,6 @@ let fn = {
 				exeFunc: 'nextBackup',
 				module: thisModule,
 				description: {
-					summary: `Gets time to next backup.`,
 					console: `${sS.c['white'].c}Gets time to next backup. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~nextBackup${sS.c['reset'].c}`,
 					minecraft: [{
 						"text": `Gets time to next backup. `,
@@ -240,7 +234,6 @@ let fn = {
 				exeFunc: 'lastBackup',
 				module: thisModule,
 				description: {
-					summary: `Gets last backup info.`,
 					console: `${sS.c['white'].c}Gets last backup info. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~lastBackup${sS.c['reset'].c}`,
 					minecraft: [{
 						"text": `Gets last backup info. `,

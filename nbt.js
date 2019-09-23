@@ -144,7 +144,6 @@ let fn = {
 				exeFunc: 'getSpawn',
 				module: thisModule,
 				description: {
-					summary: `Gets server spawn coords.`,
 					console: `${sS.c['white'].c}Gets server spawn coords. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~getSpawn${sS.c['reset'].c}`,
 					minecraft: [{
 						"text": `Gets server spawn coords. `,

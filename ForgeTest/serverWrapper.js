@@ -951,7 +951,6 @@ const commands = [{
 	exeFunc: 'restartModules',
 	module: thisModule,
 	description: {
-		summary: `Restarts all modules`,
 		console: `${sS.c['brightWhite'].c}Restarts all modules. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~restartModules${sS.c['reset'].c}`,
 		minecraft: [{
 			"text": `Restarts all modules. `,
@@ -985,7 +984,6 @@ const commands = [{
 	exeFunc: 'unloadModules',
 	module: thisModule,
 	description: {
-		summary: `Stops and unloads all modules.`,
 		console: `${sS.c['brightWhite'].c}Stops and unloads all non-persistent modules. ${sS.c['reset'].c}\nExample: ${sS.c['yellow'].c}~unloadModules${sS.c['reset'].c}`,
 		minecraft: [{
 			"text": `Stops and unloads all non-persistent modules.\n`,
@@ -1019,7 +1017,6 @@ const commands = [{
 	exeFunc: 'reloadModules',
 	module: thisModule,
 	description: {
-		summary: `Reloads and restarts all modules.`,
 		console: `${sS.c['brightWhite'].c}Reloads and restarts all modules. Will load and run any changes to modules. ${sS.c['reset'].c}\nExample: ${sS.c['yellow'].c}~reloadModules${sS.c['reset'].c}`,
 		minecraft: [{
 				"text": `Reloads and restarts all modules. `,
@@ -1053,7 +1050,6 @@ const commands = [{
 	exeFunc: 'listModules',
 	module: thisModule,
 	description: {
-		summary: `Gets status of all modules currently installed in the wrapper.`,
 		console: `${sS.c['brightWhite'].c}Gets status of all modules currently installed. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~listModules${sS.c['reset'].c}`,
 		minecraft: [{
 			"text": `Gets status of all modules currently insalled. `,
@@ -1087,7 +1083,6 @@ const commands = [{
 	exeFunc: 'enableModule',
 	module: thisModule,
 	description: {
-		summary: `Enables any given module.`,
 		console: `${sS.c['brightWhite'].c}Enables any given module and saves settings if true. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~enableModule ${sS.c['brightBlue'].c}discord ${sS.c['orange'].c}true${sS.c['reset'].c}`,
 		minecraft: [{
 			"text": `Enables any given module and saves settings if true. `,
@@ -1121,7 +1116,6 @@ const commands = [{
 	exeFunc: 'disableModule',
 	module: thisModule,
 	description: {
-		summary: `Disables any given module.`,
 		console: `${sS.c['brightWhite'].c}Disables any given module and saves settings if true. ${sS.c['reset'].c}\nExample: ${sS.c['yellow'].c}~disableModule ${sS.c['brightBlue'].c}discord ${sS.c['orange'].c}true${sS.c['reset'].c}`,
 		minecraft: [{
 				"text": `Disables any given module and saves settings if true.\n`,
@@ -1161,7 +1155,6 @@ const commands = [{
 	exeFunc: 'reloadModule',
 	module: thisModule,
 	description: {
-		summary: `Reloads any given module.`,
 		console: `${sS.c['brightWhite'].c}Reloads any given module. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~reloadModule ${sS.c['brightBlue'].c}discord${sS.c['reset'].c}`,
 		minecraft: [{
 			"text": `Reloads any given module. `,
@@ -1198,7 +1191,6 @@ const commands = [{
 	exeFunc: 'killModule',
 	module: thisModule,
 	description: {
-		summary: `Stops any given module.`,
 		console: `${sS.c['brightWhite'].c}Stops any given module. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~killModule ${sS.c['brightBlue'].c}discord${sS.c['reset'].c}`,
 		minecraft: [{
 			"text": `Stops any given module. `,
@@ -1235,7 +1227,6 @@ const commands = [{
 	exeFunc: 'startModule',
 	module: thisModule,
 	description: {
-		summary: `Starts any given module.`,
 		console: `${sS.c['brightWhite'].c}Starts any given module. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~startModule ${sS.c['brightBlue'].c}discord${sS.c['reset'].c}`,
 		minecraft: [{
 			"text": `Starts any given module. `,
@@ -1272,7 +1263,6 @@ const commands = [{
 	exeFunc: 'restartModule',
 	module: thisModule,
 	description: {
-		summary: `Restarts any given module`,
 		console: `${sS.c['brightWhite'].c}Restarts any given module. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~restartModule ${sS.c['brightBlue'].c}discord${sS.c['reset'].c}`,
 		minecraft: [{
 			"text": `Restarts any given module. `,
@@ -1309,7 +1299,6 @@ const commands = [{
 	exeFunc: 'loadModuleFunctions',
 	module: thisModule,
 	description: {
-		summary: `Loads any given modules functions.`,
 		console: `${sS.c['brightWhite'].c}Loads any given modules functions. ${sS.c['reset'].c}\nExample: ${sS.c['yellow'].c}~loadModuleFunctions ${sS.c['brightBlue'].c}discord${sS.c['reset'].c}`,
 		minecraft: [{
 			"text": `Loads any given module functions.\n`,
@@ -1346,7 +1335,6 @@ const commands = [{
 	exeFunc: 'loadSettings',
 	module: thisModule,
 	description: {
-		summary: `Loads wrapper settings file.`,
 		console: `${sS.c['brightWhite'].c}Loads wrapper settings file. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~loadSettings${sS.c['reset'].c}`,
 		minecraft: [{
 			"text": `Loads wrapper settings file. `,
@@ -1380,7 +1368,6 @@ const commands = [{
 	exeFunc: 'backupSettings',
 	module: thisModule,
 	description: {
-		summary: `Backups all settings.`,
 		console: `${sS.c['brightWhite'].c}Backups current wrapper settings. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~backupSettings${sS.c['reset'].c}`,
 		minecraft: [{
 			"text": `Backups current wrapper settings. `,
@@ -1414,7 +1401,6 @@ const commands = [{
 	exeFunc: 'saveSettings',
 	module: thisModule,
 	description: {
-		summary: `Saves current wrapper settings.`,
 		console: `${sS.c['brightWhite'].c}Saves current wrapper settings. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~saveSettings${sS.c['reset'].c}`,
 		minecraft: [{
 			"text": `Saves current wrapper settings. `,

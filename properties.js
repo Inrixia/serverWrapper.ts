@@ -26,7 +26,6 @@ let fn = {
 				exeFunc: 'showProperty',
 				module: thisModule,
 				description: {
-					summary: `Gets given server property.`,
 					console: `${sS.c['white'].c}Gets given server property. ${sS.c['brightWhite'].c}\nExample: ${sS.c['yellow'].c}~getProperty server-port${sS.c['reset'].c}`,
 					minecraft: [{
 						"text": `Gets given server property.\n`,
@@ -60,7 +59,6 @@ let fn = {
 				exeFunc: 'showProperties',
 				module: thisModule,
 				description: {
-					summary: `Gets server.properties file contents.`,
 					console: `${sS.c['white'].c}Gets server.properties file contents. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~getProperties${sS.c['reset'].c}`,
 					minecraft: [{
 						"text": `Gets server.properties file contents. `,

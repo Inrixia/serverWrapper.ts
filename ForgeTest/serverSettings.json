@@ -63,6 +63,15 @@
         "pollRate": 2000
       }
     },
+    "util": {
+      "file": "util.js",
+      "enabled": true,
+      "persistent": false,
+      "color": "magenta",
+      "import": false,
+      "description": "A home for commands with no home.",
+      "settings": {}
+    },
     "backup": {
       "file": "backup.js",
       "enabled": true,
@@ -102,7 +111,7 @@
       "persistent": true,
       "color": "brightGreen",
       "import": false,
-      "description": "Handles all wrapper/server commands and their permissions.",
+      "description": "Handles all commands.",
       "settings": {}
     },
     "auth": {
@@ -111,7 +120,7 @@
       "persistent": false,
       "color": "white",
       "import": false,
-      "description": "Handles all wrapper/server commands and their permissions.",
+      "description": "Handles all permissions.",
       "settings": {
         "whitelisted_discord_roles": {
           "344286675691896832": {
@@ -918,5 +927,5 @@
   },
   "server_dir": "Z:\\wrapperModules\\ForgeTest",
   "serverName": "ForgeTest",
-  "lastStartTime": 5592
+  "lastStartTime": 6621
 }

@@ -19,7 +19,6 @@ const fn = {
 				exeFunc: 'commandWhitelistAdd',
 				module: thisModule,
 				description: {
-					summary: `Adds given whitelisted command to a discord role or user.\nFor a specific time if given, otherwise infinite.`,
 					console: `${sS.c['white'].c}Adds given whitelisted command to a discord role or user. ${sS.c['reset'].c}\nExamples  [Discord Only]:\n${sS.c['yellow'].c}~cwAdd ${sS.c['brightBlue'].c}~listmodules ${sS.c['orange'].c}@DiscordUser ${sS.c['cyan'].c}1 hour\n${sS.c['reset'].c}${sS.c['yellow'].c}~cwAdd ${sS.c['brightBlue'].c}!forge tps ${sS.c['orange'].c}@DiscordUser\n${sS.c['reset'].c}${sS.c['yellow'].c}~cwAdd ${sS.c['brightBlue'].c}!tp ${sS.c['orange'].c}@DiscordRole ${sS.c['cyan'].c}5.2 minutes\n${sS.c['reset'].c}${sS.c['yellow'].c}~cwAdd ${sS.c['brightBlue'].c}~getSpawn ${sS.c['orange'].c}@DiscordRole${sS.c['reset'].c}`,
 					minecraft: [{
 						"text": `Adds given whitelisted command to a discord role or user. For a specific time if given, otherwise infinite.\n`,
@@ -92,7 +91,6 @@ const fn = {
 				exeFunc: 'commandWhitelistRemove',
 				module: thisModule,
 				description: {
-					summary: `Removes given whitelisted commands from a discord role or user.`,
 					console: `${sS.c['white'].c}Removes given whitelisted commands from a discord role or user. ${sS.c['reset'].c}\nExamples:\n${sS.c['yellow'].c}~cw_remove ${sS.c['brightBlue'].c}@DiscordUser ${sS.c['brightWhite'].c}\n${sS.c['yellow'].c}~cw_remove ${sS.c['brightBlue'].c}@DiscordRole${sS.c['reset'].c}`,
 					minecraft: [{
 						"text": `Removes given whitelisted commands from a discord role or user.\n`,
@@ -135,7 +133,6 @@ const fn = {
 				exeFunc: 'commandWhitelistRemove',
 				module: thisModule,
 				description: {
-					summary: `Removes all whitelisted commands from a discord role or user.`,
 					console: `${sS.c['white'].c}Removes all whitelisted commands from a discord role or user. ${sS.c['reset'].c}\nExample: ${sS.c['yellow'].c}~cwRemove ${sS.c['brightBlue'].c}@DiscordUser\n${sS.c['yellow'].c}~cwRemove ${sS.c['brightBlue'].c}@DiscordRole${sS.c['reset'].c}`,
 					minecraft: [{
 						"text": `Removes all whitelisted commands from a discord role or user.\n`,
