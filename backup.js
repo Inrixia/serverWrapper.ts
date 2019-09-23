@@ -436,19 +436,31 @@ async function runBackup() {
 }
 
 async function backup() {
+	let sshOpen = `ssh ${mS.remote.user}@${mS.remote.ip} -p ${mS.remote.port}`
+	let excludes = ``;
+	if (mS.excludes.length > 0) mS.excludes.forEach(exclude => excludes += `--exclude ${exclude} `)
 	lastBackupStartTime = moment();
 	await modul.call('serverWrapper', 'serverStdin', 'save-off\n');
 	process.stdout.write(mS.messages.backupStarting.console+'\n');
 	await modul.call('serverWrapper', 'serverStdin', mS.messages.backupStarting.minecraft+'\n')
 	await modul.call('stats', 'pushStats', { status: 'Backing Up', timeToBackup: timeToNextBackup.fromNow() })
-	let backupDir = mS.overrideBackupDir ? mS.overrideBackupDir : `${mS.rootBackupDir}/${sS.serverName}`;
+	let backupDir = mS.overrideBackupDir ? mS.overrideBackupDir : `${mS.remote.rootBackupDir}/${sS.serverName}`;
 	//children.spawn('robocopy', [sS.modules['properties'].settings.p['level-name'], `${backupDir}/${moment().format('MMMMDDYYYY_h-mm-ssA')}/Cookies`, (mS.threads > 1) ? `/MT:${mS.threads}` : '', '/E'], {shell: true, detached: true}).on('close', function (code) {
-	await util.pExec(`ssh ${mS.remote.user}@${mS.remote.ip} -p ${mS.remote.port} "mkdir -p ${backupDir} && mkdir -p ${mS.remote.publicBackupDir} && mkdir -p ${mS.remote.publicBackupDir}/${sS.serverName}/"`, {})
-	await util.pExec(`rsync-snapshot --src ${sS.server_dir} -p ${mS.remote.port} --shell "ssh -p ${mS.remote.port}" --dst ${mS.remote.user}@${mS.remote.ip}:${backupDir} --setRsyncArg exclude='*.log' --setRsyncArg exclude='*.zip' --setRsyncArg exclude='*.rar' --setRsyncArg exclude='*node_modules*' --maxSnapshots 100000`)
-	let info = await util.exec(`ssh ${mS.remote.user}@${mS.remote.ip} -p ${mS.remote.port} "ls /mnt/redlive/LiveArchives/${sS.serverName}"`)
-	let latestFolder = info.split(/\r?\n/).slice(-3, -2)[0];
-	//console.log(`ln -s ${backupDir}/${latestFolder}/${sS.serverName}/${sS.modules['properties'].settings.p['level-name']} ${mS.remote.publicBackupDir}${sS.serverName}/${latestFolder} && ln -s ${backupDir}/latest/${sS.serverName}/${sS.modules['properties'].settings.p['level-name']} ${mS.remote.publicBackupDir}${sS.serverName}/latest`)
-	await util.pExec(`ssh ${mS.remote.user}@${mS.remote.ip} -p ${mS.remote.port} "ln -s ${backupDir}/${latestFolder}/${sS.serverName}/${sS.modules['properties'].settings.p['level-name']} ${mS.remote.publicBackupDir}${sS.serverName}/${latestFolder} && ln -s ${backupDir}/latest/${sS.serverName}/${sS.modules['properties'].settings.p['level-name']} ${mS.remote.publicBackupDir}${sS.serverName}/latest"`)
+	await util.pExec(`rsync-snapshot --src ${sS.server_dir} --shell "ssh -p ${mS.remote.port}" --dst ${mS.remote.user}@${mS.remote.ip}:${backupDir} ${excludes} --maxSnapshots ${mS.maxBackups}`, { maxBuffer: 1024*1024*128 })
+	let backupFolders = (await util.pExec(`${sshOpen} "ls /mnt/redlive/LiveArchives/${sS.serverName}"`)).split(/\r?\n/)
+	let latestFolder = backupFolders.slice(-3, -2)[0];
+	await util.pExec(`${sshOpen} "mkdir -p ${backupDir} && mkdir -p ${mS.remote.publicBackupDir} && mkdir -p ${mS.remote.publicBackupDir}/${sS.serverName}/"`, {})
+	let datedRemoteFolder = `${mS.remote.publicBackupDir}/${sS.serverName}/${latestFolder}`
+	let latestRemoteFolder = `${mS.remote.publicBackupDir}/${sS.serverName}/latest`
+	let existingLinkedFolders = (backupFolders.length > 3)?await util.pExec(`${sshOpen} "ls ${latestRemoteFolder}"`):[]
+	for (fIndex in mS.publicBackupFolders) {
+		let folder = mS.publicBackupFolders[fIndex];
+		if (folder == 'WORLD') folder = await modul.call('properties', 'getProperty', 'level-name');
+		let sourceFolder = `${backupDir}/${latestFolder}/${sS.serverName}/${folder}`
+		await util.pExec(`${sshOpen} "mkdir -p ${latestRemoteFolder} && mkdir -p ${datedRemoteFolder}"`, {})
+		if (existingLinkedFolders.indexOf(folder) > -1) await util.pExec(`${sshOpen} "unlink ${latestRemoteFolder}/${folder}"`, {})
+		await util.pExec(`${sshOpen} "ln -s ${sourceFolder} ${datedRemoteFolder} && ln -s ${sourceFolder} ${latestRemoteFolder}"`)
+	}
 	lastBackupEndTime = moment();
 	lastBackupDuration = moment.duration(lastBackupEndTime.diff(lastBackupStartTime));
 	let t = {

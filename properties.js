@@ -3,9 +3,6 @@ const thisModule = 'properties';
 // Import core packages
 const properties = require('properties');
 
-// Set defaults
-let serverProperties = {};
-
 function pProp() {
 	return new Promise((resolve, reject) => {
 		properties.parse('./server.properties', {path: true}, (err, properties) => {
@@ -91,7 +88,7 @@ let fn = {
 		})
 	},
 	getProperty: async propertyKey => {
-		return await pProp()[propertyKey];
+		return (await pProp())[propertyKey];
 	},
 	getProperties: async () => {
 		return await pProp();

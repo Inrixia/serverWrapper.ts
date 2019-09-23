@@ -80,6 +80,7 @@
       "import": false,
       "description": "Runs server backups.",
       "settings": {
+        "_INFO": "To allow remote backups you must run: 'npm install -g rsync-snapshot', 'ssh-keygen' and then 'ssh-copy-id username@remote_ip' to generate the login credentials.",
         "messages": {
           "backupStarting": {
             "console": "Starting Backup - World Saving Disabled",
@@ -91,18 +92,27 @@
           }
         },
         "publicBackupFolders": [
-          "DEFAULT"
+          "WORLD",
+          "config"
+        ],
+        "excludes": [
+          "*.zip*",
+          "*.log*",
+          "*.rar*",
+          "*.dmp*",
+          "*.phd*"
         ],
         "remote": {
           "user": "administrator",
-          "ip": "10.0.0.12",
+          "ip": "11.0.0.5",
           "port": "22",
           "publicBackupDir": "/mnt/redlive/PublicFTP/LiveArchives",
           "rootBackupDir": "/mnt/redlive/LiveArchives",
           "overrideBackupDir": ""
         },
         "backupIntervalInHours": 0.5,
-        "threads": 1
+        "threads": 1,
+        "maxBackups": 10000
       }
     },
     "command": {
@@ -925,7 +935,7 @@
       "mc": ""
     }
   },
-  "server_dir": "Z:\\wrapperModules\\ForgeTest",
+  "server_dir": "/home/hotpink/wrapperModules/ForgeTest",
   "serverName": "ForgeTest",
-  "lastStartTime": 6257
+  "lastStartTime": 9598
 }
