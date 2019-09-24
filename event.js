@@ -37,27 +37,31 @@ async function serverStdout(string) {
     if ((string.indexOf('>') == -1)) for (eventKey in mS.eventTranslation) {
         event = mS.eventTranslation[eventKey];
         if (event.match != false) {
-            let match = JSON.stringify(string).match(event.matchRegex);
+            let match = string.replace(/\n|\r/g, '').match(event.matchRegex);
             if (match) { // || eventKey == "PlayerMessage"
-                let content = event.content;
                 match = Array.from(match);
-                console.log(match, content)
-                // if (event.matchRelation) event.matchRelation.forEach(async (matchedWord, i) => {
-                //     if (event.send.content) content = content.replace(matchedWord, match[i+1]);
-                //     if (event.send.embed) {
-                //         for (key in event.embed) {
-                //             if (typeof event.embed[key] == "object") { 
-                //                 for (childKey in event.embed[key]) {
-                //                     if (typeof event.embed[key][childKey] == "object") {
-                //                         for (granChildKey in event.embed[key][childKey]) {
-                //                             if (typeof event.embed[key][childKey] != "object") event.embed[key][childKey][granChildKey].replace(matchedWord, match[i+1])
-                //                         }
-                //                     } else event.embed[key][childKey] = event.embed[key][childKey].replace(matchedWord, match[i+1])
-                //                 }
-                //             } else event.embed[key] = event.embed[key].replace(matchedWord, match[i+1])
-                //         }
-                //     }
-                // })
+                let filled = {};
+                filled.text = event.text;
+                filled.embed = event.embed;
+                if (event.matchRelation) event.matchRelation.forEach(async (matchedWord, i) => {
+                    if (event.send.text) filled.text = filled.text.replace(matchedWord, match[i+1]);
+                    else filled.text = '';
+                    if (event.send.embed) {
+                        for (key in filled.embed) {
+                            if (typeof filled.embed[key] == "object") { 
+                                for (childKey in filled.embed[key]) {
+                                    if (typeof filled.embed[key][childKey] == "object") {
+                                        for (granChildKey in filled.embed[key][childKey]) {
+                                            if (typeof filled.embed[key][childKey] != "object") filled.embed[key][childKey][granChildKey].replace(matchedWord, match[i+1])
+                                        }
+                                    } else filled.embed[key][childKey] = filled.embed[key][childKey].replace(matchedWord, match[i+1])
+                                }
+                            } else filled.embed[key] = filled.embed[key].replace(matchedWord, match[i+1])
+                        }
+                    } else filled.embed = {};
+                })
+                filled.embed.author.icon_url = `https://crafatar.com/renders/head/${(await modul.call('mineapi', 'getPlayer', filled.embed.author.icon_url))._uuid}?size=128&default=MHF_Steve&overlay`
+                modul.emit('serverEvent', { eventKey: eventKey, event: event, filled: filled })
             }
         }
     }
@@ -67,7 +71,7 @@ async function buildMatches() {
 	for (key in mS.eventTranslation) {
 		if (mS.eventTranslation[key].match) {
 			mS.eventTranslation[key].matchRelation = mS.eventTranslation[key].match.match(/\%(.*?)\%/g);
-			mS.eventTranslation[key].matchRegex = `.* ${mS.eventTranslation[key].match.replace(/\%(.*?)\%/g, '(.*?)')}.*$`;
+            mS.eventTranslation[key].matchRegex = `.* ${mS.eventTranslation[key].match.replace(/\%(.*?)\%/g, '(.*?)')}$`;
         }
 	}
 	return;
