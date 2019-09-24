@@ -77,7 +77,7 @@ class Player {
 			const data = await util.pRequestGet({
 				url: `https://api.mojang.com/users/profiles/minecraft/${this._username}`,
 				json: true,
-			}).catch(err => modul.lErr)
+			}).catch(err => modul.lErr(err))
 			this._uuid = data.id;
 			this._username = data.name;
 			return this._uuid;
@@ -92,7 +92,7 @@ class Player {
 			const data = await util.pRequestGet({
 				url: `https://api.mojang.com/user/profiles/${this._uuid}/names`,
 				json: true,
-			}).catch(err => modul.lErr)
+			}).catch(err => modul.lErr(err))
 			this._username = data[data.length-1].name;
 			this._history = data;
 			return this._history;
@@ -107,7 +107,7 @@ class Player {
 			const data = await util.pRequestGet({
 				url: `https://api.mojang.com/user/profiles/${this._uuid}/names`,
 				json: true,
-			}).catch(err => modul.lErr)
+			}).catch(err => modul.lErr(err))
 			this._username = data[data.length-1].name;
 			this._history = data;
 			return this._username;

@@ -269,7 +269,7 @@
               "description": "%message%",
               "author": {
                 "name": "%username%",
-                "icon_url": "%img_username%"
+                "icon_url": "%username% image"
               }
             },
             "send": {
@@ -295,7 +295,7 @@
               "description": "**%username%** joined the game!",
               "author": {
                 "name": "%username%",
-                "icon_url": "%username%"
+                "icon_url": "%username% image"
               }
             },
             "send": {
@@ -310,7 +310,7 @@
               "description": "**%username%** left the game!",
               "author": {
                 "name": "%username%",
-                "icon_url": "%username%"
+                "icon_url": "%username% image"
               }
             },
             "send": {
@@ -319,12 +319,15 @@
             }
           },
           "PlayerAdvancement": {
-            "match": "%username% has made the advancement [%advancement%]",
+            "match": "%username% has made the advancement %advancement%",
             "text": "**<%username%>** gained the achievement **%advancement%**!",
             "embed": {
+              "description": "Made the advancement **%advancement%**",
               "author": {
-                "name": "%username% has made the advancement %advancement%",
-                "icon_url": "%username%"
+                "name": "%username%"
+              },
+              "thumbnail": {
+                "url": "%username% image"
               }
             },
             "send": {
@@ -333,12 +336,32 @@
             }
           },
           "PlayerGoal": {
-            "match": "%username% has reached the goal [%goal%]",
+            "match": "%username% has reached the goal %goal%",
             "text": "**<%username%>** reached the goal **%goal%**!",
             "embed": {
+              "description": "Reached the goal **%goal%**",
               "author": {
-                "name": "%username% has reached the goal %goal%",
-                "icon_url": "%username%"
+                "name": "%username%"
+              },
+              "thumbnail": {
+                "url": "%username% image"
+              }
+            },
+            "send": {
+              "embed": true,
+              "text": true
+            }
+          },
+          "PlayerChallenge": {
+            "match": "%username% has completed the challenge %challenge%",
+            "text": "**<%username%>** has completed the challenge **%challenge%**!",
+            "embed": {
+              "description": "Completed the challenge **%challenge%**",
+              "author": {
+                "name": "%username%"
+              },
+              "thumbnail": {
+                "url": "%username% image"
               }
             },
             "send": {
@@ -352,7 +375,7 @@
             "embed": {
               "author": {
                 "name": "%entity% went up in flames",
-                "icon_url": "%entity%"
+                "icon_url": "%entity% image"
               }
             },
             "send": {
@@ -366,7 +389,7 @@
             "embed": {
               "author": {
                 "name": "%entity% burned to death",
-                "icon_url": "%entity%"
+                "icon_url": "%entity% image"
               }
             },
             "send": {
@@ -380,7 +403,7 @@
             "embed": {
               "author": {
                 "name": "%entity% tried to swim in lava",
-                "icon_url": "%entity%"
+                "icon_url": "%entity% image"
               }
             },
             "send": {
@@ -394,7 +417,7 @@
             "embed": {
               "author": {
                 "name": "%entity% suffocated in a wall",
-                "icon_url": "%entity%"
+                "icon_url": "%entity% image"
               }
             },
             "send": {
@@ -408,7 +431,7 @@
             "embed": {
               "author": {
                 "name": "%entity% drowned",
-                "icon_url": "%entity%"
+                "icon_url": "%entity% image"
               }
             },
             "send": {
@@ -422,7 +445,7 @@
             "embed": {
               "author": {
                 "name": "%entityA% drowned whilst trying to escape %entityB%",
-                "icon_url": "%entityA%"
+                "icon_url": "%entityA% image"
               }
             },
             "send": {
@@ -436,7 +459,7 @@
             "embed": {
               "author": {
                 "name": "%entity% starved to death",
-                "icon_url": "%entity%"
+                "icon_url": "%entity% image"
               }
             },
             "send": {
@@ -450,7 +473,7 @@
             "embed": {
               "author": {
                 "name": "%entity% was pricked to death",
-                "icon_url": "%entity%"
+                "icon_url": "%entity% image"
               }
             },
             "send": {
@@ -464,7 +487,7 @@
             "embed": {
               "author": {
                 "name": "%entity% hugged a cactus",
-                "icon_url": "%entity%"
+                "icon_url": "%entity% image"
               }
             },
             "send": {
@@ -478,7 +501,7 @@
             "embed": {
               "author": {
                 "name": "%entityA% walked into a cactus while trying to escape %entityB%",
-                "icon_url": "%entityA%"
+                "icon_url": "%entityA% image"
               }
             },
             "send": {
@@ -492,7 +515,7 @@
             "embed": {
               "author": {
                 "name": "%entity% hit the ground too hard",
-                "icon_url": "%entity%"
+                "icon_url": "%entity% image"
               }
             },
             "send": {
@@ -506,7 +529,7 @@
             "embed": {
               "author": {
                 "name": "%entity% fell out of the world",
-                "icon_url": "%entity%"
+                "icon_url": "%entity% image"
               }
             },
             "send": {
@@ -520,7 +543,7 @@
             "embed": {
               "author": {
                 "name": "%entity% died",
-                "icon_url": "%entity%"
+                "icon_url": "%entity% image"
               }
             },
             "send": {
@@ -534,7 +557,7 @@
             "embed": {
               "author": {
                 "name": "%entity% blew up",
-                "icon_url": "%entity%"
+                "icon_url": "%entity% image"
               }
             },
             "send": {
@@ -548,7 +571,7 @@
             "embed": {
               "author": {
                 "name": "%entityA% was blown up by %entityB%",
-                "icon_url": "%entity%"
+                "icon_url": "%entity% image"
               }
             },
             "send": {
@@ -562,7 +585,7 @@
             "embed": {
               "author": {
                 "name": "%entity% was killed by magic",
-                "icon_url": "%entity%"
+                "icon_url": "%entity% image"
               }
             },
             "send": {
@@ -576,7 +599,7 @@
             "embed": {
               "author": {
                 "name": "%entityA% was slain by %entityB%",
-                "icon_url": "%entityA%"
+                "icon_url": "%entityA% image"
               }
             },
             "send": {
@@ -590,7 +613,7 @@
             "embed": {
               "author": {
                 "name": "%entityA% was shot by %entityB%",
-                "icon_url": "%entityA%"
+                "icon_url": "%entityA% image"
               }
             },
             "send": {
@@ -604,7 +627,7 @@
             "embed": {
               "author": {
                 "name": "%entityA% was shot by %entityB% using %bowName%",
-                "icon_url": "%entityA%"
+                "icon_url": "%entityA% image"
               }
             },
             "send": {
@@ -618,7 +641,7 @@
             "embed": {
               "author": {
                 "name": "%entityA% was fireballed by %entityB%",
-                "icon_url": "%entityA%"
+                "icon_url": "%entityA% image"
               }
             },
             "send": {
@@ -632,7 +655,7 @@
             "embed": {
               "author": {
                 "name": "%entityA% was pummeled by %entityB%",
-                "icon_url": "%entityA%"
+                "icon_url": "%entityA% image"
               }
             },
             "send": {
@@ -646,7 +669,7 @@
             "embed": {
               "author": {
                 "name": "%entityA% was killed by %entityB%",
-                "icon_url": "%entityA%"
+                "icon_url": "%entityA% image"
               }
             },
             "send": {
@@ -660,7 +683,7 @@
             "embed": {
               "author": {
                 "name": "%entity% experienced kinetic energy",
-                "icon_url": "%entity%"
+                "icon_url": "%entity% image"
               }
             },
             "send": {
@@ -674,7 +697,7 @@
             "embed": {
               "author": {
                 "name": "%entity% fell from a high place",
-                "icon_url": "%entity%"
+                "icon_url": "%entity% image"
               }
             },
             "send": {
@@ -688,7 +711,7 @@
             "embed": {
               "author": {
                 "name": "%entity% fell off a ladder",
-                "icon_url": "%entity%"
+                "icon_url": "%entity% image"
               }
             },
             "send": {
@@ -702,7 +725,7 @@
             "embed": {
               "author": {
                 "name": "%entity% fell off some vines",
-                "icon_url": "%entity%"
+                "icon_url": "%entity% image"
               }
             },
             "send": {
@@ -716,7 +739,7 @@
             "embed": {
               "author": {
                 "name": "%entity% fell out of the water",
-                "icon_url": "%entity%"
+                "icon_url": "%entity% image"
               }
             },
             "send": {
@@ -730,7 +753,7 @@
             "embed": {
               "author": {
                 "name": "%entity% fell into a patch of fire",
-                "icon_url": "%entity%"
+                "icon_url": "%entity% image"
               }
             },
             "send": {
@@ -744,7 +767,7 @@
             "embed": {
               "author": {
                 "name": "%entity% fell into a patch of cacti",
-                "icon_url": "%entity%"
+                "icon_url": "%entity% image"
               }
             },
             "send": {
@@ -758,7 +781,7 @@
             "embed": {
               "author": {
                 "name": "%entityA% was doomed to fall by %entityB%",
-                "icon_url": "%entity%"
+                "icon_url": "%entity% image"
               }
             },
             "send": {
@@ -772,7 +795,7 @@
             "embed": {
               "author": {
                 "name": "%entityA% was shot off some vines by %entityB%",
-                "icon_url": "%entity%"
+                "icon_url": "%entity% image"
               }
             },
             "send": {
@@ -786,7 +809,7 @@
             "embed": {
               "author": {
                 "name": "%entityA% was blown from a high place by %entityB%",
-                "icon_url": "%entity%"
+                "icon_url": "%entity% image"
               }
             },
             "send": {
@@ -800,7 +823,7 @@
             "embed": {
               "author": {
                 "name": "%entityA% was squashed by a falling anvil",
-                "icon_url": "%entity%"
+                "icon_url": "%entity% image"
               }
             },
             "send": {
@@ -814,7 +837,7 @@
             "embed": {
               "author": {
                 "name": "%entityA% was squashed by a falling block",
-                "icon_url": "%entity%"
+                "icon_url": "%entity% image"
               }
             },
             "send": {
@@ -828,7 +851,7 @@
             "embed": {
               "author": {
                 "name": "%entity% removed an elytra while flying",
-                "icon_url": "%entity%"
+                "icon_url": "%entity% image"
               }
             },
             "send": {
@@ -958,5 +981,5 @@
   },
   "server_dir": "/home/hotpink/wrapperModules/ForgeTest",
   "serverName": "ForgeTest",
-  "lastStartTime": 5607
+  "lastStartTime": 5432
 }

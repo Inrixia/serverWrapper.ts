@@ -27,6 +27,13 @@ let fn = {
 			})
 		})
 		await openDiscord();
+		modul.event.on('serverEvent', event => {
+			if (chatChannel) {
+				console.log({ content: event.filled.text, embed: event.filled.embed })
+				chatChannel.send({ content: event.filled.text, embed: event.filled.embed })
+			}
+			//{ eventKey: eventKey, event: event, filled: filled })
+		})
 	},
 	discordStdin: async message => {
 		 if (message.channel) await discord.channels.get(message.channel).send(message.msg)
@@ -65,7 +72,7 @@ discord.on('ready', () => {
 	mS.managementChannels.forEach(mChannelId => {
 		managementChannels.push(discord.channels.get(mChannelId));
 	})
-	if(mS.chatLink.chatChannelId) chatChannel = discord.channels.get(mS.chatLink.channelId);
+	if(mS.chatLink.channelId) chatChannel = discord.channels.get(mS.chatLink.channelId);
 	properties.parse('./server.properties', {path: true}, (err, properties) => {
 		if (err) modul.lErr(err);
 		else discord.user.setActivity(properties.motd.replace(/§./g, '').replace(/\n.*/g, '').replace('// Von Spookelton - ', '').replace(' \\\\', ''), { type: 'WATCHING' })

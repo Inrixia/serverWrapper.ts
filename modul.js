@@ -13,6 +13,7 @@ module.exports = class Module {
 		this._event.on('newListener', (event, listener) => {
 			Module.pSend(process, { function: 'eventSub', event: event })
 		});
+		process.on('disconnect', () => process.exit());
 		process.on('message', message => {
 			switch (message.function) {
 				case 'event':
@@ -25,7 +26,7 @@ module.exports = class Module {
 					this.promiseReject(message);
 					break;
 				case 'kill':
-					this.kill(message);
+					process.exit();
 					break;
 			}
 		})
@@ -37,9 +38,6 @@ module.exports = class Module {
 	emit(...args) { this._event.emit(...args) }
 	loadSettings(message, moduleName=this.thisModule) {
 		return [message.sS, message.sS.modules[moduleName].settings]
-	}
-	kill(message) {
-		process.exit();
 	}
 	static pSend(dstProcess, message) {
 		return new Promise((resolve, reject) => {

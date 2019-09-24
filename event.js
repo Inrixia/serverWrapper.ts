@@ -10,7 +10,7 @@ let fn = {
 	init: async message => {
         [sS, mS] = modul.loadSettings(message)
         await buildMatches()
-        modul.event.on('serverStdout', message => serverStdout(message))
+        modul.event.on('serverStdout', message => serverStdout(message).catch(err => modul.lErr(err, 'Error while event.js processed server message.')))
 		// modul.event.on('fetchCommands', () => {
 		// 	modul.emit('exportCommands', []);
 		// })
@@ -32,8 +32,20 @@ process.on('message', async message => {
 	}
 });
 
-let event = {};
+const fillEmbed = async (obj, match, fill) => {
+    let tKey;
+    for (i in Object.keys(obj)) {
+        tKey = Object.keys(obj)[i]
+        if (typeof obj[tKey] == 'object') obj[tKey] = await fillEmbed(obj[tKey], match, fill)
+        else {
+            obj[tKey] = obj[tKey].replace(match, fill)
+            if (obj[tKey] == fill+' image') obj[tKey] = `https://crafatar.com/renders/head/${(await modul.call('mineapi', 'getPlayer', fill))._uuid}?size=128&default=MHF_Steve&overlay`
+        }
+    }
+    return obj;
+}
 async function serverStdout(string) {
+    let event = {};
     if ((string.indexOf('>') == -1)) for (eventKey in mS.eventTranslation) {
         event = mS.eventTranslation[eventKey];
         if (event.match != false) {
@@ -41,26 +53,13 @@ async function serverStdout(string) {
             if (match) { // || eventKey == "PlayerMessage"
                 match = Array.from(match);
                 let filled = {};
-                filled.text = event.text;
-                filled.embed = event.embed;
-                if (event.matchRelation) event.matchRelation.forEach(async (matchedWord, i) => {
+                filled.text = JSON.stringify(event.text);
+                filled.embed = Object.assign({}, event.embed);
+                if (event.matchRelation) await Promise.all(event.matchRelation.map(async (matchedWord, i) => {
                     if (event.send.text) filled.text = filled.text.replace(matchedWord, match[i+1]);
                     else filled.text = '';
-                    if (event.send.embed) {
-                        for (key in filled.embed) {
-                            if (typeof filled.embed[key] == "object") { 
-                                for (childKey in filled.embed[key]) {
-                                    if (typeof filled.embed[key][childKey] == "object") {
-                                        for (granChildKey in filled.embed[key][childKey]) {
-                                            if (typeof filled.embed[key][childKey] != "object") filled.embed[key][childKey][granChildKey].replace(matchedWord, match[i+1])
-                                        }
-                                    } else filled.embed[key][childKey] = filled.embed[key][childKey].replace(matchedWord, match[i+1])
-                                }
-                            } else filled.embed[key] = filled.embed[key].replace(matchedWord, match[i+1])
-                        }
-                    } else filled.embed = {};
-                })
-                filled.embed.author.icon_url = `https://crafatar.com/renders/head/${(await modul.call('mineapi', 'getPlayer', filled.embed.author.icon_url))._uuid}?size=128&default=MHF_Steve&overlay`
+                    await fillEmbed(filled.embed, matchedWord, match[i+1])
+                }))
                 modul.emit('serverEvent', { eventKey: eventKey, event: event, filled: filled })
             }
         }
