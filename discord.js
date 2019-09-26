@@ -15,26 +15,25 @@ let managementChannels = []; // This will be assigned the management channel whe
 let chatChannel = null; 
 let discordData = "";
 let flatMessages = {};
-let serverStarted = true;
 
 let fn = {
 	init: async message => {
 		[sS, mS] = modul.loadSettings(message)
+		await openDiscord();
 		modul.event.on('serverStdout', message => serverStdout(message))
 		modul.event.on('consoleStdout', message => {
 			if (managementChannels.length > 0) managementChannels.forEach(channel => {
-				message.match(/.{1,1999}/g).map(async msg => {
+				let match = message.match(/.{1,1999}/g);
+				if (match) match.map(async msg => {
 					channel.send(`[BOX] > ${msg}\n`, { split: true })
 				})
 			})
 		})
-		await openDiscord();
 		modul.event.on('serverEvent', event => {
 			if (chatChannel) {
-				console.log({ content: event.filled.text, embed: event.filled.embed })
+				event.filled.embed.color = discord.color
 				chatChannel.send({ content: event.filled.text, embed: event.filled.embed })
 			}
-			//{ eventKey: eventKey, event: event, filled: filled })
 		})
 	},
 	discordStdin: async message => {
@@ -66,15 +65,14 @@ process.on('message', async message => {
 async function openDiscord() {
 	// Fetch discordToken to use and display it at launch
 	console.log(`Using Discord Token: ${sS.c[sS.modules['discord'].color].c}${mS.discordToken}${sS.c['reset'].c}`);
-	discord.login(mS.discordToken);
+	await discord.login(mS.discordToken);
+	discord.color = (await modul.call('color', 'getColor', discord.user.avatarURL)).int
 }
 
 // On discord client login
 discord.on('ready', () => {
-	mS.managementChannels.forEach(mChannelId => {
-		managementChannels.push(discord.channels.get(mChannelId));
-	})
-	if(mS.chatLink.channelId) chatChannel = discord.channels.get(mS.chatLink.channelId);
+	mS.managementChannels.forEach(mChannelId => managementChannels.push(discord.channels.get(mChannelId)))
+	if (mS.chatLink.channelId) chatChannel = discord.channels.get(mS.chatLink.channelId);
 	properties.parse('./server.properties', {path: true}, (err, properties) => {
 		if (err) modul.lErr(err);
 		else discord.user.setActivity(properties.motd.replace(/§./g, '').replace(/\n.*/g, '').replace('// Von Spookelton - ', '').replace(' \\\\', ''), { type: 'WATCHING' })
@@ -83,7 +81,14 @@ discord.on('ready', () => {
 
 // On receive message from discord server
 discord.on('message', async message => {
-	if (!(mS.managementChannels.indexOf(message.channel.id) > -1 && message.author.id != discord.user.id)) return;
+	if (message.author.id == discord.user.id) return;
+	if (message.channel.id == chatChannel.id) {
+		let msg = JSON.stringify(mS.chatLink.discordToMCFormat)
+		.replace("%username%", ((message.author||{}).username)||"Unknown User")
+		.replace("%message%", message.toString().trim())
+		return await modul.call('serverWrapper', 'serverStdin', `/tellraw @a ${msg}\n`);
+	}
+	if (!(mS.managementChannels.indexOf(message.channel.id) > -1)) return;
 	let discordMessage = {
 		channel : {
 			id: ((message.channel||{}).id||null),
@@ -161,7 +166,6 @@ discord.on('message', async message => {
 	}*/
 })
 
-async function sendChat(msg) { if (chatChannel) chatChannel.send(msg, { split: true }); }
 async function serverStdout(string) {
 	// every message we send spawns another stdout, so we don't want to infinite loop
 	if (string.indexOf('DiscordIntegration') > -1) return;
@@ -186,9 +190,4 @@ async function serverStdout(string) {
 			}
 		}
 	}, mS.messageFlushRate)
-
-	if(!serverStarted) {
-		serverStarted = true;
-		sendChat("Server Started");
-	}
 }

@@ -90,6 +90,15 @@
       "description": "Reads server.properties info.",
       "settings": {}
     },
+    "color": {
+      "file": "color.js",
+      "enabled": true,
+      "persistent": false,
+      "color": "brightBlack",
+      "import": false,
+      "description": "Deals with getting image colors.",
+      "settings": {}
+    },
     "spookAPI": {
       "file": "spookAPI.js",
       "enabled": false,
@@ -116,7 +125,21 @@
           "475502976656736257"
         ],
         "chatLink": {
-          "channelId": "614637977502744576"
+          "channelId": "614637977502744576",
+          "discordToMCFormat": [
+            {
+              "text": "@",
+              "color": "blue"
+            },
+            {
+              "text": "%username% ",
+              "color": "gray"
+            },
+            {
+              "text": "%message%",
+              "color": "white"
+            }
+          ]
         }
       }
     },
@@ -252,10 +275,21 @@
       "settings": {
         "eventTranslation": {
           "Started": {
-            "match": false,
+            "match": "serverStarted",
             "text": "**Server Started**",
             "embed": {
-              "description": "Server Started"
+              "description": "**Server Started**"
+            },
+            "send": {
+              "embed": true,
+              "text": true
+            }
+          },
+          "Stopping": {
+            "match": "Stopping the server",
+            "text": "**Server stopping...**",
+            "embed": {
+              "description": "**Server stopping...**"
             },
             "send": {
               "embed": true,
@@ -271,17 +305,6 @@
                 "name": "%username%",
                 "icon_url": "%username% image"
               }
-            },
-            "send": {
-              "embed": true,
-              "text": true
-            }
-          },
-          "Stopped": {
-            "match": "Stopping the server",
-            "text": "**Server stopping...**",
-            "embed": {
-              "description": "**Server stopping...**"
             },
             "send": {
               "embed": true,
@@ -981,5 +1004,5 @@
   },
   "server_dir": "/home/hotpink/wrapperModules/ForgeTest",
   "serverName": "ForgeTest",
-  "lastStartTime": 5432
+  "lastStartTime": 5631
 }

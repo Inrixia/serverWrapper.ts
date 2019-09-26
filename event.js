@@ -11,7 +11,18 @@ let fn = {
         [sS, mS] = modul.loadSettings(message)
         await buildMatches()
         modul.event.on('serverStdout', message => serverStdout(message).catch(err => modul.lErr(err, 'Error while event.js processed server message.')))
-		// modul.event.on('fetchCommands', () => {
+        let startEvent = mS.eventTranslation['Started'];
+        modul.event.on('serverStarted', () => {
+            modul.emit('serverEvent', { 
+                eventKey: 'Started', 
+                event: startEvent, 
+                filled: {
+                    text: startEvent.send.text?startEvent.text:null,
+                    embed: startEvent.send.embed?startEvent.embed:null
+                }
+            })
+        })
+        // modul.event.on('fetchCommands', () => {
 		// 	modul.emit('exportCommands', []);
 		// })
 	}
@@ -46,24 +57,28 @@ const fillEmbed = async (obj, match, fill) => {
 }
 async function serverStdout(string) {
     let event = {};
-    if ((string.indexOf('>') == -1)) for (eventKey in mS.eventTranslation) {
+    if (string.indexOf('>') == -1) for (eventKey in mS.eventTranslation) {
         event = mS.eventTranslation[eventKey];
-        if (event.match != false) {
-            let match = string.replace(/\n|\r/g, '').match(event.matchRegex);
-            if (match) { // || eventKey == "PlayerMessage"
-                match = Array.from(match);
-                let filled = {};
-                filled.text = JSON.stringify(event.text);
-                filled.embed = Object.assign({}, event.embed);
-                if (event.matchRelation) await Promise.all(event.matchRelation.map(async (matchedWord, i) => {
-                    if (event.send.text) filled.text = filled.text.replace(matchedWord, match[i+1]);
-                    else filled.text = '';
-                    await fillEmbed(filled.embed, matchedWord, match[i+1])
-                }))
-                modul.emit('serverEvent', { eventKey: eventKey, event: event, filled: filled })
-            }
-        }
+        let match = string.replace(/\n|\r/g, '').match(event.matchRegex);
+        if (match) handleEvent(match, event, eventKey)
+    } else {
+        event = mS.eventTranslation['PlayerMessage'];
+        let match = string.replace(/\n|\r/g, '').match(event.matchRegex);
+        if (match) handleEvent(match, event, 'PlayerMessage')
     }
+}
+
+async function handleEvent(match, event, eventKey) {
+    match = Array.from(match);
+    let filled = {};
+    filled.text = JSON.stringify(event.text);
+    filled.embed = Object.assign({}, event.embed);
+    if (event.matchRelation) await Promise.all(event.matchRelation.map(async (matchedWord, i) => {
+        if (event.send.text) filled.text = filled.text.replace(matchedWord, match[i+1]);
+        else filled.text = '';
+        await fillEmbed(filled.embed, matchedWord, match[i+1])
+    }))
+    modul.emit('serverEvent', { eventKey: eventKey, event: event, filled: filled })
 }
 
 async function buildMatches() {

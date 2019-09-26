@@ -4,6 +4,7 @@
   "description": "Modules for the serverWrapper.js",
   "main": "command.js",
   "dependencies": {
+    "colorthief": "^2.3.0",
     "discord.js": "^11.5.1",
     "fs": "0.0.1-security",
     "mathjs": "^6.0.2",

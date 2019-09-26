@@ -767,7 +767,7 @@ class wrapperModule {
 	backupSettings().catch(err => lErr(err, 'Failed to backup settings on launch.'));
 	await loadModules()
 	await startEnabledModules()
-	modul.emit('wrapperStarted')
+	moduleEvent.emit('wrapperStarted')
 	await startServer()
 	moduleEvent.on('fetchCommands', () => moduleEvent.emit('exportCommands', commands))
 	moduleEvent.emit('fetchCommands')
@@ -903,6 +903,7 @@ async function startServer() {
 			}
 		}).catch(err => lErr(err, 'Failed to send server started status update.'));
 		saveSettings();
+		moduleEvent.emit('serverStarted');
 	}
 
 	let otherStart = setTimeout(() => {
