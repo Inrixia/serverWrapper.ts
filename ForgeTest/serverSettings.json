@@ -262,22 +262,7 @@
               "text": true
             }
           },
-          "PlayerMessage": {
-            "match": "<%username%> %message%",
-            "text": "**<%username%>** %message%",
-            "embed": {
-              "description": "%message%",
-              "author": {
-                "name": "%username%",
-                "icon_url": "%username% image"
-              }
-            },
-            "send": {
-              "embed": true,
-              "text": true
-            }
-          },
-          "Stopped": {
+          "Stopping": {
             "match": "Stopping the server",
             "text": "**Server stopping...**",
             "embed": {
@@ -293,6 +278,21 @@
             "text": "**<%username%>** joined the server!",
             "embed": {
               "description": "**%username%** joined the game!",
+              "author": {
+                "name": "%username%",
+                "icon_url": "%username% image"
+              }
+            },
+            "send": {
+              "embed": true,
+              "text": true
+            }
+          },
+          "PlayerMessage": {
+            "match": "<%username%> %message%",
+            "text": "**<%username%>** %message%",
+            "embed": {
+              "description": "%message%",
               "author": {
                 "name": "%username%",
                 "icon_url": "%username% image"

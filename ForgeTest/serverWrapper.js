@@ -767,6 +767,7 @@ class wrapperModule {
 	backupSettings().catch(err => lErr(err, 'Failed to backup settings on launch.'));
 	await loadModules()
 	await startEnabledModules()
+	modul.emit('wrapperStarted')
 	await startServer()
 	moduleEvent.on('fetchCommands', () => moduleEvent.emit('exportCommands', commands))
 	moduleEvent.emit('fetchCommands')
