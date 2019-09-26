@@ -23,7 +23,9 @@ let fn = {
 		modul.event.on('serverStdout', message => serverStdout(message))
 		modul.event.on('consoleStdout', message => {
 			if (managementChannels.length > 0) managementChannels.forEach(channel => {
-				channel.send(`[BOX] > ${message}\n`, { split: true })
+				message.match(/.{1,1999}/g).map(async msg => {
+					channel.send(`[BOX] > ${msg}\n`, { split: true })
+				})
 			})
 		})
 		await openDiscord();
@@ -36,7 +38,7 @@ let fn = {
 		})
 	},
 	discordStdin: async message => {
-		 if (message.channel) await discord.channels.get(message.channel).send(message.msg)
+		if (message.channel) await discord.channels.get(message.channel).send(message.msg)
 	},
 	addTempManagementChannel: async channel => {
 		let managementChannel = discord.channels.get(channel)

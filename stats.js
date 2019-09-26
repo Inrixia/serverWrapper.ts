@@ -32,7 +32,7 @@ let fn = {
 		clearInterval(statsInterval);
 		fn.startInterval();
 	},
-	startInterval: async () => { 
+	startInterval: async () => {
 		statsInterval = setInterval(async () => {
 			modul.emit('fetchStats')
 			await updateServerStats();
