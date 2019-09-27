@@ -296,6 +296,39 @@
               "text": true
             }
           },
+          "CrashHang": {
+            "match": "A single server tick took %seconds% seconds",
+            "text": "**@Mods Server crashed, a single tick took more than a minute**",
+            "embed": {
+              "description": "**@Mods Server crashed, a single tick took more than a minute**"
+            },
+            "send": {
+              "embed": true,
+              "text": true
+            }
+          },
+          "CrashTicking": {
+            "match": "Encountered an unexpected exception net.minecraft.util.ReportedException: Ticking",
+            "text": "**@Mods Server crashed, reason: Ticking entity",
+            "embed": {
+              "description": "**@Mods Server crashed, reason: Ticking entity**"
+            },
+            "send": {
+              "embed": true,
+              "text": true
+            }
+          },
+          "CrashTickingWorldEntity": {
+            "        match": " Encountered an unexpected exception net.minecraft.util.ReportedException: Exception ticking world entities",
+            "text": "**@Mods Server crashed, reason: Ticking world entities",
+            "embed": {
+              "description": "**@Mods Server crashed, reason: Ticking world entities**"
+            },
+            "send": {
+              "embed": true,
+              "text": true
+            }
+          },
           "PlayerMessage": {
             "match": "<%username%> %message%",
             "text": "**<%username%>** %message%",
@@ -1004,5 +1037,5 @@
   },
   "server_dir": "C:\\Users\\Mikael\\Wrapper\\ForgeTest",
   "serverName": "ForgeTest",
-  "lastStartTime": 21059
+  "lastStartTime": 9267
 }
