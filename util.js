@@ -181,15 +181,13 @@ let fn = {
 				--time
 			}, 1000) // run the code in brackets every x ms
 			setTimeout(() => {
+				clearInterval(interval)
 				modul.call('serverWrapper', 'serverStdin', 'say RESTARTING\nstop\n')
 				.catch(err => modul.lErr(err, "Sending restart message and stopping server failed"))
-                clearInterval(interval)
             }, (time2*1000 + 2000)) // wait x ms then run the code in brackets
 			modul.call('serverWrapper', 'serverStdin', `say Restart in ${time} seconds!\nsay Reason: ${reason}\n`)
-			.catch(err => modul.lErr(err, "Sending restart headsup message failed"))
         } else {
 			modul.call('serverWrapper', 'serverStdin', 'say RESTARTING\nstop\n')
-			.catch(err => modul.lErr(err, "Sending restart message and stopping server failed"))
         }
 	}
 };
