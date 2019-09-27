@@ -177,19 +177,22 @@ let fn = {
             let time2 = parseInt(message.args[1])
             let interval = setInterval(() => {
 				modul.call('serverWrapper', 'serverStdin', `title @a actionbar ["",{"text":"Server restart in ${time} seconds, ${reason}","color":"dark_red","bold":true}]:"\n`)
+				.catch(err => modul.lErr(err, "Sending server restart interval message failed"))
 				--time
 			}, 1000) // run the code in brackets every x ms
 			setTimeout(() => {
-                modul.call('serverWrapper', 'serverStdin', 'say RESTARTING\nstop\n')
+				modul.call('serverWrapper', 'serverStdin', 'say RESTARTING\nstop\n')
+				.catch(err => modul.lErr(err, "Sending restart message and stopping server failed"))
                 clearInterval(interval)
             }, (time2*1000 + 2000)) // wait x ms then run the code in brackets
-			modul.call('serverWrapper', 'serverStdin', `say Restart in ${time} seconds!\nsay Reason: ${reason}\n`); // Send stuff to the server
+			modul.call('serverWrapper', 'serverStdin', `say Restart in ${time} seconds!\nsay Reason: ${reason}\n`)
+			.catch(err => modul.lErr(err, "Sending restart headsup message failed"))
         } else {
-            modul.call('serverWrapper', 'serverStdin', 'say RESTARTING\nstop\n')
+			modul.call('serverWrapper', 'serverStdin', 'say RESTARTING\nstop\n')
+			.catch(err => modul.lErr(err, "Sending restart message and stopping server failed"))
         }
 	}
 };
-
 // Module command handling
 process.on('message', async message => {
 	switch (message.function) {
