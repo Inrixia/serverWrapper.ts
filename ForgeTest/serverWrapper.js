@@ -46,11 +46,45 @@ const consoleReadline = readline.createInterface({
 	terminal: true,
 	historySize: 10000,
 	prompt: '',
-	completer: (line) => {
-		const hits = completions.filter((c) => c.toLowerCase().startsWith(line.toLowerCase()));
-		return [hits.length ? hits : completions, line];
-	}
+	// completer: (line) => {
+	// 	const hits = completions.filter((c) => c.toLowerCase().startsWith(line.toLowerCase()));
+	// 	return [hits.length ? hits : completions, line];
+	// }
 });
+
+let cInput = [];
+let cIndex = 0;
+process.stdin.on('keypress', (char, key) => {
+	if (key.name == 'return') cInput = []
+	else if (key.name == 'tab') {
+		const hits = completions.filter((c) => c.toLowerCase().startsWith(cInput.join('').toLowerCase()));
+		if (hits.length == 1) {
+			cInput = hits[0].split('');
+			cIndex = cInput.length;
+		} else if (hits.length > 1) console.log(hits.join(' '))
+	} else if (key.name == 'backspace') {
+		cInput.splice(cIndex-1, 1);
+		cIndex--
+	} else if (key.name == 'delete') {
+		cInput.splice(cIndex, 1);
+	} else if (char) {
+		cInput.splice(cIndex, 0, char);
+		cIndex++
+	}
+	if (key.name == 'left') cIndex--;
+	else if (key.name == 'right') cIndex++;
+	cIndex = (cIndex > cInput.length) ? cInput.length:cIndex
+	readline.cursorTo(process.stdout, 0)
+	readline.clearLine(process.stdout);
+	process.stdout.write(cInput.join(''))
+	readline.cursorTo(process.stdout, cIndex)
+})
+
+const oStdoutWrite = process.stdout.write.bind(process.stdout);
+process.stdout.write = (chunk, encoding, callback) => {
+	oStdoutWrite('\r')
+	return oStdoutWrite(chunk, encoding, callback);
+};
 
 // On exception log it and continue
 /*process.on('uncaughtException', function (exception) {

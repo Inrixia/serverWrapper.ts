@@ -27,7 +27,7 @@
   "modules": {
     "mineapi": {
       "file": "mineapi.js",
-      "enabled": true,
+      "enabled": false,
       "persistent": false,
       "color": "orange",
       "import": false,
@@ -36,7 +36,7 @@
     },
     "nbt": {
       "file": "nbt.js",
-      "enabled": true,
+      "enabled": false,
       "persistent": false,
       "color": "yellow",
       "import": false,
@@ -45,7 +45,7 @@
     },
     "math": {
       "file": "math.js",
-      "enabled": true,
+      "enabled": false,
       "persistent": false,
       "color": "brightMagenta",
       "import": false,
@@ -54,7 +54,7 @@
     },
     "stats": {
       "file": "stats.js",
-      "enabled": true,
+      "enabled": false,
       "persistent": false,
       "color": "brightYellow",
       "import": false,
@@ -65,7 +65,7 @@
     },
     "util": {
       "file": "util.js",
-      "enabled": true,
+      "enabled": false,
       "persistent": false,
       "color": "magenta",
       "import": false,
@@ -74,7 +74,7 @@
     },
     "command": {
       "file": "command.js",
-      "enabled": true,
+      "enabled": false,
       "persistent": true,
       "color": "brightGreen",
       "import": false,
@@ -83,7 +83,7 @@
     },
     "properties": {
       "file": "properties.js",
-      "enabled": true,
+      "enabled": false,
       "persistent": false,
       "color": "cyan",
       "import": false,
@@ -92,7 +92,7 @@
     },
     "color": {
       "file": "color.js",
-      "enabled": true,
+      "enabled": false,
       "persistent": false,
       "color": "brightBlack",
       "import": false,
@@ -112,7 +112,7 @@
     },
     "discord": {
       "file": "discord.js",
-      "enabled": true,
+      "enabled": false,
       "persistent": false,
       "color": "brightBlue",
       "discordColor": "discordBlue",
@@ -125,6 +125,7 @@
           "475502976656736257"
         ],
         "chatLink": {
+          "_INFO": "Formatting for server events/messages are handled in event.js",
           "channelId": "614637977502744576",
           "discordToMCFormat": [
             {
@@ -145,7 +146,7 @@
     },
     "backup": {
       "file": "backup.js",
-      "enabled": true,
+      "enabled": false,
       "persistent": false,
       "color": "brightRed",
       "import": false,
@@ -188,7 +189,7 @@
     },
     "auth": {
       "file": "auth.js",
-      "enabled": true,
+      "enabled": false,
       "persistent": false,
       "color": "white",
       "import": false,
@@ -267,7 +268,7 @@
     },
     "event": {
       "file": "event.js",
-      "enabled": true,
+      "enabled": false,
       "persistent": false,
       "color": "brightRed",
       "import": false,
@@ -317,7 +318,7 @@
             "embed": {
               "description": "**%username%** joined the game!",
               "author": {
-                "name": "%username%",
+                "name": "",
                 "icon_url": "%username% image"
               }
             },
@@ -332,7 +333,7 @@
             "embed": {
               "description": "**%username%** left the game!",
               "author": {
-                "name": "%username%",
+                "name": "",
                 "icon_url": "%username% image"
               }
             },
@@ -1004,5 +1005,5 @@
   },
   "server_dir": "/home/hotpink/wrapperModules/ForgeTest",
   "serverName": "ForgeTest",
-  "lastStartTime": 5453
+  "lastStartTime": 5962
 }

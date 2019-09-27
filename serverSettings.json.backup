@@ -27,7 +27,7 @@
   "modules": {
     "mineapi": {
       "file": "mineapi.js",
-      "enabled": false,
+      "enabled": true,
       "persistent": false,
       "color": "orange",
       "import": false,
@@ -36,7 +36,7 @@
     },
     "nbt": {
       "file": "nbt.js",
-      "enabled": false,
+      "enabled": true,
       "persistent": false,
       "color": "yellow",
       "import": false,
@@ -45,7 +45,7 @@
     },
     "math": {
       "file": "math.js",
-      "enabled": false,
+      "enabled": true,
       "persistent": false,
       "color": "brightMagenta",
       "import": false,
@@ -54,7 +54,7 @@
     },
     "stats": {
       "file": "stats.js",
-      "enabled": false,
+      "enabled": true,
       "persistent": false,
       "color": "brightYellow",
       "import": false,
@@ -65,7 +65,7 @@
     },
     "util": {
       "file": "util.js",
-      "enabled": false,
+      "enabled": true,
       "persistent": false,
       "color": "magenta",
       "import": false,
@@ -74,7 +74,7 @@
     },
     "command": {
       "file": "command.js",
-      "enabled": false,
+      "enabled": true,
       "persistent": true,
       "color": "brightGreen",
       "import": false,
@@ -83,7 +83,7 @@
     },
     "properties": {
       "file": "properties.js",
-      "enabled": false,
+      "enabled": true,
       "persistent": false,
       "color": "cyan",
       "import": false,
@@ -92,7 +92,7 @@
     },
     "color": {
       "file": "color.js",
-      "enabled": false,
+      "enabled": true,
       "persistent": false,
       "color": "brightBlack",
       "import": false,
@@ -112,7 +112,7 @@
     },
     "discord": {
       "file": "discord.js",
-      "enabled": false,
+      "enabled": true,
       "persistent": false,
       "color": "brightBlue",
       "discordColor": "discordBlue",
@@ -146,7 +146,7 @@
     },
     "backup": {
       "file": "backup.js",
-      "enabled": false,
+      "enabled": true,
       "persistent": false,
       "color": "brightRed",
       "import": false,
@@ -189,7 +189,7 @@
     },
     "auth": {
       "file": "auth.js",
-      "enabled": false,
+      "enabled": true,
       "persistent": false,
       "color": "white",
       "import": false,
@@ -268,7 +268,7 @@
     },
     "event": {
       "file": "event.js",
-      "enabled": false,
+      "enabled": true,
       "persistent": false,
       "color": "brightRed",
       "import": false,
@@ -1003,7 +1003,7 @@
       "mc": ""
     }
   },
-  "server_dir": "/home/hotpink/wrapperModules/ForgeTest",
-  "serverName": "ForgeTest",
-  "lastStartTime": 5533
+  "server_dir": "z:\\wrapperModules\\ForgeTest",
+  "serverName": "wrapperModules",
+  "lastStartTime": 5665
 }
