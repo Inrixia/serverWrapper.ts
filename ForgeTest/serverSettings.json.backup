@@ -298,9 +298,9 @@
           },
           "CrashHang": {
             "match": "A single server tick took %seconds% seconds",
-            "text": "**@Mods Server crashed, a single tick took more than a minute**",
+            "text": "@Mods **Server crashed, a single tick took more than a minute**",
             "embed": {
-              "description": "**@Mods Server crashed, a single tick took more than a minute**"
+              "description": "@Mods **Server crashed, a single tick took more than a minute**"
             },
             "send": {
               "embed": true,
@@ -309,9 +309,9 @@
           },
           "CrashTicking": {
             "match": "Encountered an unexpected exception net.minecraft.util.ReportedException: Ticking",
-            "text": "**@Mods Server crashed, reason: Ticking entity",
+            "text": "@Mods **Server crashed, reason: Ticking entity",
             "embed": {
-              "description": "**@Mods Server crashed, reason: Ticking entity**"
+              "description": "@Mods **Server crashed, reason: Ticking entity**"
             },
             "send": {
               "embed": true,
@@ -319,10 +319,10 @@
             }
           },
           "CrashTickingWorldEntity": {
-            "        match": " Encountered an unexpected exception net.minecraft.util.ReportedException: Exception ticking world entities",
-            "text": "**@Mods Server crashed, reason: Ticking world entities",
+            "match": "Encountered an unexpected exception net.minecraft.util.ReportedException: Exception ticking world entities",
+            "text": "@Mods **Server crashed, reason: Ticking world entities",
             "embed": {
-              "description": "**@Mods Server crashed, reason: Ticking world entities**"
+              "description": "@Mods **Server crashed, reason: Ticking world entities**"
             },
             "send": {
               "embed": true,
@@ -1035,7 +1035,7 @@
       "mc": ""
     }
   },
-  "server_dir": "C:\\Users\\Mikael\\Wrapper\\ForgeTest",
+  "server_dir": "C:\\Users\\Mikael\\Spookelton wrapper\\ForgeTest",
   "serverName": "ForgeTest",
-  "lastStartTime": 9273
+  "lastStartTime": 11251
 }

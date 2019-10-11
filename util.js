@@ -113,40 +113,49 @@ let fn = {
 					}
 				}
 			}, {
-				name: `shutdown`,
-				exeFunc: `shutdown`,
+				name: `exit`,
+				exeFunc: `exit`,
 				module: thisModule,
 				description: {
-					console: `${sS.c['white'].c}Shutdown the server with a timer and a optional reason. ${sS.c['reset'].c}\nExample: ${sS.c['yellow'].c}~shutdown ${sS.c['orange'].c}10 ${sS.c['brightBlue'].c}Reason`,
+					console: `${sS.c['white'].c}Exit the server with a timer and a optional reason. ${sS.c['reset'].c}\nExample: ${sS.c['yellow'].c}~exit ${sS.c['orange'].c}10 ${sS.c['brightBlue'].c}"Server restart" "applying config changes"`,
 					minecraft: [{
-						"text": `Shutdown the server with a timer and a optional reason.\n`,
+						"text": `Exit the server with a timer and a optional reason.\n`,
 						"color": sS.c['brightWhite'].m
 					}, {
 						"text": 'Example: ',
 						"color": sS.c['white'].m
 					}, {
-						"text": '~shutdown ',
+						"text": '~exit ',
 						"color": sS.c['brightYellow'].m
 					}, {
 						"text": '10 ',
 						"color": sS.c['yellow'].m
 					}, {
-						"text": 'Reason ',
+						"text": '"Server restart" "applying config changes" ',
 						"color": sS.c['brightBlue'].m
 					}],
 					discord:{
 						string: null,
 						embed: {
-							title: "Shutdown the server with a timer and a optional reason",
-							description: "~shutdown",
+							title: "Exit the server with a timer and an optional reason",
+							description: "~exit",
 							color: parseInt(sS.c['orange'].h, 16),
 							timestamp: new Date(),
 							fields: [{
 								name: "Description",
-								value: "Takes time in seconds and optional reason and makes a timer, then runs /stop when timer is done"
-							}, {
+								value: "Takes time in seconds and optional reason(s) and makes a timer, then runs /stop when timer is done"
+							},
+								{
+								name: "Syntax",
+								value: '~exit time "reason1" "reason2" "reason3"'
+							},
+								{
 								name: "Example",
-								value: "**~shutdown** 10 Reason"
+								value: "**~exit** 10 \"Server restart\" \"applying config changes\""
+							},
+								{
+								name: "Result",
+								value: '**$reason1 in x seconds! Reason: $reason2** as title for all players, time updates every second. **$reason3** gets put into chat at end of countdown.'	
 							}]
 						}
 					}
@@ -164,30 +173,37 @@ let fn = {
 			minecraft: `tp ${message.logTo.user} ${message.args[1]*512} 100 ${message.args[2]*512}\n`
 		}
     },
-    shutdown: async message => {
+    exit: async message => {
 		let reason = "No reason given"
 		if (message.args[1]) {
 			if (message.args[2]) {
 				let args = message.args
-				let argsstring = args.join(" ")
-				let parsedreason = argsstring.replace(args[1], "")
-                reason = parsedreason.replace(args[0], "").trim()
+				var reason1 = args[2]
+				var reason2 = args[3]
+				var reason3 = args[4]
+				if (typeof reason2 === 'undefined') {
+					reason2 = 'No reason specified'
+				}
+				if (typeof reason3 === 'undefined') {
+					reason3 = 'Server stopping!'
+				}
 			}
 			let time = parseInt(message.args[1])
             let time2 = parseInt(message.args[1])
             let interval = setInterval(() => {
-				modul.call('serverWrapper', 'serverStdin', `title @a actionbar ["",{"text":"Server restart in ${time} seconds, ${reason}","color":"dark_red","bold":true}]:"\n`)
+				modul.call('serverWrapper', 'serverStdin', `title @a actionbar ["",{"text":"${reason1} in ${time} seconds, reason: ${reason2}","color":"dark_red","bold":true}]:"\n`)
 				.catch(err => modul.lErr(err, "Sending server restart interval message failed"))
 				--time
 			}, 1000) // run the code in brackets every x ms
-			setTimeout(() => {
+			setTimeout((reason3) => {
 				clearInterval(interval)
-				modul.call('serverWrapper', 'serverStdin', 'say RESTARTING\nstop\n')
+				let reasontext = 'say '+reason3+'\nstop\n'
+				modul.call('serverWrapper', 'serverStdin', reasontext)
 				.catch(err => modul.lErr(err, "Sending restart message and stopping server failed"))
-            }, (time2*1000 + 2000)) // wait x ms then run the code in brackets
-			modul.call('serverWrapper', 'serverStdin', `say Restart in ${time} seconds!\nsay Reason: ${reason}\n`)
+            }, (time2*1000 + 2000), reason3) // wait x ms then run the code in brackets
+			modul.call('serverWrapper', 'serverStdin', `say ${reason1} in ${time} seconds!\nsay Reason: ${reason2}\n`)
         } else {
-			modul.call('serverWrapper', 'serverStdin', 'say RESTARTING\nstop\n')
+			modul.call('serverWrapper', 'serverStdin', 'say Server stopping!\nstop\n')
         }
 	}
 };
