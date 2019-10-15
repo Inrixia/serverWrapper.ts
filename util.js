@@ -147,15 +147,15 @@ let fn = {
 							},
 								{
 								name: "Syntax",
-								value: '~exit time "reason1" "reason2" "reason3"'
+								value: '~exit time "serverGoingTo" "serverExitReason" "serverKickReason"'
 							},
 								{
 								name: "Example",
-								value: "**~exit** 10 \"Server restart\" \"applying config changes\""
+								value: '**~exit** 10 "Server restart" "applying config changes" "Server restart, please join when server has started'
 							},
 								{
 								name: "Result",
-								value: '**$reason1 in x seconds! Reason: $reason2** as title for all players, time updates every second. **$reason3** gets put into chat at end of countdown.'	
+								value: '**$serverGoingTo in x seconds! Reason: $serverExitReason** as title for all players, time updates every second. **$serverKickReason** is reason why players are kicked at end of countdown.'	
 							}]
 						}
 					}
@@ -176,34 +176,34 @@ let fn = {
     exit: async message => {
 		let reason = "No reason given"
 		if (message.args[1]) {
+			if (typeof message.args[2] === 'undefined') modul.call('serverWrapper', 'serverStdin', 'kick @a '+message.args[1]+'\nstop\n')
+			else {
 			if (message.args[2]) {
 				let args = message.args
-				var reason1 = args[2]
-				var reason2 = args[3]
-				var reason3 = args[4]
-				if (typeof reason2 === 'undefined') {
-					reason2 = 'No reason specified'
+				var serverGoingTo = args[2]
+				var serverExitReason = args[3]
+				var serverKickReason = args[4]
+				if (typeof serverExitReason === 'undefined') {
+					serverExitReason = 'No reason specified'
 				}
-				if (typeof reason3 === 'undefined') {
-					reason3 = 'Server stopping!'
+				if (typeof serverKickReason === 'undefined') {
+					serverKickReason = 'Server stopped!'
 				}
 			}
 			let time = parseInt(message.args[1])
             let time2 = parseInt(message.args[1])
             let interval = setInterval(() => {
-				modul.call('serverWrapper', 'serverStdin', `title @a actionbar ["",{"text":"${reason1} in ${time} seconds, reason: ${reason2}","color":"dark_red","bold":true}]:"\n`)
+				modul.call('serverWrapper', 'serverStdin', `title @a actionbar ["",{"text":"${serverGoingTo} in ${time} seconds, reason: ${serverExitReason}","color":"dark_red","bold":true}]:"\n`)
 				.catch(err => modul.lErr(err, "Sending server restart interval message failed"))
 				--time
 			}, 1000) // run the code in brackets every x ms
-			setTimeout((reason3) => {
+			setTimeout((serverKickReason) => {
 				clearInterval(interval)
-				let reasontext = 'say '+reason3+'\nstop\n'
-				modul.call('serverWrapper', 'serverStdin', reasontext)
-				.catch(err => modul.lErr(err, "Sending restart message and stopping server failed"))
-            }, (time2*1000 + 2000), reason3) // wait x ms then run the code in brackets
-			modul.call('serverWrapper', 'serverStdin', `say ${reason1} in ${time} seconds!\nsay Reason: ${reason2}\n`)
-        } else {
-			modul.call('serverWrapper', 'serverStdin', 'say Server stopping!\nstop\n')
+				modul.call('serverWrapper', 'serverStdin', 'kick @a '+serverKickReason+'\n')
+				modul.call('serverWrapper', 'serverStdin', 'stop\n')
+				.catch(err => modul.lErr(err, "Sending kicking players and stopping server failed"))
+            }, (time2*1000 + 2000), serverKickReason) // wait x ms then run the code in brackets
+			modul.call('serverWrapper', 'serverStdin', `say ${serverGoingTo} in ${time} seconds! Reason: ${serverExitReason}\n`)}
         }
 	}
 };
