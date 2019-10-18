@@ -40,7 +40,7 @@ let fn = {
 		if (message.channel) await discord.channels.get(message.channel).send(message.msg)
 	},
 	addTempManagementChannel: async channel => {
-		if (mS.managementChannels.indexOf(channel) > -1) {
+		if (mS.managementChannels.indexOf(channel) == -1) {
 			let managementChannel = discord.channels.get(channel)
 			managementChannels.push(managementChannel);
 			setTimeout(() => managementChannels.pop(managementChannel), 500)
@@ -169,6 +169,7 @@ discord.on('message', async message => {
 
 async function serverStdout(string) {
 	// every message we send spawns another stdout, so we don't want to infinite loop
+	if (string == "50\n") return;
 	if (string.indexOf('DiscordIntegration') > -1) return;
 	let trueString = string.split('\n')
 	for (let i = 0; i < trueString.length - 1; i++) {
