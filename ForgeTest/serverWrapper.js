@@ -53,10 +53,15 @@ const consoleReadline = readline.createInterface({
 });
 
 let cInput = [];
+let cHistory = [];
+let cHistoryIndex = 0;
 let cIndex = 0;
 process.stdin.on('keypress', (char, key) => {
-	if (key.name == 'return') cInput = []
-	else if (key.name == 'tab') {
+	if (key.name == 'return') {
+		cHistory.push(cInput)
+		cHistoryIndex = cHistory.length;
+		cInput = []
+	} else if (key.name == 'tab') {
 		const hits = completions.filter((c) => c.toLowerCase().startsWith(cInput.join('').toLowerCase()));
 		if (hits.length == 1) {
 			cInput = hits[0].split('');
@@ -73,7 +78,21 @@ process.stdin.on('keypress', (char, key) => {
 	}
 	if (key.name == 'left') cIndex--;
 	else if (key.name == 'right') cIndex++;
+	else if (key.name == 'up') {
+		if (cHistoryIndex != 0) cHistoryIndex--;
+		if (cHistory[cHistoryIndex]) {
+			cInput = cHistory[cHistoryIndex];
+			cIndex = cHistory[cHistoryIndex].length;
+		}
+	} else if (key.name == 'down') {
+		if (cHistoryIndex < cHistory.length) cHistoryIndex++;
+		if (cHistory[cHistoryIndex]) {
+			cInput = cHistory[cHistoryIndex];
+			cIndex = cHistory[cHistoryIndex].length;
+		}
+	}
 	cIndex = (cIndex > cInput.length) ? cInput.length:cIndex
+	if (cIndex < 0) cIndex = 0;
 	readline.cursorTo(process.stdout, 0)
 	readline.clearLine(process.stdout);
 	process.stdout.write(cInput.join(''))
