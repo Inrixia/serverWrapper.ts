@@ -30,7 +30,7 @@ let fn = {
 			})
 		})
 		modul.event.on('serverEvent', event => {
-			if (chatChannel) {
+			if (chatChannel && mS.chatLink.enabled) {
 				event.filled.embed.color = discord.color
 				chatChannel.send({ content: event.filled.text, embed: event.filled.embed })
 			}
@@ -40,10 +40,11 @@ let fn = {
 		if (message.channel) await discord.channels.get(message.channel).send(message.msg)
 	},
 	addTempManagementChannel: async channel => {
-		let managementChannel = discord.channels.get(channel)
-		managementChannels.push(managementChannel);
-		setTimeout(() => managementChannels.pop(managementChannel), 500)
-		return;
+		if (mS.managementChannels.indexOf(channel) > -1) {
+			let managementChannel = discord.channels.get(channel)
+			managementChannels.push(managementChannel);
+			setTimeout(() => managementChannels.pop(managementChannel), 500)
+		}
 	}
 }
 
@@ -82,7 +83,7 @@ discord.on('ready', () => {
 // On receive message from discord server
 discord.on('message', async message => {
 	if (message.author.id == discord.user.id) return;
-	if (message.channel.id == chatChannel.id) {
+	if (mS.chatLink.enabled && message.channel.id == chatChannel.id) {
 		let msg = JSON.stringify(mS.chatLink.discordToMCFormat)
 		.replace("%username%", ((message.author||{}).username)||"Unknown User")
 		.replace("%message%", message.toString().trim())

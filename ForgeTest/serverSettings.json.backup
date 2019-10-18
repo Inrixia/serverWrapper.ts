@@ -27,7 +27,7 @@
   "modules": {
     "mineapi": {
       "file": "mineapi.js",
-      "enabled": false,
+      "enabled": true,
       "persistent": false,
       "color": "orange",
       "import": false,
@@ -36,7 +36,7 @@
     },
     "nbt": {
       "file": "nbt.js",
-      "enabled": false,
+      "enabled": true,
       "persistent": false,
       "color": "yellow",
       "import": false,
@@ -45,7 +45,7 @@
     },
     "math": {
       "file": "math.js",
-      "enabled": false,
+      "enabled": true,
       "persistent": false,
       "color": "brightMagenta",
       "import": false,
@@ -54,7 +54,7 @@
     },
     "stats": {
       "file": "stats.js",
-      "enabled": false,
+      "enabled": true,
       "persistent": false,
       "color": "brightYellow",
       "import": false,
@@ -65,7 +65,7 @@
     },
     "util": {
       "file": "util.js",
-      "enabled": false,
+      "enabled": true,
       "persistent": false,
       "color": "magenta",
       "import": false,
@@ -74,7 +74,7 @@
     },
     "command": {
       "file": "command.js",
-      "enabled": false,
+      "enabled": true,
       "persistent": true,
       "color": "brightGreen",
       "import": false,
@@ -83,7 +83,7 @@
     },
     "properties": {
       "file": "properties.js",
-      "enabled": false,
+      "enabled": true,
       "persistent": false,
       "color": "cyan",
       "import": false,
@@ -92,7 +92,7 @@
     },
     "color": {
       "file": "color.js",
-      "enabled": false,
+      "enabled": true,
       "persistent": false,
       "color": "brightBlack",
       "import": false,
@@ -112,7 +112,7 @@
     },
     "discord": {
       "file": "discord.js",
-      "enabled": false,
+      "enabled": true,
       "persistent": false,
       "color": "brightBlue",
       "discordColor": "discordBlue",
@@ -126,6 +126,7 @@
         ],
         "chatLink": {
           "_INFO": "Formatting for server events/messages are handled in event.js",
+          "enabled": false,
           "channelId": "614637977502744576",
           "discordToMCFormat": [
             {
@@ -146,7 +147,7 @@
     },
     "backup": {
       "file": "backup.js",
-      "enabled": false,
+      "enabled": true,
       "persistent": false,
       "color": "brightRed",
       "import": false,
@@ -164,8 +165,7 @@
           }
         },
         "publicBackupFolders": [
-          "WORLD",
-          "config"
+          "WORLD"
         ],
         "excludes": [
           "*.zip*",
@@ -189,8 +189,8 @@
     },
     "auth": {
       "file": "auth.js",
-      "enabled": false,
-      "persistent": false,
+      "enabled": true,
+      "persistent": true,
       "color": "white",
       "import": false,
       "description": "Handles all permissions.",
@@ -215,24 +215,6 @@
           "155530711326130176": {
             "Username": "Sir Inrix | <3",
             "allowedCommands": {
-              "~cw_add": {
-                "assignedAt": "2019-03-24T05:58:04.891Z",
-                "assignedBy": {
-                  "Username": "Sir Inrix | <3",
-                  "discord_id": "155530711326130176"
-                },
-                "expiresAt": false,
-                "expired": false
-              },
-              "~cw_remove": {
-                "assignedAt": "2019-03-24T05:58:19.998Z",
-                "assignedBy": {
-                  "Username": "Sir Inrix | <3",
-                  "discord_id": "155530711326130176"
-                },
-                "expiresAt": false,
-                "expired": false
-              },
               "*": {
                 "assignedAt": "2019-03-25T06:49:08.684Z",
                 "assignedBy": {
@@ -240,24 +222,6 @@
                   "discord_id": "155530711326130176"
                 },
                 "expiresAt": false,
-                "expired": false
-              },
-              "!list": {
-                "assignedAt": "2019-07-13T11:32:17.482Z",
-                "assignedBy": {
-                  "Username": "Sir Inrix | <3",
-                  "discord_id": "155530711326130176"
-                },
-                "expiresAt": "2019-07-13T11:33:29.482Z",
-                "expired": false
-              },
-              "!kill": {
-                "assignedAt": "2019-07-13T12:18:44.125Z",
-                "assignedBy": {
-                  "Username": "Sir Inrix | <3",
-                  "discord_id": "155530711326130176"
-                },
-                "expiresAt": "2019-07-13T12:19:56.124Z",
                 "expired": false
               }
             },
@@ -1005,5 +969,5 @@
   },
   "server_dir": "/home/hotpink/wrapperModules/ForgeTest",
   "serverName": "ForgeTest",
-  "lastStartTime": 5533
+  "lastStartTime": 4962
 }

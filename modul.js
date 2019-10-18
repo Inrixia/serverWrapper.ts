@@ -63,7 +63,7 @@ module.exports = class Module {
 			delete this.crossModulePromises[message.promiseID];
 		}
 	}
-	call(destModule, func, data, returnModule=this.thisModule) {
+	call(destModule, func, data=null, returnModule=this.thisModule) {
 		let externalPromiseId = Math.random();
 		let externalPromise = {};
 		let promise = new Promise((resolve, reject) => {
@@ -135,10 +135,10 @@ module.exports = class Module {
 		logTo = {
 			console: (logTo||{}).console||true,
 			discord: (logTo||{}).discord||false,
-			server: (logTo||{}).server||false
+			minecraft: (logTo||{}).minecraft||false
 		}
 		if (logTo.console && logObj.console) process.stdout.write(logObj.console+'\n');
-		if (logTo.server && logObj.server) await this.call('serverWrapper', 'serverStdin', logObj.server);
+		if (logTo.minecraft && logObj.minecraft) await this.call('serverWrapper', 'serverStdin', logObj.minecraft);
 		if (logTo.discord && logObj.discord) await this.call('discord', 'discordStdin', { msg: logObj.discord, channel: logTo.discord.channel||null }, this.thisModule)
 	}
 	async lErr(err, name='', logTo=null) {

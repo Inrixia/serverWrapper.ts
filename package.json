@@ -8,6 +8,7 @@
     "discord.js": "^11.5.1",
     "fs": "0.0.1-security",
     "mathjs": "^6.0.2",
+    "mc-ping-updated": "^0.1.0",
     "moment": "^2.24.0",
     "node-nbt": "^1.0.0",
     "pidusage": "^2.0.17",
