@@ -2,6 +2,7 @@ const thisModule = 'properties';
 
 // Import core packages
 const properties = require('properties');
+const mcping = require('mc-ping-updated');
 
 function pProp() {
 	return new Promise((resolve, reject) => {
@@ -84,14 +85,121 @@ let fn = {
 						}
 					}
 				}
+			}, {
+				name: 'ping',
+				exeFunc: 'showPing',
+				module: thisModule,
+				description: {
+					console: `${sS.c['white'].c}Pings this server for info. ${sS.c['reset'].c}Example: ${sS.c['yellow'].c}~ping${sS.c['reset'].c}`,
+					minecraft: [{
+						"text": `Pings this server for info. `,
+						"color": sS.c['brightWhite'].m
+					}, {
+						"text": `Example: `,
+						"color": sS.c['white'].m
+						}, {
+						"text": `~ping`,
+						"color": sS.c['yellow'].m
+					}],
+					discord: {
+						string: null,
+						embed: {
+							title: "Pings this server",
+							description: "~ping",
+							color: parseInt(sS.c['orange'].h, 16),
+							timestamp: new Date(),
+							fields: [{
+								name: "Description",
+								value: "Pings this server for info."
+							}, {
+								name: "Example",
+								value: "**~ping**"
+							}]
+						}
+					}
+				}
 			}])
 		})
+	},
+	ping: async data => {
+		let serverPort = await fn.getProperty('server-port')
+		return await new Promise((resolve, reject) => mcping('localhost', serverPort, (err, res) => {
+			if (err) reject(new Error(err));
+			else resolve(res);
+		}, 1000))
 	},
 	getProperty: async propertyKey => {
 		return (await pProp())[propertyKey];
 	},
 	getProperties: async () => {
 		return await pProp();
+	},
+	showPing: async message => {
+		let ping = (await fn.ping());
+		return {
+			console: `${sS.c['yellow'].c}MOTD${sS.c['reset'].c}: ${ping.description.text}\n${sS.c['yellow'].c}Online${sS.c['reset'].c}: ${ping.players.online}${sS.c['red'].c}/${sS.c['reset'].c}${ping.players.max}\n${sS.c['yellow'].c}Version${sS.c['reset'].c}: ${ping.version.name}\n${sS.c['yellow'].c}Protocol${sS.c['reset'].c}: ${ping.version.protocol}${sS.c['reset'].c}`,
+			minecraft: `tellraw ${message.logTo.user} ${JSON.stringify(
+				[{
+					"text": `MOTD`,
+					"color": "gold"
+				}, {
+					"text": `: `,
+					"color": "brightRed"
+				}, {
+					"text": `${ping.description.text}`,
+					"color": "white"
+				}, {
+					"text": `\n`
+				}, {
+					"text": `Online`,
+					"color": "gold"
+				}, {
+					"text": `: `,
+					"color": "brightRed",
+					"color": "white"
+				}, {
+					"text": `${ping.players.online}`,
+					"color": "white"
+				}, {
+					"text": `/`,
+					"color": "red"
+				}, {
+					"text": `${ping.players.max}`,
+					"color": "white"
+				}, {
+					"text": `\n`
+				}, {
+					"text": `Version`,
+					"color": "gold"
+				}, {
+					"text": `: `,
+					"color": "brightRed"
+				}, {
+					"text": `${ping.version.name}`,
+					"color": "white"
+				}, {
+					"text": `\n`
+				}, {
+					"text": `Protocol`,
+					"color": "gold"
+				}, {
+					"text": `: `,
+					"color": "brightRed"
+				}, {
+					"text": `${ping.version.protocol}`,
+					"color": "white"
+				}]
+			)}\n`,
+			discord : {
+				string: null,
+				embed: {
+					color: parseInt(sS.c[sS.modules['properties'].discordColor||sS.modules['properties'].color].h, 16),
+					title: `Ping Info`,
+					description: '```json\n'+JSON.stringify(ping, null, 2)+'```',
+					timestamp: new Date()
+				}
+			}
+		}
 	},
 	showProperty: async message => {
 		let property = (await fn.getProperties())[message.args[1]];
