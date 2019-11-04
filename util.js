@@ -1,5 +1,7 @@
 const thisModule = 'util';
-
+const ip = require('ip')
+const https = require('https')
+var exitIsActive = false
 // Set defaults
 var sS = {}; // serverSettings
 let mS = {}; // ServerProperties
@@ -113,44 +115,58 @@ let fn = {
 					}
 				}
 			}, {
-				name: `shutdown`,
-				exeFunc: `shutdown`,
+				name: `exit`,
+				exeFunc: `exit`,
 				module: thisModule,
 				description: {
-					console: `${sS.c['white'].c}Shutdown the server with a timer and a optional reason. ${sS.c['reset'].c}\nExample: ${sS.c['yellow'].c}~shutdown ${sS.c['orange'].c}10 ${sS.c['brightBlue'].c}Reason`,
+					console: `${sS.c['white'].c}Exit the server with a timer and a optional reason. ${sS.c['reset'].c}\nExample: ${sS.c['yellow'].c}~exit ${sS.c['orange'].c}10 ${sS.c['brightBlue'].c}"Server restart" "applying config changes"`,
 					minecraft: [{
-						"text": `Shutdown the server with a timer and a optional reason.\n`,
+						"text": `Exit the server with a timer and a optional reason.\n`,
 						"color": sS.c['brightWhite'].m
 					}, {
 						"text": 'Example: ',
 						"color": sS.c['white'].m
 					}, {
-						"text": '~shutdown ',
+						"text": '~exit ',
 						"color": sS.c['brightYellow'].m
 					}, {
 						"text": '10 ',
 						"color": sS.c['yellow'].m
 					}, {
-						"text": 'Reason ',
+						"text": '"Server restart" "applying config changes" ',
 						"color": sS.c['brightBlue'].m
 					}],
 					discord:{
 						string: null,
 						embed: {
-							title: "Shutdown the server with a timer and a optional reason",
-							description: "~shutdown",
+							title: "Exit the server with a timer and an optional reason",
+							description: "~exit",
 							color: parseInt(sS.c['orange'].h, 16),
 							timestamp: new Date(),
 							fields: [{
 								name: "Description",
-								value: "Takes time in seconds and optional reason and makes a timer, then runs /stop when timer is done"
-							}, {
+								value: "Takes time in seconds and optional reason(s) and makes a timer, then runs /stop when timer is done"
+							},
+								{
+								name: "Syntax",
+								value: '~exit time "serverGoingTo" "serverExitReason" "serverKickReason"'
+							},
+								{
 								name: "Example",
-								value: "**~shutdown** 10 Reason"
+								value: '**~exit** 10 "Server restart" "applying config changes" "Server restart, please join when server has started'
+							},
+								{
+								name: "Result",
+								value: '**$serverGoingTo in x seconds! Reason: $serverExitReason** as title for all players, time updates every second. **$serverKickReason** is reason why players are kicked at end of countdown.'	
 							}]
 						}
 					}
 				}
+			}, {
+				name: 'test',
+				exeFunc: 'test',
+				module: thisModule,
+				description: {}
 			}]);
 		})
     },
@@ -164,31 +180,122 @@ let fn = {
 			minecraft: `tp ${message.logTo.user} ${message.args[1]*512} 100 ${message.args[2]*512}\n`
 		}
     },
-    shutdown: async message => {
-		let reason = "No reason given"
-		if (message.args[1]) {
-			if (message.args[2]) {
-				let args = message.args
-				let argsstring = args.join(" ")
-				let parsedreason = argsstring.replace(args[1], "")
-                reason = parsedreason.replace(args[0], "").trim()
+    exit: async message => {
+		if (exitIsActive) {
+			if (message.args[1]) {
+				if (message.args[1].toLowerCase() !== 'cancel') {
+					return {
+						minecraft: `tellraw ${message.logTo.user} ["",{"text":"Exit is active, please cancel it with ~exit cancel first","color":"yellow","bold":true}]\n`,
+						discord: {
+							string: null,
+							embed: {
+								title: "Warning",
+								description: "Exit is active, please cancel it with ~exit cancel first",
+								color: parseInt(sS.c['yellow'].h, 16),
+								timestamp: new Date()
+							}
+						},
+						console: `${sS.c['yellow'].c}Exit is active, please cancel it with ~exit cancel first ${sS.c['reset'].c}`
+					}
+				}
+			} else {
+				return {
+					minecraft: `tellraw ${message.logTo.user} ["",{"text":"Exit cancelled","color":"green","bold":true}]\n`,
+					discord: {
+						string: `Exit cancelled`,
+						embed: {
+							title: "Success",
+							description: "Exit cancelled",
+							color: parseInt(sS.c['green'].h, 16),
+							timestamp: new Date()
+						}
+					},
+					console: `${sS.c['green'].c}Exit cancelled ${sS.c['reset'].c}`
+				}
 			}
-			let time = parseInt(message.args[1])
-            let time2 = parseInt(message.args[1])
-            let interval = setInterval(() => {
-				modul.call('serverWrapper', 'serverStdin', `title @a actionbar ["",{"text":"Server restart in ${time} seconds, ${reason}","color":"dark_red","bold":true}]:"\n`)
-				--time
-			}, 1000) // run the code in brackets every x ms
-			setTimeout(() => {
-                modul.call('serverWrapper', 'serverStdin', 'say RESTARTING\nstop\n')
-                clearInterval(interval)
-            }, (time2*1000 + 2000)) // wait x ms then run the code in brackets
-			modul.call('serverWrapper', 'serverStdin', `say Restart in ${time} seconds!\nsay Reason: ${reason}\n`); // Send stuff to the server
-        } else {
-            modul.call('serverWrapper', 'serverStdin', 'say RESTARTING\nstop\n')
-        }
+		}
+		if (exitIsActive === false) {
+			if (!message.args[1]) fn.kickAll('Server stopping!')
+			exitIsActive = true
+			if (message.args[1]) {
+				if (isNaN(parseInt(message.args[1])) == false) {
+					let time = parseInt(message.args[1])
+					if (message.args[2]) {
+						let args = message.args
+						let serverGoingTo = args[2]
+						let serverExitReason = args[3]
+						let serverKickReason = args[4]
+						if (!serverExitReason) serverExitReason = 'No reason specified'
+						if (!serverKickReason) serverKickReason = 'Server stopped!'
+						modul.call('serverWrapper', 'serverStdin', `say ${serverGoingTo} in ${time} seconds! Reason: ${serverExitReason}\n`)
+						let interval = setInterval(() => {
+							if (exitIsActive === false) {
+								clearInterval(interval); 
+								clearTimeout(timeout);
+							}
+							modul.call('serverWrapper', 'serverStdin', `title @a actionbar ["",{"text":"${serverGoingTo} in ${time} seconds, reason: ${serverExitReason}","color":"dark_red","bold":true}]:"\n`)
+							.catch(err => modul.lErr(err, "Sending server restart interval message failed"))
+							--time
+						}, 1000) // run the code in brackets every x ms
+						let timeout = setTimeout(async serverKickReason => {
+							await fn.kickAll(serverKickReason)
+							modul.call('serverWrapper', 'serverStdin', 'stop\n').catch(err => modul.lErr(err, "Kicking players and stopping server failed"))
+						}, time*1000, serverKickReason) // refuses to run
+					} else {
+						let serverKickReason = 'Server stopping!';
+						modul.call('serverWrapper', 'serverStdin', `say Server stopping in ${time} seconds!\n`)
+						let interval = setInterval(() => {
+							if (exitIsActive === false) {
+								clearInterval(interval); 
+								clearTimeout(timeout); 
+								modul.call('serverWrapper', 'serverStdin', 'say Server exit was cancelled!\ntitle @a actionbar ["",{"text":"Server exit cancelled!","color":"dark_red","bold":true}]:"\n');
+							}
+							modul.call('serverWrapper', 'serverStdin', `title @a actionbar ["",{"text":"Server stopping in ${time} seconds","color":"dark_red","bold":true}]:"\n`)
+							.catch(err => modul.lErr(err, "Sending server restart interval message failed"))
+							--time
+						}, 1000) // run the code in brackets every x ms
+						let timeout = setTimeout(async serverKickReason => {
+							await fn.kickAll(serverKickReason)
+							modul.call('serverWrapper', 'serverStdin', 'stop\n').catch(err => modul.lErr(err, "Kicking players and stopping server failed"))
+						}, time*1000, serverKickReason) // runs fine
+					}
+				} else {
+					let serverKickReason = message.args[1]
+					await fn.kickAll(serverKickReason)
+					modul.call('serverWrapper', 'serverStdin', 'stop\n').catch(err => modul.lErr(err, "Kicking players and stopping server failed"))
+				}
+			}
+		} else if (message.args[1]) {
+			if (message.args[1].toLowerCase() === 'cancel') {
+				exitIsActive = false; 
+				return {
+					minecraft: `tellraw ${message.logTo.user} ["",{"text":"Exit cancelled","color":"green","bold":true}]\n`,
+					discord: {
+						string: `Exit cancelled`,
+						embed: {
+							title: "Success",
+							description: "Exit cancelled",
+							color: parseInt(sS.c['green'].h, 16),
+							timestamp: new Date()
+						}
+					},
+					console: `${sS.c['green'].c}Exit cancelled ${sS.c['reset'].c}`
+				}
+			}
+		}
+	},
+	test: async message => {
+	},
+	kickAll: async reason => {
+		let pingTable = await modul.call('properties', 'ping')
+		if (pingTable.players.online !== 0) {
+			await Promise.all(pingTable.players.sample.map(player => {
+				return modul.call('serverWrapper', 'serverStdin', `kick ${player.name} ${reason||''}\n`)
+			}))
+		}
 	}
 };
+
 
 // Module command handling
 process.on('message', async message => {

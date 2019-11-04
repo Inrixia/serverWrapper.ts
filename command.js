@@ -212,7 +212,7 @@ fn.processCommand = async function (message) {
 	if (!commandOutput) return;
 	if (!Array.isArray(commandOutput)) commandOutput = [commandOutput]
 	commandOutput.forEach(async result => {
-		if (result.discord) {
+		if (result.discord && result.discord.embed) {
 			let footerText = (((result.discord||{}).embed||{}).footer||{}).text
 			let exeTime = `Executed in ${util.getDuration(exeStart, new Date())}`;
 			if (footerText != undefined) result.discord.embed.footer.text = `${footerText} • ${exeTime}`

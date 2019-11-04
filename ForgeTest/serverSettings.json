@@ -264,6 +264,39 @@
               "text": true
             }
           },
+          "CrashHang": {
+            "match": "A single server tick took %seconds% seconds",
+            "text": "@Mods Server crashed, a single server tick took %seconds% seconds, should be 0.05 seconds",
+            "embed": {
+              "description": "<@&344286675691896832> **Server crashed, a single tick took %seconds% seconds, should be 0.05 seconds**"
+            },
+            "send": {
+              "embed": true,
+              "text": true
+            }
+          },
+          "CrashTicking": {
+            "match": "Encountered an unexpected exception net.minecraft.util.ReportedException: Ticking",
+            "text": "<@&344286675691896832> **Server crashed, reason: Ticking entity",
+            "embed": {
+              "description": "<@&344286675691896832> **Server crashed, reason: Ticking entity**"
+            },
+            "send": {
+              "embed": true,
+              "text": true
+            }
+          },
+          "CrashTickingWorldEntity": {
+            "match": "Encountered an unexpected exception net.minecraft.util.ReportedException: Exception ticking world entities",
+            "text": "<@&344286675691896832> **Server crashed, reason: Ticking world entities",
+            "embed": {
+              "description": "<@&344286675691896832> **Server crashed, reason: Ticking world entities**"
+            },
+            "send": {
+              "embed": true,
+              "text": true
+            }
+          },
           "PlayerMessage": {
             "match": "<%username%> %message%",
             "text": "**<%username%>** %message%",
@@ -970,7 +1003,7 @@
       "mc": ""
     }
   },
-  "server_dir": "/home/hotpink/wrapperModules/ForgeTest",
+  "server_dir": "C:\\Users\\Mikael\\Spookelton wrapper\\ForgeTest",
   "serverName": "ForgeTest",
-  "lastStartTime": 4878
+  "lastStartTime": 12583
 }
