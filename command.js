@@ -169,7 +169,7 @@ fn.processCommand = async function (message) {
 	message.logTo = {
 		console: true,
 		discord: (message.author) ? { channel: message.channel.id } : null,
-		server: message.server,
+		minecraft: message.minecraft,
 		user: message.user
 	};
 	message.args = await getCommandArgs(message.string);

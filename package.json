@@ -2,7 +2,7 @@
   "name": "wrapper_modules",
   "version": "1.0.0",
   "description": "Modules for the serverWrapper.js",
-  "main": "command.js",
+  "main": "ForgeTest/serverWrapper.js",
   "dependencies": {
     "colorthief": "^2.3.0",
     "discord.js": "^11.5.1",

@@ -126,7 +126,6 @@
         ],
         "chatLink": {
           "_INFO": "Formatting for server events/messages are handled in event.js",
-          "enabled": false,
           "channelId": "614637977502744576",
           "discordToMCFormat": [
             {
@@ -165,7 +164,8 @@
           }
         },
         "publicBackupFolders": [
-          "WORLD"
+          "WORLD",
+          "config"
         ],
         "excludes": [
           "*.zip*",
@@ -190,7 +190,7 @@
     "auth": {
       "file": "auth.js",
       "enabled": true,
-      "persistent": true,
+      "persistent": false,
       "color": "white",
       "import": false,
       "description": "Handles all permissions.",
@@ -215,6 +215,24 @@
           "155530711326130176": {
             "Username": "Sir Inrix | <3",
             "allowedCommands": {
+              "~cw_add": {
+                "assignedAt": "2019-03-24T05:58:04.891Z",
+                "assignedBy": {
+                  "Username": "Sir Inrix | <3",
+                  "discord_id": "155530711326130176"
+                },
+                "expiresAt": false,
+                "expired": false
+              },
+              "~cw_remove": {
+                "assignedAt": "2019-03-24T05:58:19.998Z",
+                "assignedBy": {
+                  "Username": "Sir Inrix | <3",
+                  "discord_id": "155530711326130176"
+                },
+                "expiresAt": false,
+                "expired": false
+              },
               "*": {
                 "assignedAt": "2019-03-25T06:49:08.684Z",
                 "assignedBy": {
@@ -222,6 +240,24 @@
                   "discord_id": "155530711326130176"
                 },
                 "expiresAt": false,
+                "expired": false
+              },
+              "!list": {
+                "assignedAt": "2019-07-13T11:32:17.482Z",
+                "assignedBy": {
+                  "Username": "Sir Inrix | <3",
+                  "discord_id": "155530711326130176"
+                },
+                "expiresAt": "2019-07-13T11:33:29.482Z",
+                "expired": false
+              },
+              "!kill": {
+                "assignedAt": "2019-07-13T12:18:44.125Z",
+                "assignedBy": {
+                  "Username": "Sir Inrix | <3",
+                  "discord_id": "155530711326130176"
+                },
+                "expiresAt": "2019-07-13T12:19:56.124Z",
                 "expired": false
               }
             },
@@ -232,7 +268,7 @@
     },
     "event": {
       "file": "event.js",
-      "enabled": false,
+      "enabled": true,
       "persistent": false,
       "color": "brightRed",
       "import": false,
@@ -255,39 +291,6 @@
             "text": "**Server stopping...**",
             "embed": {
               "description": "**Server stopping...**"
-            },
-            "send": {
-              "embed": true,
-              "text": true
-            }
-          },
-          "CrashHang": {
-            "match": "A single server tick took %seconds% seconds",
-            "text": "@Mods Server crashed, a single server tick took %seconds% seconds, should be 0.05 seconds",
-            "embed": {
-              "description": "<@&344286675691896832> **Server crashed, a single tick took %seconds% seconds, should be 0.05 seconds**"
-            },
-            "send": {
-              "embed": true,
-              "text": true
-            }
-          },
-          "CrashTicking": {
-            "match": "Encountered an unexpected exception net.minecraft.util.ReportedException: Ticking",
-            "text": "<@&344286675691896832> **Server crashed, reason: Ticking entity",
-            "embed": {
-              "description": "<@&344286675691896832> **Server crashed, reason: Ticking entity**"
-            },
-            "send": {
-              "embed": true,
-              "text": true
-            }
-          },
-          "CrashTickingWorldEntity": {
-            "match": "Encountered an unexpected exception net.minecraft.util.ReportedException: Exception ticking world entities",
-            "text": "<@&344286675691896832> **Server crashed, reason: Ticking world entities",
-            "embed": {
-              "description": "<@&344286675691896832> **Server crashed, reason: Ticking world entities**"
             },
             "send": {
               "embed": true,
@@ -1000,7 +1003,7 @@
       "mc": ""
     }
   },
-  "server_dir": "C:\\Users\\Mikael\\Spookelton wrapper\\ForgeTest",
-  "serverName": "ForgeTest",
-  "lastStartTime": 12242
+  "server_dir": "z:\\wrapperModules\\ForgeTest",
+  "serverName": "wrapperModules",
+  "lastStartTime": 5665
 }

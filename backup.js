@@ -422,6 +422,10 @@ async function startBackupInterval() {
 		lastBackupDuration: lastBackupDurationString 
 	})
 	backupInterval = setInterval(async () => {
+		if ((await modul.call('properties', 'ping')).players.online == 0) {
+			process.stdout.write(mS.messages.backupSkipped.console+'\n');
+			return;
+		}
 		await runBackup().catch(err => modul.lErr(err, 'Backup failed!'));
 		timeToNextBackup = moment().add(mS.backupIntervalInHours, 'hours');
 	}, mS.backupIntervalInHours*60*60*1000);
@@ -445,11 +449,11 @@ async function backup() {
 	await modul.call('serverWrapper', 'serverStdin', mS.messages.backupStarting.minecraft+'\n')
 	await modul.call('stats', 'pushStats', { status: 'Backing Up', timeToBackup: timeToNextBackup.fromNow() })
 	let backupDir = mS.overrideBackupDir ? mS.overrideBackupDir : `${mS.remote.rootBackupDir}/${sS.serverName}`;
+	await util.pExec(`${sshOpen} "mkdir -p ${backupDir} && mkdir -p ${mS.remote.publicBackupDir} && mkdir -p ${mS.remote.publicBackupDir}/${sS.serverName}/"`, {})
 	//children.spawn('robocopy', [sS.modules['properties'].settings.p['level-name'], `${backupDir}/${moment().format('MMMMDDYYYY_h-mm-ssA')}/Cookies`, (mS.threads > 1) ? `/MT:${mS.threads}` : '', '/E'], {shell: true, detached: true}).on('close', function (code) {
 	await util.pExec(`rsync-snapshot --src ${sS.server_dir} --shell "ssh -p ${mS.remote.port}" --dst ${mS.remote.user}@${mS.remote.ip}:${backupDir} ${excludes} --maxSnapshots ${mS.maxBackups}`, { maxBuffer: 1024*1024*128 })
 	let backupFolders = (await util.pExec(`${sshOpen} "ls /mnt/redlive/LiveArchives/${sS.serverName}"`)).split(/\r?\n/)
 	let latestFolder = backupFolders.slice(-3, -2)[0];
-	await util.pExec(`${sshOpen} "mkdir -p ${backupDir} && mkdir -p ${mS.remote.publicBackupDir} && mkdir -p ${mS.remote.publicBackupDir}/${sS.serverName}/"`, {})
 	let datedRemoteFolder = `${mS.remote.publicBackupDir}/${sS.serverName}/${latestFolder}`
 	let latestRemoteFolder = `${mS.remote.publicBackupDir}/${sS.serverName}/latest`
 	let existingLinkedFolders = (backupFolders.length > 3)?await util.pExec(`${sshOpen} "ls ${latestRemoteFolder}"`):[]
@@ -472,7 +476,7 @@ async function backup() {
 	lastBackupDurationString = `${(t.m>0) ? `${t.m}min, ` : ''}${(t.s>0) ? `${t.s}sec, ` : ''}${(t.ms>0) ? `${t.ms}ms` : ''}`;
 	await modul.call('serverWrapper', 'serverStdin', 'save-on\n');
 	process.stdout.write(mS.messages.backupEnded.console.replace("%duration%", lastBackupDurationString)+'\n');
-	await modul.call('serverWrapper', 'serverStdin', mS.messages.backupEnded.minecraft+'\n')
+	await modul.call('serverWrapper', 'serverStdin', mS.messages.backupEnded.minecraft.replace("%duration%", lastBackupDurationString)+'\n')
 	await modul.call('stats', 'pushStats', {
 		status: 'Running',
 		timeToNextBackup: timeToNextBackup?timeToNextBackup.fromNow():'Backups disabled', 

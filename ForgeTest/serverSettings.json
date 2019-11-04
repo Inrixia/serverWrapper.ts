@@ -125,6 +125,8 @@
           "475502976656736257"
         ],
         "chatLink": {
+          "_INFO": "Formatting for server events/messages are handled in event.js",
+          "enabled": false,
           "channelId": "614637977502744576",
           "discordToMCFormat": [
             {
@@ -155,16 +157,18 @@
         "messages": {
           "backupStarting": {
             "console": "Starting Backup - World Saving Disabled",
-            "minecraft": "title @a actionbar ['',{'text':'~','color':'light_purple'},{'text':' Starting Backup','color':'white'},{'text':' ~','color':'light_purple'}]"
+            "minecraft": "title @a actionbar [\"\",{\"text\":\"~\",\"color\":\"light_purple\"},{\"text\":\" Starting Backup\",\"color\":\"white\"},{\"text\":\" ~\",\"color\":\"light_purple\"}]"
           },
           "backupEnded": {
             "console": "Backup Completed in %duration% - World Saving Enabled",
-            "minecraft": "title @a actionbar ['',{'text':'~','color':'light_purple'},{'text':' Finished Backup','color':'white'},{'text':' -','color':'light_purple'},{'text':' Took','color':'white'},{'text':' %duration%','color':'green'},{'text':' ~','color':'light_purple'}]"
+            "minecraft": "title @a actionbar [\"\",{\"text\":\"~\",\"color\":\"light_purple\"},{\"text\":\" Finished Backup\",\"color\":\"white\"},{\"text\":\" -\",\"color\":\"light_purple\"},{\"text\":\" Took\",\"color\":\"white\"},{\"text\":\" %duration%\",\"color\":\"green\"},{\"text\":\" ~\",\"color\":\"light_purple\"}]"
+          },
+          "backupSkipped": {
+            "console": "Skipping Backup - Server is Quiet..."
           }
         },
         "publicBackupFolders": [
-          "WORLD",
-          "config"
+          "WORLD"
         ],
         "excludes": [
           "*.zip*",
@@ -189,7 +193,7 @@
     "auth": {
       "file": "auth.js",
       "enabled": true,
-      "persistent": false,
+      "persistent": true,
       "color": "white",
       "import": false,
       "description": "Handles all permissions.",
@@ -214,24 +218,6 @@
           "155530711326130176": {
             "Username": "Sir Inrix | <3",
             "allowedCommands": {
-              "~cw_add": {
-                "assignedAt": "2019-03-24T05:58:04.891Z",
-                "assignedBy": {
-                  "Username": "Sir Inrix | <3",
-                  "discord_id": "155530711326130176"
-                },
-                "expiresAt": false,
-                "expired": false
-              },
-              "~cw_remove": {
-                "assignedAt": "2019-03-24T05:58:19.998Z",
-                "assignedBy": {
-                  "Username": "Sir Inrix | <3",
-                  "discord_id": "155530711326130176"
-                },
-                "expiresAt": false,
-                "expired": false
-              },
               "*": {
                 "assignedAt": "2019-03-25T06:49:08.684Z",
                 "assignedBy": {
@@ -239,24 +225,6 @@
                   "discord_id": "155530711326130176"
                 },
                 "expiresAt": false,
-                "expired": false
-              },
-              "!list": {
-                "assignedAt": "2019-07-13T11:32:17.482Z",
-                "assignedBy": {
-                  "Username": "Sir Inrix | <3",
-                  "discord_id": "155530711326130176"
-                },
-                "expiresAt": "2019-07-13T11:33:29.482Z",
-                "expired": false
-              },
-              "!kill": {
-                "assignedAt": "2019-07-13T12:18:44.125Z",
-                "assignedBy": {
-                  "Username": "Sir Inrix | <3",
-                  "discord_id": "155530711326130176"
-                },
-                "expiresAt": "2019-07-13T12:19:56.124Z",
                 "expired": false
               }
             },
@@ -267,7 +235,7 @@
     },
     "event": {
       "file": "event.js",
-      "enabled": true,
+      "enabled": false,
       "persistent": false,
       "color": "brightRed",
       "import": false,
@@ -350,7 +318,7 @@
             "embed": {
               "description": "**%username%** joined the game!",
               "author": {
-                "name": "%username%",
+                "name": "",
                 "icon_url": "%username% image"
               }
             },
@@ -365,7 +333,7 @@
             "embed": {
               "description": "**%username%** left the game!",
               "author": {
-                "name": "%username%",
+                "name": "",
                 "icon_url": "%username% image"
               }
             },
