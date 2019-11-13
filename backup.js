@@ -442,7 +442,7 @@ async function runBackup() {
 async function backup() {
 	let sshOpen = `ssh ${mS.remote.user}@${mS.remote.ip} -p ${mS.remote.port}`
 	let excludes = ``;
-	if (mS.excludes.length > 0) mS.excludes.forEach(exclude => excludes += `--exclude ${exclude} `)
+	if (mS.excludes.length > 0) mS.excludes.forEach(exclude => excludes += `--exclude "${exclude}" `)
 	lastBackupStartTime = moment();
 	await modul.call('serverWrapper', 'serverStdin', 'save-off\n');
 	process.stdout.write(mS.messages.backupStarting.console+'\n');
