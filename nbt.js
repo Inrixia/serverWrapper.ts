@@ -12,6 +12,9 @@ const modul = new [require('./modul.js')][0](thisModule);
 let sS = {} // serverSettings
 let mS = {} // moduleSettings
 
+//Add variable for ~tpo dimension ID
+let dimID
+
 let fn = {
 	init: async message => {
 		[sS, mS] = modul.loadSettings(message),
@@ -20,11 +23,12 @@ let fn = {
 				username: message.args[1],
 				x: message.args[2],
 				y: message.args[3],
-				z: message.args[4]
+				z: message.args[4],
+				dimID: message.args[5]
 			})
 			return {
 				// Set inrix's position to 100 50 100
-				console: `${sS.c['white'].c}Set ${sS.c['brightBlue'].c}${vars.username}${sS.c['white'].c}'s postion to ${sS.c['orange'].c}${vars.x} ${sS.c['red'].c}${vars.y} ${sS.c['brightBlue'].c}${vars.z} ${sS.c['reset'].c}`,
+				console: `${sS.c['white'].c}Set ${sS.c['brightBlue'].c}${vars.username}${sS.c['white'].c}'s postion to ${sS.c['orange'].c}${vars.x} ${sS.c['red'].c}${vars.y} ${sS.c['brightBlue'].c}${vars.z} ${sS.c['white'].c}in dimension with id${sS.c['green'].c} ${dimID} ${sS.c['reset'].c}`,
 				minecraft: `tellraw ${message.logTo.user} ${JSON.stringify(
 					[{
 						"text": `Set `,
@@ -44,13 +48,19 @@ let fn = {
 					}, {
 						"text": `${vars.z}`,
 						"color": "brightBlue"
+					}, {
+						"text": ` in dimension with id `,
+						"color": "white"
+					}, {
+						"text": `${dimID}`,
+						"color": "Green"
 					}]
 				)}\n`,
 				discord : {
 					string: null,
 					embed: {
 						color: parseInt(sS.c[sS.modules['nbt'].discordColor||sS.modules['nbt'].color].h, 16),
-						title: `Set ${vars.username}'s postion to ${vars.x} ${vars.y} ${vars.z}`,
+						title: `Set ${vars.username}'s postion to ${vars.x} ${vars.y} ${vars.z} in dimension with id ${dimID}`,
 						description: null,
 						timestamp: new Date()
 					}
@@ -87,9 +97,9 @@ let fn = {
 				exeFunc: 'tpo',
 				module: thisModule,
 				description: {
-					console: `${sS.c['brightWhite'].c}Set the coordinates of a given player in their playerdata to the coordinates specified. ${sS.c['reset'].c}\nExample: ${sS.c['yellow'].c}~tpo ${sS.c['brightBlue'].c}Username ${sS.c['orange'].c}0 ${sS.c['white'].c}100 ${sS.c['brightBlue'].c}0${sS.c['reset'].c}`,
+					console: `${sS.c['brightWhite'].c}Set the coordinates(and optionally dimension id) of a given player in their playerdata to the coordinates specified. ${sS.c['reset'].c}\nExample: ${sS.c['yellow'].c}~tpo ${sS.c['brightBlue'].c}Username ${sS.c['orange'].c}0 ${sS.c['white'].c}100 ${sS.c['brightBlue'].c}0 ${sS.c['green'].c}0${sS.c['reset'].c}`,
 					minecraft: [{
-						"text": `Teleports player to given chunk coords.\n`,
+						"text": `Teleports player to given chunk coords and optionally dimension.\n`,
 						"color": sS.c['brightWhite'].m
 					}, {
 						"text": 'Example: ',
@@ -131,10 +141,10 @@ let fn = {
 							timestamp: new Date(),
 							fields: [{
 								name: "Description",
-								value: "Takes Username, x, y and z coords given, and sets the player's playerdata coords to them."
+								value: "Takes Username, x, y and z coords given(optionally dimension id), and sets the player's playerdata coords to them."
 							}, {
 								name: "Example",
-								value: "**~tpo** Username 10 0 10 set player's coords to 10 0 10"
+								value: "**~tpo** Username 10 0 10 0 set player's coords to 10 0 10 and dimension to 0"
 							}]
 						}
 					}
@@ -204,9 +214,12 @@ function tpo(args) {
 					if (err) reject(err);
 					let playerData = NbtReader.readTag(buffer);
 					let playerPosIndex = playerData.val.indexOf(await modul.getObj(playerData.val, 'name', 'Pos'));
+					let playerDimIDIndex = playerData.val.indexOf(await modul.getObj(playerData.val, 'name', 'Dimension'))
 					playerData.val[playerPosIndex].val.list[0].val = args.x;
 					playerData.val[playerPosIndex].val.list[1].val = args.y;
 					playerData.val[playerPosIndex].val.list[2].val = args.z;
+					if (args.dimID) {dimID = args.dimID} else {dimID = playerData.val[playerDimIDIndex].val};
+					if (dimID) playerData.val[playerDimIDIndex].val = dimID;
 					zlib.gzip(NbtWriter.writeTag(playerData), (err, playerDataBuffer) => {
 						fs.writeFile(serverWorldFolder+`/playerdata/${playerObj._dirtyUUID}.dat`, playerDataBuffer, (err, data) => {
 							if (err) reject(err);
