@@ -91,6 +91,10 @@ let fn = {
 				}
 			}
 		}
+		fn.tpSpawn = async message => {
+			let vars = await tpSpawn({player: message.args[1]})
+			console.log(vars)
+		}
 		modul.event.on('fetchCommands', () => {
 			modul.emit('exportCommands', [{
 				name: 'tpo',
@@ -182,6 +186,11 @@ let fn = {
 						}
 					}
 				}
+			}, {
+				name: 'tpSpawn',
+				exeFunc: 'tpSpawn',
+				module: thisModule,
+				description: {}
 			}])
 		})
 	},
@@ -250,5 +259,17 @@ async function getSpawn() {
 				});
 			});
 		})()
+	})
+}
+
+function tpSpawn(args) {
+	return new Promise((resolve, reject) => {
+		(async () => {
+			let worldSpawn = await getSpawn()
+			//tpo([player, worldSpawn.x, worldSpawn.y, worldSpawn.y, 0])
+			console.log(worldSpawn)
+			console.log(args.player)
+			resolve(args)
+		})
 	})
 }
