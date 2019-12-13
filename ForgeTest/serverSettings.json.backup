@@ -157,11 +157,14 @@
         "messages": {
           "backupStarting": {
             "console": "Starting Backup - World Saving Disabled",
-            "minecraft": "title @a actionbar ['',{'text':'~','color':'light_purple'},{'text':' Starting Backup','color':'white'},{'text':' ~','color':'light_purple'}]"
+            "minecraft": "title @a actionbar [\"\",{\"text\":\"~\",\"color\":\"light_purple\"},{\"text\":\" Starting Backup\",\"color\":\"white\"},{\"text\":\" ~\",\"color\":\"light_purple\"}]"
           },
           "backupEnded": {
             "console": "Backup Completed in %duration% - World Saving Enabled",
-            "minecraft": "title @a actionbar ['',{'text':'~','color':'light_purple'},{'text':' Finished Backup','color':'white'},{'text':' -','color':'light_purple'},{'text':' Took','color':'white'},{'text':' %duration%','color':'green'},{'text':' ~','color':'light_purple'}]"
+            "minecraft": "title @a actionbar [\"\",{\"text\":\"~\",\"color\":\"light_purple\"},{\"text\":\" Finished Backup\",\"color\":\"white\"},{\"text\":\" -\",\"color\":\"light_purple\"},{\"text\":\" Took\",\"color\":\"white\"},{\"text\":\" %duration%\",\"color\":\"green\"},{\"text\":\" ~\",\"color\":\"light_purple\"}]"
+          },
+          "backupSkipped": {
+            "console": "Skipping Backup - Server is Quiet..."
           }
         },
         "publicBackupFolders": [
@@ -1002,5 +1005,5 @@
   },
   "server_dir": "C:\\Users\\Mikael\\Spookelton wrapper\\ForgeTest",
   "serverName": "ForgeTest",
-  "lastStartTime": 12242
+  "lastStartTime": 14490
 }
