@@ -93,7 +93,47 @@ let fn = {
 		}
 		fn.tpSpawn = async message => {
 			let vars = await tpSpawn({player: message.args[1]})
-			console.log(vars)
+			if (vars != 'ERROR') {
+			return {
+				// Set inrix's position to 100 50 100
+				console: `${sS.c['white'].c}Set ${sS.c['brightBlue'].c}${vars.username}${sS.c['white'].c}'s postion to ${sS.c['orange'].c}${vars.x} ${sS.c['red'].c}${vars.y} ${sS.c['brightBlue'].c}${vars.z} ${sS.c['white'].c}in dimension with id${sS.c['green'].c} ${dimID} ${sS.c['reset'].c}`,
+				minecraft: `tellraw ${message.logTo.user} ${JSON.stringify(
+					[{
+						"text": `Set `,
+						"color": "white"
+					}, {
+						"text": `${vars.username}`,
+						"color": "brightBlue"
+					}, {
+						"text": `'s postion to `,
+						"color": "white"
+					}, {
+						"text": `${vars.x} `,
+						"color": "orange"
+					}, {
+						"text": `${vars.y} `,
+						"color": "red"
+					}, {
+						"text": `${vars.z}`,
+						"color": "brightBlue"
+					}, {
+						"text": ` in dimension with id `,
+						"color": "white"
+					}, {
+						"text": `${dimID}`,
+						"color": "Green"
+					}]
+				)}\n`,
+				discord : {
+					string: null,
+					embed: {
+						color: parseInt(sS.c[sS.modules['nbt'].discordColor||sS.modules['nbt'].color].h, 16),
+						title: `Set ${vars.username}'s postion to ${vars.x} ${vars.y} ${vars.z} in dimension with id ${dimID}`,
+						description: null,
+						timestamp: new Date()
+					}
+				}
+			}}
 		}
 		modul.event.on('fetchCommands', () => {
 			modul.emit('exportCommands', [{
@@ -211,34 +251,40 @@ process.on('message', message => {
 	}
 });
 
-function tpo(args) {
-	return new Promise((resolve, reject) => {
-		(async () => {
-			let playerObj = await modul.call('mineapi', 'getPlayer', args.username).catch(err => reject(err));
-			let levelName = await modul.call('properties', 'getProperty', 'level-name').catch(err => reject(err))
-			let serverWorldFolder = levelName?levelName:'Cookies';
-			fs.readFile(`${serverWorldFolder}/playerdata/${playerObj._dirtyUUID}.dat`, (err, data) => {
-				if (err) reject(err);
-				else zlib.gunzip(data, async (err, buffer) => {
-					if (err) reject(err);
-					let playerData = NbtReader.readTag(buffer);
-					let playerPosIndex = playerData.val.indexOf(await modul.getObj(playerData.val, 'name', 'Pos'));
-					let playerDimIDIndex = playerData.val.indexOf(await modul.getObj(playerData.val, 'name', 'Dimension'))
-					playerData.val[playerPosIndex].val.list[0].val = args.x;
-					playerData.val[playerPosIndex].val.list[1].val = args.y;
-					playerData.val[playerPosIndex].val.list[2].val = args.z;
-					if (args.dimID) {dimID = args.dimID} else {dimID = playerData.val[playerDimIDIndex].val};
-					if (dimID) playerData.val[playerDimIDIndex].val = dimID;
-					zlib.gzip(NbtWriter.writeTag(playerData), (err, playerDataBuffer) => {
-						fs.writeFile(serverWorldFolder+`/playerdata/${playerObj._dirtyUUID}.dat`, playerDataBuffer, (err, data) => {
-							if (err) reject(err);
-							resolve(args);
-						})
-					})
-				});
-			});
-		})()
-	})
+async function tpo(args) {
+    if (!args.username) throw new Error("Username not given.")
+    if (!args.x) throw new Error("X position not given.")
+    if (!args.y) throw new Error("Y position not given.")
+	if (!args.z) throw new Error("Z position not given.")
+	console.log(dimID)
+    let playerObj = await modul.call('mineapi', 'getPlayer', args.username).catch(err => reject(err));
+    let levelName = await modul.call('properties', 'getProperty', 'level-name').catch(err => reject(err))
+    let serverWorldFolder = levelName?levelName:'Cookies';
+    const data = await new Promise((resolve, reject) => fs.readFile(`${serverWorldFolder}/playerdata/${playerObj._dirtyUUID}.dat`, (err, data) => {
+        if (err) reject(err);
+        else resolve(data)
+    }))
+    const buffer = await new Promise((resolve, reject) => zlib.gunzip(data, (err, buffer) => {
+        if (err) reject(err);
+        else resolve(buffer)
+    }))
+    let playerData = NbtReader.readTag(buffer);
+    let playerPosIndex = playerData.val.indexOf(await modul.getObj(playerData.val, 'name', 'Pos'));
+    let playerDimIDIndex = playerData.val.indexOf(await modul.getObj(playerData.val, 'name', 'Dimension'))
+    playerData.val[playerPosIndex].val.list[0].val = args.x;
+    playerData.val[playerPosIndex].val.list[1].val = args.y;
+    playerData.val[playerPosIndex].val.list[2].val = args.z;
+    if (args.dimID) {dimID = args.dimID} else {dimID = playerData.val[playerDimIDIndex].val};
+    if (dimID) playerData.val[playerDimIDIndex].val = dimID;
+    const playerDataBuffer = await new Promise((resolve, reject) => zlib.gzip(NbtWriter.writeTag(playerData), (err, playerDataBuffer) => {
+        if (err) reject(err)
+        else resolve(playerDataBuffer)
+    }))
+    await new Promise((resolve, reject) => fs.writeFile(serverWorldFolder+`/playerdata/${playerObj._dirtyUUID}.dat`, playerDataBuffer, (err, data) => {
+        if (err) reject(err);
+        resolve(data);
+    }))
+    return args
 }
 
 async function getSpawn() {
@@ -262,14 +308,22 @@ async function getSpawn() {
 	})
 }
 
-function tpSpawn(args) {
-	return new Promise((resolve, reject) => {
-		(async () => {
-			let worldSpawn = await getSpawn()
-			//tpo([player, worldSpawn.x, worldSpawn.y, worldSpawn.y, 0])
-			console.log(worldSpawn)
-			console.log(args.player)
-			resolve(args)
+async function tpSpawn(args) {
+	console.log('yay it fired')
+	let worldSpawn = await getSpawn()
+	console.log('yeet in promise now')
+	if (args.player) {
+		var vars = await tpo({
+			username: args.player,
+			x: worldSpawn.x,
+			y: worldSpawn.y,
+			z: worldSpawn.z,
+			dimID: '0',
 		})
-	})
+	}
+	else {
+		let error = new Error('Please provide a player name')
+		throw error
+	}
+	return(vars)
 }
