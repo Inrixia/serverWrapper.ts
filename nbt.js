@@ -135,6 +135,129 @@ let fn = {
 				}
 			}}
 		}
+		fn.getPos = async message => {
+			let vars = await getPos({username: message.args[1]})
+			return {
+				// Set inrix's position to 100 50 100
+				console: `${sS.c['white'].c}Player: ${sS.c['brightBlue'].c}${vars.username}${sS.c['white'].c} X: ${sS.c['orange'].c}${vars.x} ${sS.c['white'].c}Y:${sS.c['red'].c} ${vars.y} ${sS.c['white'].c}Z:${sS.c['brightBlue'].c} ${vars.z} ${sS.c['white'].c}Dimension ID:${sS.c['green'].c} ${vars.dimID} ${sS.c['reset'].c}`,
+				minecraft: `tellraw ${message.logTo.user} ${JSON.stringify(
+					[{
+						"text": `Player: `,
+						"color": "white"
+					}, {
+						"text": `${vars.username}`,
+						"color": "brightBlue"
+					}, {
+						"text": ` X: `,
+						"color": "white"
+					}, {
+						"text": `${vars.x} `,
+						"color": "orange"
+					}, {
+						"text": ` Y: `,
+						"color": "white"
+					}, {
+						"text": `${vars.y} `,
+						"color": "red"
+					}, {
+						"text": ` Z: `,
+						"color": "white"
+					}, {
+						"text": `${vars.z}`,
+						"color": "brightBlue"
+					}, {
+						"text": ` Dimension ID: `,
+						"color": "white"
+					}, {
+						"text": `${vars.dimID}`,
+						"color": "green"
+					}]
+				)}\n`,
+				discord : {
+					string: null,
+					embed: {
+						color: parseInt(sS.c[sS.modules['nbt'].discordColor||sS.modules['nbt'].color].h, 16),
+						title: `Player: **${vars.username}** \nX: **${vars.x}** \nY: **${vars.y}** \nZ: **${vars.z}** \nDimension ID: **${vars.dimID}**`,
+						description: null,
+						timestamp: new Date()
+					}
+				}
+			}
+		}
+		fn.whereIs = async message => {
+		let vars = await getPos({username: message.args[1]})
+		if (vars.dimID == '0') {vars.dimID = 'Overworld'}
+		else if (vars.dimID == '1') {vars.dimID = 'The End'}
+		else if (vars.dimID == '-1') {vars.dimId = 'Nether'}
+
+		if (vars.flying == '1') {vars.flying = 'yes'}
+		else {vars.flying = 'no'}
+
+		if (vars.onGround == '1') {vars.onGround = 'yes'}
+		else {vars.onGround = 'no'}
+
+		return {
+			// Set inrix's position to 100 50 100
+			console: `${sS.c['white'].c}Player ${sS.c['brightBlue'].c}${vars.username}${sS.c['white'].c} is at ${sS.c['orange'].c}${vars.x}${sS.c['white'].c}${sS.c['red'].c} ${vars.y}${sS.c['white'].c}${sS.c['brightBlue'].c} ${vars.z} ${sS.c['white'].c}in dimension${sS.c['green'].c} ${vars.dimID} ${sS.c['white'].c} \nHealth: ${vars.health} \nFlying: ${vars.flying} \nOn ground: ${vars.onGround} ${sS.c['reset'].c}`,
+			minecraft: `tellraw ${message.logTo.user} ${JSON.stringify(
+				[{
+					"text": `Player `,
+					"color": "white"
+				}, {
+					"text": `${vars.username}`,
+					"color": "brightBlue"
+				}, {
+					"text": ` is at `,
+					"color": "white"
+				}, {
+					"text": `${vars.x} `,
+					"color": "orange"
+				}, {
+					"text": `${vars.y} `,
+					"color": "red"
+				}, {
+					"text": `${vars.z}`,
+					"color": "brightBlue"
+				}, {
+					"text": ` in dimension `,
+					"color": "white"
+				}, {
+					"text": `${vars.dimID}.`,
+					"color": "green"
+				}, {
+					"text": `Health: `,
+					"color": "white"
+				}, {
+					"text": `${vars.health}`,
+					"color": "yellow"
+				}, {
+					"text": `. Flying: `,
+					"color": "white"
+				}, {
+					"text": ` ${vars.flying}`,
+					"color": "green"
+				},{
+					"text": `. On ground: `,
+					"color": "white"
+				}, {
+					"text": `${vars.onGround}`,
+					"color": "blue"
+				}, {
+					"text": `.`,
+					"color": "white"
+				}]
+			)}\n`,
+			discord : {
+				string: null,
+				embed: {
+					color: parseInt(sS.c[sS.modules['nbt'].discordColor||sS.modules['nbt'].color].h, 16),
+					title: `Player ${vars.username} is at ${vars.x} ${vars.y} ${vars.z} in dimension ${vars.dimID}`,
+					description: `Is on ground: ${vars.onGround} \nHealth: ${vars.health} \nFlying: ${vars.flying}`,
+					timestamp: new Date()
+				}
+			}
+		}
+		}
 		modul.event.on('fetchCommands', () => {
 			modul.emit('exportCommands', [{
 				name: 'tpo',
@@ -231,6 +354,16 @@ let fn = {
 				exeFunc: 'tpSpawn',
 				module: thisModule,
 				description: {}
+			}, {
+				name: 'getPos',
+				exeFunc: 'getPos',
+				module: thisModule,
+				description: {}
+			}, {
+				name: 'whereIs',
+				exeFunc: 'whereIs',
+				module: thisModule,
+				description: {}
 			}])
 		})
 	},
@@ -256,7 +389,6 @@ async function tpo(args) {
     if (!args.x) throw new Error("X position not given.")
     if (!args.y) throw new Error("Y position not given.")
 	if (!args.z) throw new Error("Z position not given.")
-	console.log(dimID)
     let playerObj = await modul.call('mineapi', 'getPlayer', args.username).catch(err => reject(err));
     let levelName = await modul.call('properties', 'getProperty', 'level-name').catch(err => reject(err))
     let serverWorldFolder = levelName?levelName:'Cookies';
@@ -309,9 +441,7 @@ async function getSpawn() {
 }
 
 async function tpSpawn(args) {
-	console.log('yay it fired')
 	let worldSpawn = await getSpawn()
-	console.log('yeet in promise now')
 	if (args.player) {
 		var vars = await tpo({
 			username: args.player,
@@ -326,4 +456,38 @@ async function tpSpawn(args) {
 		throw error
 	}
 	return(vars)
+}
+
+async function getPos(args) {
+	if (!args.username) throw new Error('Please give a username')
+	let playerObj = await modul.call('mineapi', 'getPlayer', args.username).catch(err => reject(err));
+    let levelName = await modul.call('properties', 'getProperty', 'level-name').catch(err => reject(err))
+    let serverWorldFolder = levelName?levelName:'Cookies';
+    const data = await new Promise((resolve, reject) => fs.readFile(`${serverWorldFolder}/playerdata/${playerObj._dirtyUUID}.dat`, (err, data) => {
+        if (err) reject(err);
+        else resolve(data)
+    }))
+    const buffer = await new Promise((resolve, reject) => zlib.gunzip(data, (err, buffer) => {
+        if (err) reject(err);
+        else resolve(buffer)
+    }))
+    let playerData = NbtReader.readTag(buffer);
+    let playerPosIndex = playerData.val.indexOf(await modul.getObj(playerData.val, 'name', 'Pos'));
+	let playerDimIDIndex = playerData.val.indexOf(await modul.getObj(playerData.val, 'name', 'Dimension'))
+	let playerOnGroundIndex = playerData.val.indexOf(await modul.getObj(playerData.val, 'name', 'OnGround'))
+	let playerHealthIndex = playerData.val.indexOf(await modul.getObj(playerData.val, 'name', 'Health'))
+	let playerAbilityIndex = playerData.val.indexOf(await modul.getObj(playerData.val, 'name', 'abilities'))
+	let playerAbilities = await modul.getObj(NbtReader.readTag(buffer).val, 'name', 'abilities')
+	args.x = playerData.val[playerPosIndex].val.list[0].val
+	args.y = playerData.val[playerPosIndex].val.list[1].val
+	args.z = playerData.val[playerPosIndex].val.list[2].val
+	args.dimID = playerData.val[playerDimIDIndex].val
+	args.onGround = playerData.val[playerOnGroundIndex].val
+	args.health = playerData.val[playerHealthIndex].val
+	args.flying = (await modul.getObj(playerAbilities.val, 'name', 'flying')).val
+	
+	for (value in args) {
+		console.log(`${value}: ${args[value]}`)
+	}
+	return args
 }
