@@ -185,7 +185,7 @@ let fn = {
 		}
 		fn.whereIs = async message => {
 		let vars = await getPos({username: message.args[1]})
-		
+
 		if (vars.dimID == '0') {vars.dimID = 'Overworld'}
 		else if (vars.dimID == '1') {vars.dimID = 'The End'}
 		else if (vars.dimID == '-1') {vars.dimId = 'Nether'}
@@ -484,9 +484,5 @@ async function getPos(args) {
 	args.onGround = playerData.val[playerOnGroundIndex].val
 	args.health = playerData.val[playerHealthIndex].val
 	args.flying = (await modul.getObj(playerAbilities.val, 'name', 'flying')).val
-	
-	for (value in args) {
-		console.log(`${value}: ${args[value]}`)
-	}
 	return args
 }
