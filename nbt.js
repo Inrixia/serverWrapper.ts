@@ -138,7 +138,6 @@ let fn = {
 		fn.getPos = async message => {
 			let vars = await getPos({username: message.args[1]})
 			return {
-				// Set inrix's position to 100 50 100
 				console: `${sS.c['white'].c}Player: ${sS.c['brightBlue'].c}${vars.username}${sS.c['white'].c} X: ${sS.c['orange'].c}${vars.x} ${sS.c['white'].c}Y:${sS.c['red'].c} ${vars.y} ${sS.c['white'].c}Z:${sS.c['brightBlue'].c} ${vars.z} ${sS.c['white'].c}Dimension ID:${sS.c['green'].c} ${vars.dimID} ${sS.c['reset'].c}`,
 				minecraft: `tellraw ${message.logTo.user} ${JSON.stringify(
 					[{
@@ -186,6 +185,7 @@ let fn = {
 		}
 		fn.whereIs = async message => {
 		let vars = await getPos({username: message.args[1]})
+		
 		if (vars.dimID == '0') {vars.dimID = 'Overworld'}
 		else if (vars.dimID == '1') {vars.dimID = 'The End'}
 		else if (vars.dimID == '-1') {vars.dimId = 'Nether'}
@@ -197,7 +197,6 @@ let fn = {
 		else {vars.onGround = 'no'}
 
 		return {
-			// Set inrix's position to 100 50 100
 			console: `${sS.c['white'].c}Player ${sS.c['brightBlue'].c}${vars.username}${sS.c['white'].c} is at ${sS.c['orange'].c}${vars.x}${sS.c['white'].c}${sS.c['red'].c} ${vars.y}${sS.c['white'].c}${sS.c['brightBlue'].c} ${vars.z} ${sS.c['white'].c}in dimension${sS.c['green'].c} ${vars.dimID} ${sS.c['white'].c} \nHealth: ${vars.health} \nFlying: ${vars.flying} \nOn ground: ${vars.onGround} ${sS.c['reset'].c}`,
 			minecraft: `tellraw ${message.logTo.user} ${JSON.stringify(
 				[{
