@@ -15,6 +15,26 @@ const fn = {
 		modul.event.on('exportCommands', commands => fn.importCommands(commands))
 		modul.event.on('fetchCommands', () => {
 			modul.emit('exportCommands', [{
+				name: 'debug',
+				exeFunc: 'debug',
+				module: thisModule,
+				description: {
+					console: `command used for debugging`,
+					minecraft: [{
+						"text": `command used for debugging`,
+						"color": sS.c['brightWhite'].m
+					}],
+					discord: {
+						string: null,
+						embed: {
+							title: "command used for debugging",
+							description: "~debug",
+							color: parseInt(sS.c['white'].h, 16),
+							timestamp: new Date()
+						}
+					}
+				}
+			}, {
 				name: 'help',
 				exeFunc: 'help',
 				module: thisModule,
@@ -93,13 +113,20 @@ const fn = {
 		})
 		modul.emit('fetchCommands')
 	},
+	debug: async message => {
+		delete message.member
+		return {
+			console: JSON.stringify(message, null, 2),
+			minecraft: [{ "text": JSON.stringify(message, null, 2), "color": sS.c['brightWhite'].m }],
+			discord: `\`\`\`json\n${JSON.stringify(message, null, 2)}\n\`\`\``
+		}
+	},
 	help: async message => { // Outputs list of enabled commands
 		if (message.args[1]) return commands[message.args[1].toLowerCase()].help(message);
 		let	helpSummary = {
 			console: ``,
 			minecraft: [],
 			discord: {
-				string: null,
 				embed: {
 					title: "serverWrapper.js Command Info",
 					description: "Currently enabled commands.",
@@ -162,7 +189,7 @@ process.on('message', async message => {
 	}
 });
 
-fn.processCommand = async function (message) {
+fn.processCommand = async message => {
 	message.string = message.string.replace(/\s\s+/g, ' '); // Compact multiple spaces/tabs down to one
 	message.string = message.string.replace('\r', '')
 	if (message.string[0] != '~' && message.string[0] != '?') return;
@@ -172,7 +199,7 @@ fn.processCommand = async function (message) {
 		minecraft: message.minecraft,
 		user: message.user
 	};
-	message.args = await getCommandArgs(message.string);
+	message.args = message.string.split('"').map(a => a.split(' ')).flatMap(a => a.indexOf('')!=-1?a.filter(v => v!=''):a.join(' '));
 	let commandName = null;
 	let inputCommand = message.string.slice(1, message.string.length)
 	Object.keys(commands).forEach(cmd => {
@@ -195,7 +222,6 @@ fn.processCommand = async function (message) {
 			}]
 		)}\n`,
 		discord : {
-			string: null,
 			embed: {
 				color: parseInt(sS.c['red'].h, 16),
 				title: `The command "${message.string}" could not be matched to a known command...`,
@@ -205,8 +231,7 @@ fn.processCommand = async function (message) {
 		}
 	}, message.logTo);
 	let exeStart = new Date();
-	let commandOutput = await commands[commandName.toLowerCase()].execute(message)
-	.catch(err => {
+	let commandOutput = await commands[commandName.toLowerCase()].execute(message).catch(err => {
 		modul.lErr(err, `Error while executing command "${message.string}"`, message.logTo)
 	});
 	if (!commandOutput) return;
@@ -223,12 +248,8 @@ fn.processCommand = async function (message) {
 				embed.footer.text = exeTime
 			}
 		}
-		await modul.logg(result, message.logTo)
+		await modul.logg(result, message.logTo).catch(err => modul.lErr(err, 'Command executed. Error while processing output.', message.logTo))
 	})
-}
-
-async function getCommandArgs(string) {
-	return string.split(" ")||string;
 }
 
 function commandMatch(string, commandString) {

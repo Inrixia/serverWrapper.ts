@@ -89,7 +89,7 @@ discord.on('message', async message => {
 		.replace("%message%", message.toString().trim())
 		return await modul.call('serverWrapper', 'serverStdin', `/tellraw @a ${msg}\n`);
 	}
-	if (!(mS.managementChannels.indexOf(message.channel.id) > -1)) return;
+	if (mS.managementChannels.indexOf(message.channel.id) == -1 && !message.isMemberMentioned(discord.user)) return;
 	let discordMessage = {
 		channel : {
 			id: ((message.channel||{}).id||null),

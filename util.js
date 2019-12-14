@@ -284,8 +284,6 @@ let fn = {
 			}
 		}
 	},
-	test: async message => {
-	},
 	kickAll: async reason => {
 		let pingTable = await modul.call('properties', 'ping')
 		if (pingTable.players.online !== 0) {
