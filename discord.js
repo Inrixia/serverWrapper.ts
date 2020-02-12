@@ -45,6 +45,9 @@ let fn = {
 			managementChannels.push(managementChannel);
 			setTimeout(() => managementChannels.pop(managementChannel), 500)
 		}
+	},
+	awaitResponse: async args => {
+		console.log(args)
 	}
 }
 
@@ -193,3 +196,4 @@ async function serverStdout(string) {
 		}
 	}, mS.messageFlushRate)
 }
+
