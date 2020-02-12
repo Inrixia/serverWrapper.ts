@@ -199,7 +199,7 @@ fn.processCommand = async message => {
 		minecraft: message.minecraft,
 		user: message.user
 	};
-	if (message.string.match(/"+/g)) { //Check if message has at least one double-quote
+	/*if (message.string.match(/"+/g)) { //Check if message has at least one double-quote
 		console.log('has quote woo')
 		if (/^[^"]*("[^"]*"[^"]*)*$/g.test(message.string)) { //Black magic regex fuckery, ty StackOverflow
 			console.log('has even number of them quotes woo')
@@ -209,7 +209,8 @@ fn.processCommand = async message => {
 		}
 	} else {
 		message.args = message.string.split(" ")
-	}
+	}*/
+	message.args = message.string.split('"').map(a => a.split(' ')).flatMap(a => a.indexOf('')!=-1?a.filter(v => v!=''):a);
 	let commandName = null;
 	let inputCommand = message.string.slice(1, message.string.length)
 	Object.keys(commands).forEach(cmd => {
