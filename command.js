@@ -197,7 +197,8 @@ fn.processCommand = async message => {
 		console: true,
 		discord: (message.author) ? { channel: message.channel.id } : null,
 		minecraft: message.minecraft,
-		user: message.user
+		user: message.user,
+		author: message.author
 	};
 	/*if (message.string.match(/"+/g)) { //Check if message has at least one double-quote
 		console.log('has quote woo')

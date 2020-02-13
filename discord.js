@@ -47,7 +47,20 @@ let fn = {
 		}
 	},
 	awaitResponse: async args => {
-		console.log(args)
+		let finished = false
+		let timeoutPromise = new Promise(setTimeout((resolve, reject) => {resolve('TIMEOUT')}, (args.time*1000)))
+		let isTimedout = await timeoutPromise
+		if (isTimedout && !finished) return(timeoutPromise)
+		discord.channels.find("id", args.responseChannelId).send()
+		discord.on('message', message => {
+			let result = await validateResponse(args, message).catch(err => modul.lErr(err))
+			if (result == 'INVALIDRESPONSE') {
+				return('USERDUMB')
+			} else {
+				finished = true
+				return(result)
+			}
+		})
 	}
 }
 
@@ -107,6 +120,7 @@ discord.on('message', async message => {
 			avatarURL: ((discord.user||{}).avatarURL||null)
 		},
 		author: {
+			user: message.author,
 			id: ((message.author||{}).id||null),
 			username: ((message.author||{}).username||null),
 			avatarURL: ((message.author||{}).avatarURL||null)
@@ -197,3 +211,26 @@ async function serverStdout(string) {
 	}, mS.messageFlushRate)
 }
 
+async function validateResponse(args, message) {
+	if (!args.responseUserId || !args.responseChannelId || !args.validResponses || !args.message || !args.time) throw new Error('Needs 5 arguments')
+	validResponses.forEach(thing => {
+
+		if (typeof thing != 'string') {
+			throw new Error(`${typeof thing} in response array detected, please use a string and not ${typeof thing}`)
+		}})
+
+	if (message.author.id == args.responseUser.id && message.channel.id == args.responseChannel.id) {
+		let index = 0
+
+		validResponses.forEach(string => {
+
+			if (message.string.toLowerCase() == string.toLowerCase()) {
+				return index
+			} 
+			else {
+				index += 1
+			}
+		})
+		return ('INVALIDRESPONSE')
+	}
+}
