@@ -291,6 +291,56 @@ let fn = {
 				return modul.call('serverWrapper', 'serverStdin', `kick ${player.name} ${reason||''}\n`)
 			}))
 		}
+	},
+	test: async message => {
+		let args = {
+			responses: ['Yes','No'],
+			question: `Yes or no?`
+		}
+		let logObj = {
+			console: `${args.question}\nValid responses:\n${args.responses.join('\n')}`,
+			minecraft: `tellraw ${message.logTo.user} ${JSON.stringify(
+				[
+					{
+						'text': args.question
+					},
+					{
+						'text':'none'
+					}
+
+				]
+			)}`,
+			discord: {
+				embed: {}
+			}
+		}
+
+		args.responses.forEach((string, index) => {console.log(++index, string)})
+		console.log('\n')
+		modul.logg(logObj, message.logTo)
+	},
+	deletePlayerdata: async message => {
+		delPlayer = message.args[1]
+		playerdata = modul.call('mineapi', 'getPlayer', delPlayer).catch(err => modul.lErr(err))
+		responses = [
+			'Yes',
+			'No',
+			1
+		]
+		args = {
+			responseUserId: message.author.responseUserId,
+			responseChannelId: message.channel.id,
+			message: message,
+			validResponses: responses,
+			time: 10,
+			question: `Are you sure you want to delete player ${delPlayer}'s playerdata?`
+		}
+		let choice = await modul.call('discord','awaitResponse', args)
+		if (choice == 'USERDUMB') {
+			return {
+				//return stuff
+			}
+		} else if (choice) {}
 	}
 };
 

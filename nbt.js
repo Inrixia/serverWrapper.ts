@@ -388,8 +388,8 @@ async function tpo(args) {
     if (!args.x) throw new Error("X position not given.")
     if (!args.y) throw new Error("Y position not given.")
 	if (!args.z) throw new Error("Z position not given.")
-    let playerObj = await modul.call('mineapi', 'getPlayer', args.username).catch(err => reject(err));
-    let levelName = await modul.call('properties', 'getProperty', 'level-name').catch(err => reject(err))
+    let playerObj = await modul.call('mineapi', 'getPlayer', args.username).catch(err => modul.lErr(err));
+    let levelName = await modul.call('properties', 'getProperty', 'level-name').catch(err => modul.lErr(err))
     let serverWorldFolder = levelName?levelName:'Cookies';
     const data = await new Promise((resolve, reject) => fs.readFile(`${serverWorldFolder}/playerdata/${playerObj._dirtyUUID}.dat`, (err, data) => {
         if (err) reject(err);

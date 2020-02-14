@@ -47,17 +47,42 @@ let fn = {
 		}
 	},
 	awaitResponse: async args => {
+		validResponses.forEach(thing => {
+				if (typeof thing != 'string') {
+				throw new Error(`${typeof thing} in response array detected, please use a string and not ${typeof thing}`)
+			}})
 		let finished = false
-		let timeoutPromise = new Promise(setTimeout((resolve, reject) => {resolve('TIMEOUT')}, (args.time*1000)))
-		let isTimedout = await timeoutPromise
-		if (isTimedout && !finished) return(timeoutPromise)
-		discord.channels.find("id", args.responseChannelId).send()
-		discord.on('message', message => {
+		let isTimedout = false
+
+		let timeoutInterval = setTimeout(() => {isTimedout = true}, (args.time*1000))
+		if (isTimedout && !finished) return('TIMEOUT')
+
+		let logObj = {
+			console: `${args.question}\nValid responses:\n`,
+			minecraft: `tellraw ${message.logTo.user} ${JSON.stringify(
+				[
+					{
+						'text': args.question
+					},
+					{
+						'text':'placeholder'
+					}
+
+				]
+			)}`,
+			discord: {}
+		}
+
+		args.responses.forEach(logObj.console.concat(" ",string))
+
+		modul.logg(logObj, args.message.logTo)
+
+		discord.on('message', async message => {
 			let result = await validateResponse(args, message).catch(err => modul.lErr(err))
 			if (result == 'INVALIDRESPONSE') {
 				return('USERDUMB')
 			} else {
-				finished = true
+				clearInterval(timeoutInterval)
 				return(result)
 			}
 		})
