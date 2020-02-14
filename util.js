@@ -292,32 +292,21 @@ let fn = {
 			}))
 		}
 	},
-	test: async message => {
-		let args = {
-			responses: ['Yes','No'],
-			question: `Yes or no?`
-		}
-		let logObj = {
-			console: `${args.question}\nValid responses:\n${args.responses.join('\n')}`,
+	test: async (message, possibleResponses=['Yes','No'], question=`Yes or no?`) => {//told u it was test
+		console.log(possibleResponses, question)
+		return ({
+			console: `${question}\nValid responses:\n${possibleResponses.join('\n')}`,
 			minecraft: `tellraw ${message.logTo.user} ${JSON.stringify(
-				[
-					{
-						'text': args.question
-					},
-					{
-						'text':'none'
-					}
-
+				[ 
+					{ 'text': question },
+					...possibleResponses.map(possibleResponse => ({ 'text': '\n'+possibleResponse }))
 				]
-			)}`,
+			)}\n`,
 			discord: {
 				embed: {}
 			}
-		}
+		})
 
-		args.responses.forEach((string, index) => {console.log(++index, string)})
-		console.log('\n')
-		modul.logg(logObj, message.logTo)
 	},
 	deletePlayerdata: async message => {
 		delPlayer = message.args[1]

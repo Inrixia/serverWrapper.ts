@@ -72,7 +72,6 @@ let fn = {
 			)}`,
 			discord: {}
 		}
-
 		args.responses.forEach(logObj.console.concat(" ",string))
 
 		modul.logg(logObj, args.message.logTo)
