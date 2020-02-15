@@ -292,7 +292,7 @@ let fn = {
 			}))
 		}
 	},
-	test: async (message, possibleResponses=['Yes','No'], question=`Yes or no?`) => {//told u it was test
+	test: async (message, possibleResponses=['Yes','No'], question=`Yes or no?`) => {
 		console.log(possibleResponses, question)
 		return ({
 			console: `${question}\nValid responses:\n${possibleResponses.join('\n')}`,
@@ -303,7 +303,15 @@ let fn = {
 				]
 			)}\n`,
 			discord: {
-				embed: {}
+				embed: {
+					title: question,
+					fields: [
+						...possibleResponses.map((possibleResponse, index) => ({
+							'name': '**'+index+'**',
+							'value': '**'+possibleResponse+'**'
+					}))
+					]
+				}
 			}
 		})
 
