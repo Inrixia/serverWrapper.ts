@@ -22,3 +22,5 @@ ForgeTest/ops.json
 ForgeTest/ServerStart.bat
 ForgeTest/user*
 ForgeTest/whitelist.json
+ForgeTest/**
+test.js
