@@ -45,6 +45,46 @@ let fn = {
 			managementChannels.push(managementChannel);
 			setTimeout(() => managementChannels.pop(managementChannel), 500)
 		}
+	},
+	awaitResponse: async args => {
+		validResponses.forEach(thing => {
+				if (typeof thing != 'string') {
+				throw new Error("Wooks wike the code did a fucky wucky")
+			}})
+		let finished = false
+		let isTimedout = false
+
+		let timeoutInterval = setTimeout(() => {isTimedout = true}, (args.time*1000))
+		if (isTimedout && !finished) return('TIMEOUT')
+
+		let logObj = {
+			console: `${args.question}\nValid responses:\n`,
+			minecraft: `tellraw ${message.logTo.user} ${JSON.stringify(
+				[
+					{
+						'text': args.question
+					},
+					{
+						'text':'placeholder'
+					}
+
+				]
+			)}`,
+			discord: {}
+		}
+		args.responses.forEach(logObj.console.concat(" ",string))
+
+		modul.logg(logObj, args.message.logTo)
+
+		discord.on('message', async message => {
+			let result = await validateResponse(args, message).catch(err => modul.lErr(err))
+			if (result == 'INVALIDRESPONSE') {
+				return('USERDUMB')
+			} else {
+				clearInterval(timeoutInterval)
+				return(result)
+			}
+		})
 	}
 }
 
@@ -52,7 +92,7 @@ let fn = {
 process.on('message', async message => {
 	switch (message.function) {
 		case 'execute':
-			if (!(message.func in fn)) modul.reject(new Error(`Command ${message.func} does not exist in module ${thisModule}`), message.promiseId, message.returnModule)
+			if (!(message.func in fn)) modul.reject(new Error("Wooks wike the code did a fucky wucky"), message.promiseId, message.returnModule)
 			fn[message.func](message.data)
 			.then(data => modul.resolve(data, message.promiseId, message.returnModule))
 			.catch(err => modul.reject(err, message.promiseId, message.returnModule))
@@ -104,6 +144,7 @@ discord.on('message', async message => {
 			avatarURL: ((discord.user||{}).avatarURL||null)
 		},
 		author: {
+			user: message.author,
 			id: ((message.author||{}).id||null),
 			username: ((message.author||{}).username||null),
 			avatarURL: ((message.author||{}).avatarURL||null)
@@ -192,4 +233,28 @@ async function serverStdout(string) {
 			}
 		}
 	}, mS.messageFlushRate)
+}
+
+async function validateResponse(args, message) {
+	if (!args.responseUserId || !args.responseChannelId || !args.validResponses || !args.message || !args.time) throw new Error("Wooks wike the code did a fucky wucky")
+	validResponses.forEach(thing => {
+
+		if (typeof thing != 'string') {
+			throw new Error("Wooks wike the code did a fucky wucky")
+		}})
+
+	if (message.author.id == args.responseUser.id && message.channel.id == args.responseChannel.id) {
+		let index = 0
+
+		validResponses.forEach(string => {
+
+			if (message.string.toLowerCase() == string.toLowerCase()) {
+				return index
+			} 
+			else {
+				index += 1
+			}
+		})
+		return ('INVALIDRESPONSE')
+	}
 }

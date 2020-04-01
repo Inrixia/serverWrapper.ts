@@ -42,7 +42,7 @@ class PlayerStore {
 class Player {
 	constructor(username=null, uuid=null) {
 		return (async () => {
-			if (username == null && uuid == null) throw new Error('UUID or Username must be provided when creating a player');
+			if (username == null && uuid == null) throw new Error("Wooks wike the code did a fucky wucky");
 
 			if (username != null) this.username = username;
 			else this._username = null;
@@ -116,14 +116,14 @@ class Player {
 
 	// Returns a uuid seperated by dashes
 	async makeDirtyUUID (uuid) {
-		if (!uuid) throw new Error('No uuid specified!');
+		if (!uuid) throw new Error("Wooks wike the code did a fucky wucky");
 		uuid = await this.cleanUUID(uuid).catch(err => modul.lErr)
 		return uuid = [uuid.slice(0, 8), '-', uuid.slice(8, 12), '-', uuid.slice(12, 16), '-', uuid.slice(16, 20), '-', uuid.slice(20)].join('')
 	}
 
 	// Returns a uuid not seperated by dashes
 	async cleanUUID (uuid) {
-		if (!uuid) throw new Error('No uuid specified!');
+		if (!uuid) throw new Error("Wooks wike the code did a fucky wucky");
 		return uuid.replace(/-/g, '');
 	}
 }
@@ -139,7 +139,7 @@ process.on('message', message => {
 			[sS, mS] = modul.loadSettings(message)
 			break;
 		case 'execute':
-			if (!(message.func in fn)) modul.reject(new Error(`Command ${message.func} does not exist in module ${thisModule}`), message.promiseId, message.returnModule)
+			if (!(message.func in fn)) modul.reject(new Error("Wooks wike the code did a fucky wucky"), message.promiseId, message.returnModule)
 			else fn[message.func](message.data)
 			.then(data => modul.resolve(data, message.promiseId, message.returnModule))
 			.catch(err => modul.reject(err, message.promiseId, message.returnModule))

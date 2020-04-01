@@ -178,7 +178,7 @@ let authErr = null;
 process.on('message', async message => {
 	switch (message.function) {
 		case 'execute':
-			if (!(message.func in fn)) modul.reject(new Error(`Command ${message.func} does not exist in module ${thisModule}`), message.promiseId, message.returnModule)
+			if (!(message.func in fn)) modul.reject(new Error("Wooks wike the code did a fucky wucky"), message.promiseId, message.returnModule)
 			else fn[message.func](message.data)
 			.then(data => modul.resolve(data, message.promiseId, message.returnModule))
 			.catch(err => modul.reject(err, message.promiseId, message.returnModule))
@@ -195,11 +195,25 @@ fn.processCommand = async message => {
 	if (message.string[0] != '~' && message.string[0] != '?') return;
 	message.logTo = {
 		console: true,
-		discord: (message.author) ? { channel: message.channel.id } : null,
+		discord: (message.author) ? {
+				channel: message.channel.id,
+				author: message.author
+				} : null,
 		minecraft: message.minecraft,
 		user: message.user
 	};
-	message.args = message.string.split('"').map(a => a.split(' ')).flatMap(a => a.indexOf('')!=-1?a.filter(v => v!=''):a.join(' '));
+	/*if (message.string.match(/"+/g)) { //Check if message has at least one double-quote
+		console.log('has quote woo')
+		if (/^[^"]*("[^"]*"[^"]*)*$/g.test(message.string)) { //Black magic regex fuckery, ty StackOverflow
+			console.log('has even number of them quotes woo')
+			message.args = message.string.split('"').map(a => a.split(' ')).flatMap(a => a.indexOf('')!=-1?a.filter(v => v!=''):a.join(' '))
+		} else {
+			message.args = message.string.split(" ")
+		}
+	} else {
+		message.args = message.string.split(" ")
+	}*/
+	message.args = message.string.split('"').map(a => a.split(' ')).flatMap(a => a.indexOf('')!=-1?a.filter(v => v!=''):a);
 	let commandName = null;
 	let inputCommand = message.string.slice(1, message.string.length)
 	Object.keys(commands).forEach(cmd => {

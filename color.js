@@ -39,7 +39,7 @@ function rgbToHex(rgb) {
 process.on('message', async message => {
 	switch (message.function) {
 		case 'execute':
-			if (!(message.func in fn)) modul.reject(new Error(`Command ${message.func} does not exist in module ${thisModule}`), message.promiseId, message.returnModule)
+			if (!(message.func in fn)) modul.reject(new Error("Wooks wike the code did a fucky wucky"), message.promiseId, message.returnModule)
 			else fn[message.func](message.data)
 			.then(data => modul.resolve(data, message.promiseId, message.returnModule))
 			.catch(err => modul.reject(err, message.promiseId, message.returnModule))

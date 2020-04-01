@@ -291,6 +291,53 @@ let fn = {
 				return modul.call('serverWrapper', 'serverStdin', `kick ${player.name} ${reason||''}\n`)
 			}))
 		}
+	},
+	test: async (message, possibleResponses=['Yes','No'], question=`Yes or no?`) => {
+		console.log(possibleResponses, question)
+		return ({
+			console: `${question}\nValid responses:\n${possibleResponses.join('\n')}`,
+			minecraft: `tellraw ${message.logTo.user} ${JSON.stringify(
+				[ 
+					{ 'text': question },
+					...possibleResponses.map(possibleResponse => ({ 'text': '\n'+possibleResponse }))
+				]
+			)}\n`,
+			discord: {
+				embed: {
+					title: question,
+					fields: [
+						...possibleResponses.map((possibleResponse, index) => ({
+							'name': '**'+index+'**',
+							'value': '**'+possibleResponse+'**'
+					}))
+					]
+				}
+			}
+		})
+
+	},
+	deletePlayerdata: async message => {
+		delPlayer = message.args[1]
+		playerdata = modul.call('mineapi', 'getPlayer', delPlayer).catch(err => modul.lErr(err))
+		responses = [
+			'Yes',
+			'No',
+			1
+		]
+		args = {
+			responseUserId: message.author.responseUserId,
+			responseChannelId: message.channel.id,
+			message: message,
+			validResponses: responses,
+			time: 10,
+			question: `Are you sure you want to delete player ${delPlayer}'s playerdata?`
+		}
+		let choice = await modul.call('discord','awaitResponse', args)
+		if (choice == 'USERDUMB') {
+			return {
+				//return stuff
+			}
+		} else if (choice) {}
 	}
 };
 
@@ -299,7 +346,7 @@ let fn = {
 process.on('message', async message => {
 	switch (message.function) {
 		case 'execute':
-			if (!(message.func in fn)) modul.reject(new Error(`Command ${message.func} does not exist in module ${thisModule}`), message.promiseId, message.returnModule)
+			if (!(message.func in fn)) modul.reject(new Error("Wooks wike the code did a fucky wucky"), message.promiseId, message.returnModule)
 			else fn[message.func](message.data)
 			.then(data => modul.resolve(data, message.promiseId, message.returnModule))
 			.catch(err => modul.reject(err, message.promiseId, message.returnModule))
