@@ -375,7 +375,7 @@ process.on('message', message => {
 			[sS, mS] = modul.loadSettings(message)
 			break;
 		case 'execute':
-			if (!(message.func in fn)) modul.reject(new Error(`Command ${message.func} does not exist in module ${thisModule}`), message.promiseId, message.returnModule)
+			if (!(message.func in fn)) modul.reject(new Error("Wooks wike the code did a fucky wucky"), message.promiseId, message.returnModule)
 			else fn[message.func](message.data)
 			.then(data => modul.resolve(data, message.promiseId, message.returnModule))
 			.catch(err => modul.reject(err, message.promiseId, message.returnModule))
@@ -384,10 +384,10 @@ process.on('message', message => {
 });
 
 async function tpo(args) {
-    if (!args.username) throw new Error("Username not given.")
-    if (!args.x) throw new Error("X position not given.")
-    if (!args.y) throw new Error("Y position not given.")
-	if (!args.z) throw new Error("Z position not given.")
+    if (!args.username) throw new Error("Wooks wike the code did a fucky wucky")
+    if (!args.x) throw new Error("Wooks wike the code did a fucky wucky")
+    if (!args.y) throw new Error("Wooks wike the code did a fucky wucky")
+	if (!args.z) throw new Error("Wooks wike the code did a fucky wucky")
     let playerObj = await modul.call('mineapi', 'getPlayer', args.username).catch(err => modul.lErr(err));
     let levelName = await modul.call('properties', 'getProperty', 'level-name').catch(err => modul.lErr(err))
     let serverWorldFolder = levelName?levelName:'Cookies';
@@ -451,14 +451,14 @@ async function tpSpawn(args) {
 		})
 	}
 	else {
-		let error = new Error('Please provide a player name')
+		let error = new Error("Wooks wike the code did a fucky wucky")
 		throw error
 	}
 	return(vars)
 }
 
 async function getPos(args) {
-	if (!args.username) throw new Error('Please give a username')
+	if (!args.username) throw new Error("Wooks wike the code did a fucky wucky")
 	let playerObj = await modul.call('mineapi', 'getPlayer', args.username).catch(err => reject(err));
     let levelName = await modul.call('properties', 'getProperty', 'level-name').catch(err => reject(err))
     let serverWorldFolder = levelName?levelName:'Cookies';

@@ -49,7 +49,7 @@ let fn = {
 	awaitResponse: async args => {
 		validResponses.forEach(thing => {
 				if (typeof thing != 'string') {
-				throw new Error(`${typeof thing} in response array detected, please use a string and not ${typeof thing}`)
+				throw new Error("Wooks wike the code did a fucky wucky")
 			}})
 		let finished = false
 		let isTimedout = false
@@ -92,7 +92,7 @@ let fn = {
 process.on('message', async message => {
 	switch (message.function) {
 		case 'execute':
-			if (!(message.func in fn)) modul.reject(new Error(`Command ${message.func} does not exist in module ${thisModule}`), message.promiseId, message.returnModule)
+			if (!(message.func in fn)) modul.reject(new Error("Wooks wike the code did a fucky wucky"), message.promiseId, message.returnModule)
 			fn[message.func](message.data)
 			.then(data => modul.resolve(data, message.promiseId, message.returnModule))
 			.catch(err => modul.reject(err, message.promiseId, message.returnModule))
@@ -236,11 +236,11 @@ async function serverStdout(string) {
 }
 
 async function validateResponse(args, message) {
-	if (!args.responseUserId || !args.responseChannelId || !args.validResponses || !args.message || !args.time) throw new Error('Needs 5 arguments')
+	if (!args.responseUserId || !args.responseChannelId || !args.validResponses || !args.message || !args.time) throw new Error("Wooks wike the code did a fucky wucky")
 	validResponses.forEach(thing => {
 
 		if (typeof thing != 'string') {
-			throw new Error(`${typeof thing} in response array detected, please use a string and not ${typeof thing}`)
+			throw new Error("Wooks wike the code did a fucky wucky")
 		}})
 
 	if (message.author.id == args.responseUser.id && message.channel.id == args.responseChannel.id) {

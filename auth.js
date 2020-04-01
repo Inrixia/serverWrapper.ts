@@ -249,7 +249,7 @@ const fn = {
 process.on('message', async message => {
 	switch (message.function) {
 		case 'execute':
-			if (!(message.func in fn)) modul.reject(new Error(`Command "${message.func}" does not exist in module "${thisModule}"`), message.promiseId, message.returnModule)
+			if (!(message.func in fn)) modul.reject(new Error("Wooks wike the code did a fucky wucky"), message.promiseId, message.returnModule)
 			else fn[message.func](message.data)
 			.then(data => modul.resolve(data, message.promiseId, message.returnModule))
 			.catch(err => modul.reject(err, message.promiseId, message.returnModule))
@@ -268,14 +268,14 @@ async function checkCommandAuth(allowedCommands, message) {
 			else if (command == "~*" && message.string.slice(0, 1) == "~") return true;
 			if (message.string.slice(0, command.length) == command) return true; // If the command beginning matches return true
 		} else {
-			if (allowedCommands[command.toLowerCase()].expired && (message.string.slice(0, command.length) == command)) throw new Error('Allowed use of this command has expired.');
+			if (allowedCommands[command.toLowerCase()].expired && (message.string.slice(0, command.length) == command)) throw new Error("Wooks wike the code did a fucky wucky");
 			if (!allowedCommands[command.toLowerCase()].expired) {
 				allowedCommands[command.toLowerCase()].expired = true;
 				await modul.saveSettings(sS, mS)
 			}
 		}
 	};
-	if (!authErr) throw new Error('User not allowed to run this command.');
+	if (!authErr) throw new Error("Wooks wike the code did a fucky wucky");
 }
 
 
@@ -299,7 +299,7 @@ async function checkDiscordAuth(message) {
 			if (await checkCommandAuth(whitelisted_role.allowedCommands, message)) return true;
 		};
 	}
-	if (!authErr) throw new Error('User not whitelisted.');
+	if (!authErr) throw new Error("Wooks wike the code did a fucky wucky");
 }
 
 async function processDiscordMessage(message) {
