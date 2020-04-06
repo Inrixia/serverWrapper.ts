@@ -167,7 +167,7 @@ let fn = { // Object holding callable functions for modules
 	},
 	enableModule: async data => { 
 		let thisModule = loadedModules[data.args[1]]
-		if (!thisModule) throw new Error("Wooks wike the code did a fucky wucky")
+		if (!thisModule) throw new Error(`Module ${thisModule} is not loaded.`)
 		await thisModule.enable(data.args[2])
 		return {
 			console: `${sS.c['brightCyan'].c}Enabled module${sS.c['reset'].c}: ${thisModule.color.c}${thisModule.name}${sS.c['reset'].c}`,
@@ -193,7 +193,7 @@ let fn = { // Object holding callable functions for modules
 	},
 	disableModule: async data => { 
 		let thisModule = loadedModules[data.args[1]]
-		if (!thisModule) throw new Error("Wooks wike the code did a fucky wucky")
+		if (!thisModule) throw new Error(`Module ${thisModule} is not loaded.`)
 		await thisModule.disable(data.args[2])
 		return {
 			console: `${sS.c['brightCyan'].c}Disabled module${sS.c['reset'].c}: ${thisModule.color.c}${thisModule.name}${sS.c['reset'].c}`,
@@ -219,7 +219,7 @@ let fn = { // Object holding callable functions for modules
 	},
 	killModule: async data => { 
 		let thisModule = loadedModules[data.args[1]]
-		if (!thisModule) throw new Error("Wooks wike the code did a fucky wucky")
+		if (!thisModule) throw new Error(`Module ${thisModule} is not loaded.`)
 		await thisModule.kill()
 		return {
 			console: `${sS.c['brightCyan'].c}Killed module${sS.c['reset'].c}: ${thisModule.color.c}${thisModule.name}${sS.c['reset'].c}`,
@@ -245,7 +245,7 @@ let fn = { // Object holding callable functions for modules
 	},
 	startModule: async data => { 
 		let thisModule = loadedModules[data.args[1]]
-		if (!thisModule) throw new Error("Wooks wike the code did a fucky wucky")
+		if (!thisModule) throw new Error(`Module ${thisModule} is not loaded.`)
 		await thisModule.start()
 		return {
 			console: `${sS.c['brightCyan'].c}Started module${sS.c['reset'].c}: ${thisModule.color.c}${thisModule.name}${sS.c['reset'].c}`,
@@ -271,7 +271,7 @@ let fn = { // Object holding callable functions for modules
 	},
 	restartModule:async data => { 
 		let thisModule = loadedModules[data.args[1]]
-		if (!thisModule) throw new Error("Wooks wike the code did a fucky wucky")
+		if (!thisModule) throw new Error(`Module ${thisModule} is not loaded.`)
 		await thisModule.restart()
 		return {
 			console: `${sS.c['brightCyan'].c}Restarted module${sS.c['reset'].c}: ${thisModule.color.c}${thisModule.name}${sS.c['reset'].c}`,
@@ -297,7 +297,7 @@ let fn = { // Object holding callable functions for modules
 	},
 	reloadModule: async data => { 
 		let thisModule = loadedModules[data.args[1]]
-		if (!thisModule) throw new Error("Wooks wike the code did a fucky wucky")
+		if (!thisModule) throw new Error(`Module ${thisModule} is not loaded.`)
 		await thisModule.reload()
 		return {
 			console: `${sS.c['brightCyan'].c}Reloaded module${sS.c['reset'].c}: ${thisModule.color.c}${thisModule.name}${sS.c['reset'].c}`,
@@ -323,7 +323,7 @@ let fn = { // Object holding callable functions for modules
 	},
 	loadModuleFunctions: async data => { 
 		let thisModule = loadedModules[data.args[1]]
-		if (!thisModule) throw new Error("Wooks wike the code did a fucky wucky")
+		if (!thisModule) throw new Error(`Module ${thisModule.name} is not loaded.`)
 		await thisModule.loadFunctions()
 		return {
 			console: `${sS.c['brightCyan'].c}Loaded${sS.c['reset'].c} ${thisModule.color.c}${thisModule.name}${sS.c['reset'].c}'s functions`,
@@ -548,7 +548,7 @@ let fn = { // Object holding callable functions for modules
 	serverStdin: async string => {
 		process.stdout.write(string)
 		if (server) server.stdin.write(string);
-		else throw new Error("Wooks wike the code did a fucky wucky")
+		else throw new Error('Attempted to send input to server while not running.')
 	}
 }
 
@@ -633,7 +633,7 @@ class wrapperModule {
 						.catch(err => lErr(err, `Failed to unicast message "${JSON.stringify(message.message)} to module ${message.module}"\n`));		
 						break;
 					case 'execute':
-						if (!(message.func in fn)) wrapperModule.reject(new Error("Wooks wike the code did a fucky wucky"), message.promiseId, message.returnModule)
+						if (!(message.func in fn)) wrapperModule.reject(new Error(`Command ${message.func} does not exist in serverWrapper.js`), message.promiseId, message.returnModule)
 						else fn[message.func](message.data).then(data => {
 							wrapperModule.resolve(data, message.promiseId, message.returnModule)
 							.catch(err => {
@@ -665,7 +665,7 @@ class wrapperModule {
 			})
 			let init = await this.call('init', { 'sS': sS }).catch(err => lErr(err, `Failed to call init for module ${this.name}!`));
 			return init;
-		} else throw new Error("Wooks wike the code did a fucky wucky")
+		} else throw new Error(`Module ${this.name} has already been started!`)
 	}
 
 	static emit(event, args, exclude=null) {
@@ -719,7 +719,7 @@ class wrapperModule {
 			promiseID: promiseId,
 			return: data
 		})
-		else throw new Error("Wooks wike the code did a fucky wucky")
+		else throw new Error(`Cannot resolve promise ${promiseId} to ${returnModule} module not running/loaded.`)
 	}
 	static async reject(err, promiseId, returnModule) {
 		if (loadedModules[returnModule]||{}.process) return await pSend(loadedModules[returnModule].process, {
@@ -727,7 +727,7 @@ class wrapperModule {
 			promiseID: promiseId,
 			return: err
 		})
-		else throw new Error("Wooks wike the code did a fucky wucky")
+		else throw new Error(`Cannot reject promise ${promiseId} to ${returnModule} module not running/loaded.`)
 	}
 
 	async restart() {
@@ -754,7 +754,7 @@ class wrapperModule {
 				await loadedModules['command'].start()
 			} else this.process = null;
 		}
-		else throw new Error("Wooks wike the code did a fucky wucky")
+		else throw new Error(`Cannot kill ${this.name} as it is not running.`)
 	}
 
 	async enable(save) {
@@ -777,8 +777,8 @@ class wrapperModule {
 		if (loadedModules[destinationModule]) {
 			if (loadedModules[destinationModule]||{}.process) {
 				return await pSend(loadedModules[destinationModule].process, message)
-			} else throw new Error("Wooks wike the code did a fucky wucky")
-		} else throw new Error("Wooks wike the code did a fucky wucky")
+			} else throw new Error(`Attempted unicast message to offline module ${destinationModule}!`)
+		} else throw new Error(`Attempted unicast message to undefined module ${destinationModule}!`)
 	}
 
 	get enabled() { return sS.modules[this.name].enabled }
@@ -801,7 +801,7 @@ class wrapperModule {
 			sS.modules[this.name].color = moduleColor;
 			wrapperModule.broadcast({function: 'pushSettings', sS: sS })
 			.catch(err => lErr(err, `Failed to broadcast setting change ${this.name} color: ${moduleColor} update.`));
-		} else throw new Error("Wooks wike the code did a fucky wucky");
+		} else throw new Error(`"${this.name}.color = ${moduleColor}" Invalid Colour.`);
 	}
 
 	get persistent() { sS.modules[this.name].persistent; }

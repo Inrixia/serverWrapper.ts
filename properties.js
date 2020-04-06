@@ -124,7 +124,7 @@ let fn = {
 	ping: async data => {
 		let serverPort = await fn.getProperty('server-port')
 		return await new Promise((resolve, reject) => mcping('localhost', serverPort, (err, res) => {
-			if (err) reject(new Error("Wooks wike the code did a fucky wucky"));
+			if (err) reject(new Error(err));
 			else resolve(res);
 		}, 1000))
 	},
@@ -289,7 +289,7 @@ let fn = {
 process.on('message', message => {
 	switch (message.function) {
 		case 'execute':
-			if (!(message.func in fn)) modul.reject(new Error("Wooks wike the code did a fucky wucky"), message.promiseId, message.returnModule)
+			if (!(message.func in fn)) modul.reject(new Error(`Command ${message.func} does not exist in module ${thisModule}`), message.promiseId, message.returnModule)
 			else fn[message.func](message.data)
 			.then(data => modul.resolve(data, message.promiseId, message.returnModule))
 			.catch(err => modul.reject(err, message.promiseId, message.returnModule))
