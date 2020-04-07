@@ -50,7 +50,7 @@ let fn = {
 	},
 	getResponse: async args => {
 		let {user, channel, validResponses, timeout} = args;
-		console.log(user, channel, validResponses, timeout)
+		//console.log(user, channel, validResponses, timeout)
 		let validResponses2 = validResponses.map(x=>x.toUpperCase())
 		return await getUserResponse(channel, timeout, user, validResponses2)
 	}
@@ -226,13 +226,12 @@ async function getUserResponse(channel, timeout, user, validResponses) {
 				if (message.author.id == k) {
 					//For every valid response
 					if (v.includes(message.content.toUpperCase().trim())) {
-						console.log("MATCH at "+message.content.toUpperCase())
 						cleared = true
-						clearTimeout(timeout)
+						clearTimeout(responseTimeout)
 						resolve(message.content.toUpperCase())
-						delete awaitResponseFrom[user]
+						setTimeout(() =>delete awaitResponseFrom[user], 500)
 						return;
-					} else console.log("no match :(")
+					}
 					/*v.forEach((t, i) => {
 						console.log("now at: " + t, i)
 						//If response = valid response
