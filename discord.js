@@ -16,6 +16,8 @@ let chatChannel = null;
 let discordData = "";
 let flatMessages = {};
 
+let awaitResponseFrom = {};
+
 let fn = {
 	init: async message => {
 		[sS, mS] = modul.loadSettings(message)
@@ -45,6 +47,12 @@ let fn = {
 			managementChannels.push(managementChannel);
 			setTimeout(() => managementChannels.pop(managementChannel), 500)
 		}
+	},
+	getResponse: async args => {
+		let {user, channel, validResponses, timeout} = args;
+		console.log(user, channel, validResponses, timeout)
+		let validResponses2 = validResponses.map(x=>x.toUpperCase())
+		return await getUserResponse(channel, timeout, user, validResponses2)
 	}
 }
 
@@ -104,6 +112,7 @@ discord.on('message', async message => {
 			avatarURL: ((discord.user||{}).avatarURL||null)
 		},
 		author: {
+			//user: ((message.author||{})),
 			id: ((message.author||{}).id||null),
 			username: ((message.author||{}).username||null),
 			avatarURL: ((message.author||{}).avatarURL||null)
@@ -192,4 +201,54 @@ async function serverStdout(string) {
 			}
 		}
 	}, mS.messageFlushRate)
+}
+
+async function getUserResponse(channel, timeout, user, validResponses) {
+
+	awaitResponseFrom[user] = validResponses
+	cleared = false;
+
+	return new Promise((resolve, reject) => {
+
+		let responseTimeout = setTimeout(() => {
+			if (cleared) return; //You can NEVER be too safe
+			delete awaitResponseFrom[user];
+			resolve("TIMEOUT");
+		}, timeout*1000)
+
+		//User response handling
+		discord.on("message", async message => {
+			//If nothing to wait for, return
+			if (awaitResponseFrom.length <= 0 || message.channel.id != channel) return;
+			//For every entry in the table thingy
+			for (let [k, v] of Object.entries(awaitResponseFrom)) {
+				//Message author matches wanted author
+				if (message.author.id == k) {
+					//For every valid response
+					if (v.includes(message.content.toUpperCase().trim())) {
+						console.log("MATCH at "+message.content.toUpperCase())
+						cleared = true
+						clearTimeout(timeout)
+						resolve(message.content.toUpperCase())
+						delete awaitResponseFrom[user]
+						return;
+					} else console.log("no match :(")
+					/*v.forEach((t, i) => {
+						console.log("now at: " + t, i)
+						//If response = valid response
+						if (message.content.toLowerCase().trim() == t.toLowerCase().trim()) {
+							console.log("MATCH")
+							cleared = true;
+							clearTimeout(responseTimeout)
+							resolve(t)
+							delete awaitResponseFrom[user]
+							return;
+						} else console.log(message.content + " is not a match with " + t)
+					})*/
+					resolve("INVALID")
+				}
+			}
+		})
+	})
+
 }
