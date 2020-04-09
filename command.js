@@ -5,7 +5,16 @@ const moment = require("moment");
 const util = require("./util/time.js")
 const modul = new [require('./modul.js')][0](thisModule);
 
+let playerList = []
+
 let commands = [];
+
+Array.prototype.asyncForEach = async (callback) => {
+	for (let index = 0; index < this.length; index++) {
+	  await callback(this[index], index, this);
+	}
+  }
+
 
 const fn = {
 	importCommands: async (commands) => commands.forEach(async cmd => new command(cmd)),
@@ -190,6 +199,7 @@ process.on('message', async message => {
 });
 
 fn.processCommand = async message => {
+	let count = 0;
 	message.string = message.string.replace(/\s\s+/g, ' '); // Compact multiple spaces/tabs down to one
 	message.string = message.string.replace('\r', '')
 	if (message.string[0] != '~' && message.string[0] != '?') return;
@@ -200,6 +210,58 @@ fn.processCommand = async message => {
 		user: message.user
 	};
 	message.args = message.string.split('"').map(a => a.split(' ')).flatMap(a => a.indexOf('')!=-1?a.filter(v => v!=''):a);
+	if (message.logTo.discord) {
+		//Mixu spaghetti code begin
+		message.args = message.args.map(message => {
+			if (message.match(/<(.*?)>/g)) count++;
+			return message.replace(/<(.*?)>/g, "&"+count);
+		})
+		message.playerToSearch = [...message.string.matchAll(/<(.*?)>/g)].map(v=>v[1])
+		console.log(message.playerToSearch)
+		let foundPlayerMatches = []
+		let count3 = 0
+		if (message.playerToSearch.length > 0) {
+			//Has players to search for
+			message.playerToSearch.forEach(pNameStart => {
+				console.log(pNameStart)
+				if (playerList.length > 0 && message.playerToSearch.length > 0) {
+					let tempArray = []
+					playerList.forEach(v => {
+						console.log(typeof v, v)
+						if (v.name.match(pNameStart)) {
+							count3++;
+							//found player, slap full name into playerMatches
+							console.log(v.name)
+							tempArray.push(v.name)
+						}
+					})
+					console.log(tempArray)
+					foundPlayerMatches.push(tempArray)
+				} else console.log("player list empty")
+			})
+		}
+		console.log(foundPlayerMatches)
+		let count2 = 0
+
+		for (array of foundPlayerMatches) {
+			let count4 = 0
+			array2 = array.map(x=>{count4++; return count4.toString()})//Give every player in array a number, use number in getResponse
+
+			console.log(array2)
+			console.log("calling getresponse")
+
+			const [response, user] = await modul.call("discord", "getResponse", {user: message.author.id, channel: message.channel.id, validResponses: array2, validResponsesDesc: array, timeout: 10})
+			console.log(typeof response, response)
+			if (response == "INVALID") return;
+			if (response == "TIMEOUT") return; //TODO: handle these
+			count2++;
+			console.log(count2)
+			console.log(array[parseInt(response)-1])
+			message.args[message.args.findIndex(x=>x=="&"+count2)] = array[parseInt(response)-1]
+			console.log(message.args)//lets test
+		}
+		//Mixu spaghetti code end
+	}
 	let commandName = null;
 	let inputCommand = message.string.slice(1, message.string.length)
 	Object.keys(commands).forEach(cmd => {
@@ -251,13 +313,13 @@ fn.processCommand = async message => {
 		await modul.logg(result, message.logTo).catch(err => modul.lErr(err, 'Command executed. Error while processing output.', message.logTo))
 	})
 }
-
 function commandMatch(string, commandString) {
 	if (string.toLowerCase() == commandString.toLowerCase()) return true; // If its a identical match pass it
 	commandString = commandString+' '; // Otherwise add a space to avoid continuous commands and check for dynamic commands
 	if (string.toLowerCase().slice(0, commandString.length) == commandString.toLowerCase()) return true;
 	return false;
 }
+
 
 class command {
 	constructor(obj) {
@@ -288,3 +350,13 @@ class command {
 		})
 	}
 }
+
+const playersOnlineUpdater = setInterval(refreshTheStuff, 20*1000)
+
+async function refreshTheStuff() {
+let pingTable = await modul.call('properties', 'ping').catch(err => {/*modul.lErr(err)*/})
+	if (!pingTable) return;
+	playerList = pingTable.players.online > 0 ? pingTable.players.sample : []
+}
+
+refreshTheStuff();

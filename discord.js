@@ -49,10 +49,10 @@ let fn = {
 		}
 	},
 	getResponse: async args => {
-		let {user, channel, validResponses, timeout} = args;
+		let {user, channel, validResponses, validResponsesDesc, timeout, title, description} = args;
 		//console.log(user, channel, validResponses, timeout)
-		let validResponses2 = validResponses.map(x=>x.toUpperCase())
-		return await getUserResponse(channel, timeout, user, validResponses)
+		//let validResponses2 = validResponses.map(x=>x.toUpperCase())
+		return await getUserResponse(channel, timeout, user, validResponses, validResponsesDesc, title, description)
 	}
 }
 
@@ -203,7 +203,12 @@ async function serverStdout(string) {
 	}, mS.messageFlushRate)
 }
 
-async function getUserResponse(channel, timeout, user, validResponses) {
+async function getUserResponse(channel, timeout, user, validResponses, validResponsesDesc, title, description) {
+
+	if (!title) title = `PLACEHOLDER`
+	if (!validResponsesDesc) validResponsesDesc = validResponses.map(r=>"No description given.")
+
+	if (validResponses.length == 1) return new Promise((resolve, reject) => resolve(validResponses[0]))
 
 	if (!awaitResponseFrom[user]) awaitResponseFrom[user] = validResponses
 
@@ -211,17 +216,37 @@ async function getUserResponse(channel, timeout, user, validResponses) {
 	let userProfile = await discord.fetchUser(user)
 
 	return new Promise((resolve, reject) => {
+		let send = {
+			embed: {
+				title,
+    			color: 16776960,
+				timestamp: new Date(),
+				fields: [],
+				footer: {
+					text: `${timeout} seconds to pick`
+				}
+			}
+		}
+		if (description) send.embed.description = description
+		validResponses.map((thing, index) => {
+			send.embed.fields.push({
+				name: thing,
+				value: validResponsesDesc[index]
+			})})
+		discord.channels.get(channel).send(send)
+		discord.on("message", handleTheStuff)
 
 		let responseTimeout = setTimeout(async () => {
 			if (cleared) return; //You can NEVER be too safe
 			delete awaitResponseFrom[user];
 			resolve(["TIMEOUT", userProfile.username]);
 		}, timeout*1000)
-
-		//User response handling
-		discord.on("message", async message => {
+		
+		async function handleTheStuff(message) {
+			if (message.author.id != user) return;
 			//If nothing to wait for/wrong channel, return
 			if (awaitResponseFrom.length <= 0 || message.channel.id != channel) return;
+			discord.off("message", handleTheStuff)
 			//For every entry in the table thingy
 			for (let [k, v] of Object.entries(awaitResponseFrom)) {
 				//Message author matches wanted author
@@ -236,21 +261,18 @@ async function getUserResponse(channel, timeout, user, validResponses) {
 						return;
 					}*/
 					v.forEach((t, i) => {
-						console.log("now at: " + t, i)
 						//If response = valid response
-						if (message.content.toLowerCase().trim() == t.toLowerCase().trim()) {
-							console.log("MATCH")
+						if (message.content.toLowerCase().trim() == t.toString().toLowerCase().trim()) {
 							cleared = true;
 							clearTimeout(responseTimeout)
+							delete awaitResponseFrom[user]
 							resolve([t, username])
-							setTimeout(() =>delete awaitResponseFrom[user], 500)
-							return;
-						} else console.log(message.content + " is not a match with " + t)
+						}
 					})
 					resolve(["INVALID", username])
 				}
 			}
-		})
+		}
+		
 	})
-
 }
