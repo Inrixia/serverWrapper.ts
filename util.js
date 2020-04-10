@@ -293,7 +293,7 @@ let fn = {
 		}
 	},
 	test: async message => {
-		let [response, user] = await modul.call('discord', 'getResponse', {user: message.author.id, channel: message.channel.id, validResponses: ["NAW", "YEE", "stuff"], timeout: 6}).catch(err => modul.lErr(err))
+		/*let [response, user] = await modul.call('discord', 'getResponse', {user: message.author.id, channel: message.channel.id, validResponses: ["NAW", "YEE", "stuff"], timeout: 6}).catch(err => modul.lErr(err))
 		return {
 			discord: {
 				string: null,
@@ -304,7 +304,7 @@ let fn = {
 					timestamp: new Date()
 				}
 			}
-		}
+		}*/
 	}
 }
 

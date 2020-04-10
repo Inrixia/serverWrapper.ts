@@ -17,6 +17,7 @@ let discordData = "";
 let flatMessages = {};
 
 let awaitResponseFrom = {};
+let setMsgStatusFor = {};
 
 let fn = {
 	init: async message => {
@@ -202,20 +203,21 @@ async function serverStdout(string) {
 		}
 	}, mS.messageFlushRate)
 }
-
+//Warning for hard-to-read code below
 async function getUserResponse(channel, timeout, user, validResponses, validResponsesDesc, title, description) {
 
-	if (!title) title = `PLACEHOLDER`
+	if (!title) title = `Select an option`
 	if (!validResponsesDesc) validResponsesDesc = validResponses.map(r=>"No description given.")
 
 	if (validResponses.length == 1) return new Promise((resolve, reject) => resolve(validResponses[0]))
 
+	if (!setMsgStatusFor[user]) setMsgStatusFor[user] = false;
 	if (!awaitResponseFrom[user]) awaitResponseFrom[user] = validResponses
 
 	let cleared = false;
 	let userProfile = await discord.fetchUser(user)
 
-	return new Promise((resolve, reject) => {
+	return new Promise(async (resolve, reject) => {
 		let send = {
 			embed: {
 				title,
@@ -233,7 +235,22 @@ async function getUserResponse(channel, timeout, user, validResponses, validResp
 				name: thing,
 				value: validResponsesDesc[index]
 			})})
-		discord.channels.get(channel).send(send)
+		
+		let embedToEdit = send
+		let sentMessage = await discord.channels.get(channel).send(send)
+		let timeLeft = timeout
+		let editer = setInterval(async () => {
+			timeLeft--;
+			let toSend = embedToEdit
+			toSend.embed.footer.text = timeLeft>0?`${timeLeft} seconds to pick`:"Timed out"
+			if (setMsgStatusFor[user]) {toSend.embed.footer.text = setMsgStatusFor[user];}
+			sentMessage.edit(toSend)
+			if (setMsgStatusFor[user]) {
+				clearInterval(editer)
+				delete setMsgStatusFor[user]
+			}
+			if (timeLeft<=0) clearInterval(editer)
+		}, 1000)
 		discord.on("message", handleTheStuff)
 
 		let responseTimeout = setTimeout(async () => {
@@ -241,7 +258,7 @@ async function getUserResponse(channel, timeout, user, validResponses, validResp
 			delete awaitResponseFrom[user];
 			resolve(["TIMEOUT", userProfile.username]);
 		}, timeout*1000)
-		
+
 		async function handleTheStuff(message) {
 			if (message.author.id != user) return;
 			//If nothing to wait for/wrong channel, return
@@ -252,23 +269,17 @@ async function getUserResponse(channel, timeout, user, validResponses, validResp
 				//Message author matches wanted author
 				if (message.author.id == k) {
 					let username = message.author.username
-					//For every valid response
-					/*if (v.includes(message.content.toUpperCase().trim())) {
-						cleared = true
-						clearTimeout(responseTimeout)
-						resolve(message.content.toUpperCase(), message.author)
-						setTimeout(() =>delete awaitResponseFrom[user], 500)
-						return;
-					}*/
 					v.forEach((t, i) => {
 						//If response = valid response
 						if (message.content.toLowerCase().trim() == t.toString().toLowerCase().trim()) {
 							cleared = true;
 							clearTimeout(responseTimeout)
+							setMsgStatusFor[user] = "Responded with "+t
 							delete awaitResponseFrom[user]
 							resolve([t, username])
 						}
 					})
+					setMsgStatusFor[user] = setMsgStatusFor[user]?setMsgStatusFor[user]:"Invalid"
 					resolve(["INVALID", username])
 				}
 			}
@@ -276,3 +287,4 @@ async function getUserResponse(channel, timeout, user, validResponses, validResp
 		
 	})
 }
+//Hard-to-read code end

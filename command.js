@@ -9,13 +9,6 @@ let playerList = []
 
 let commands = [];
 
-Array.prototype.asyncForEach = async (callback) => {
-	for (let index = 0; index < this.length; index++) {
-	  await callback(this[index], index, this);
-	}
-  }
-
-
 const fn = {
 	importCommands: async (commands) => commands.forEach(async cmd => new command(cmd)),
 	init: async (data) => {
@@ -217,51 +210,64 @@ fn.processCommand = async message => {
 			return message.replace(/<(.*?)>/g, "&"+count);
 		})
 		message.playerToSearch = [...message.string.matchAll(/<(.*?)>/g)].map(v=>v[1])
-		console.log(message.playerToSearch)
 		let foundPlayerMatches = []
-		let count3 = 0
 		if (message.playerToSearch.length > 0) {
 			//Has players to search for
 			message.playerToSearch.forEach(pNameStart => {
-				console.log(pNameStart)
 				if (playerList.length > 0 && message.playerToSearch.length > 0) {
 					let tempArray = []
 					playerList.forEach(v => {
-						console.log(typeof v, v)
 						if (v.name.match(pNameStart)) {
-							count3++;
 							//found player, slap full name into playerMatches
-							console.log(v.name)
 							tempArray.push(v.name)
 						}
 					})
-					console.log(tempArray)
 					foundPlayerMatches.push(tempArray)
-				} else console.log("player list empty")
+				}
 			})
 		}
-		console.log(foundPlayerMatches)
-		let count2 = 0
+		let currArgToReplace = 0
 
-		for (array of foundPlayerMatches) {
-			let count4 = 0
-			array2 = array.map(x=>{count4++; return count4.toString()})//Give every player in array a number, use number in getResponse
+		for (playerNameArray of foundPlayerMatches) {
+			let playerIndex = 0
+			playerIndexArray = playerNameArray.map(x=>{playerIndex++; return playerIndex.toString()})//Give every player in playerNameArray a number, use number in getResponse
 
-			console.log(array2)
-			console.log("calling getresponse")
-
-			const [response, user] = await modul.call("discord", "getResponse", {user: message.author.id, channel: message.channel.id, validResponses: array2, validResponsesDesc: array, timeout: 10})
-			console.log(typeof response, response)
-			if (response == "INVALID") return;
-			if (response == "TIMEOUT") return; //TODO: handle these
-			count2++;
-			console.log(count2)
-			console.log(array[parseInt(response)-1])
-			message.args[message.args.findIndex(x=>x=="&"+count2)] = array[parseInt(response)-1]
-			console.log(message.args)//lets test
+			const [response, user] = await modul.call("discord", "getResponse", {user: message.author.id, channel: message.channel.id, validResponses: playerIndexArray, validResponsesDesc: playerNameArray, timeout: 10})
+			if (response == "INVALID") return await modul.logg({
+				console: `${sS.c['red'].c}Invalid choice by ${user}! Aborting command execution.${sS.c['reset'].c}`,
+				minecraft: `tellraw ${message.logTo.user} ${JSON.stringify([{
+					"text": "Invalid choice! Aborting command execution.",
+					"color": "red"
+				}])}`,
+				discord: {
+					string: null,
+					embed: {
+						color: parseInt(sS.c['red'].h, 16),
+						title: `Invalid choice by ${user}! Aborting command execution.`,
+						timestamp: new Date()
+					}
+				}
+			}, message.logTo);
+			if (response == "TIMEOUT") return await modul.logg({
+				console: `${sS.c['red'].c}Timed out for ${user}! Aborting command execution.${sS.c['reset'].c}`,
+				minecraft: `tellraw ${message.logTo.user} ${JSON.stringify([{
+					"text": "Timed out! Aborting command execution.",
+					"color": "red"
+				}])}`,
+				discord: {
+					string: null,
+					embed: {
+						color: parseInt(sS.c['red'].h, 16),
+						title: `Timed out for ${user}! Aborting command execution.`,
+						timestamp: new Date()
+					}
+				}
+			}, message.logTo);
+			currArgToReplace++;
+			message.args[message.args.findIndex(x=>x=="&"+currArgToReplace)] = playerNameArray[parseInt(response)-1]
 		}
-		//Mixu spaghetti code end
 	}
+	//Mixu spaghetti code end
 	let commandName = null;
 	let inputCommand = message.string.slice(1, message.string.length)
 	Object.keys(commands).forEach(cmd => {
@@ -351,12 +357,12 @@ class command {
 	}
 }
 
-const playersOnlineUpdater = setInterval(refreshTheStuff, 20*1000)
+const playersOnlineListUpdater = setInterval(refreshPlayerList, 20*1000)
 
-async function refreshTheStuff() {
+async function refreshPlayerList() {
 let pingTable = await modul.call('properties', 'ping').catch(err => {/*modul.lErr(err)*/})
 	if (!pingTable) return;
 	playerList = pingTable.players.online > 0 ? pingTable.players.sample : []
 }
 
-refreshTheStuff();
+refreshPlayerList();
