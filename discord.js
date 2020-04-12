@@ -202,8 +202,14 @@ async function serverStdout(string) {
 		}
 	}, mS.messageFlushRate)
 }
+<<<<<<< Updated upstream
 //Warning for hard-to-read code below
 async function getUserResponse(channel, timeout, user, validResponses, validResponsesDesc, title, description) {
+=======
+
+async function getUserResponse(args) {
+	let {user, channel, validResponses, validResponsesDesc, timeout, title, description} = args;
+>>>>>>> Stashed changes
 
 	if (!title) title = `Select an option`
 	if (!validResponsesDesc) validResponsesDesc = validResponses.map(r=>"No description given.")
