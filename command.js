@@ -202,7 +202,9 @@ fn.processCommand = async message => {
 		minecraft: message.minecraft,
 		user: message.user
 	};
+
 	message.args = message.string.split('"').map(a => a.split(' ')).flatMap(a => a.indexOf('')!=-1?a.filter(v => v!=''):a);
+	
 	if (message.logTo.discord) {
 		//Mixu spaghetti code begin
 		message.args = message.args.map(message => {

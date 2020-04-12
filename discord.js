@@ -50,10 +50,9 @@ let fn = {
 		}
 	},
 	getResponse: async args => {
-		let {user, channel, validResponses, validResponsesDesc, timeout, title, description} = args;
 		//console.log(user, channel, validResponses, timeout)
 		//let validResponses2 = validResponses.map(x=>x.toUpperCase())
-		return await getUserResponse(channel, timeout, user, validResponses, validResponsesDesc, title, description)
+		return await getUserResponse(args)
 	}
 }
 

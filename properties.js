@@ -122,11 +122,11 @@ let fn = {
 		})
 	},
 	ping: async data => {
-		let serverPort = await fn.getProperty('server-port')
-		return await new Promise((resolve, reject) => mcping('localhost', serverPort, (err, res) => {
+		let serverPort = 25575 //await fn.getProperty('server-port')
+		return await new Promise((resolve, reject) => mcping('spookelton.net', serverPort, (err, res) => {
 			if (err) reject(new Error(err));
 			else resolve(res);
-		}, 1000))
+		}, 2000))
 	},
 	getProperty: async propertyKey => {
 		return (await pProp())[propertyKey];
