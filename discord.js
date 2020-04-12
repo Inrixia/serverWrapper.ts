@@ -50,8 +50,6 @@ let fn = {
 		}
 	},
 	getResponse: async args => {
-		//console.log(user, channel, validResponses, timeout)
-		//let validResponses2 = validResponses.map(x=>x.toUpperCase())
 		return await getUserResponse(args)
 	}
 }
@@ -206,9 +204,7 @@ async function serverStdout(string) {
 async function getUserResponse(args) {
 	let {user, channel, validResponses, validResponsesDesc, timeout, title, description} = args;
 
-async function getUserResponse(args) {
-	let {user, channel, validResponses, validResponsesDesc, timeout, title, description} = args;
->>>>>>> Stashed changes
+	if (validResponses.length <= 0) return new Promise((resolve, reject) => reject(new Error("Don't give empty arrays ya doofus")))
 
 	if (!title) title = `Select an option`
 	if (!validResponsesDesc) validResponsesDesc = validResponses.map(r=>"No description given.")

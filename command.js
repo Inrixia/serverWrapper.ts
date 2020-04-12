@@ -174,7 +174,6 @@ const fn = {
 // Set defaults
 let sS = {} // serverSettings
 let mS = {} // moduleSettings
-let authErr = null;
 
 // Module command handling
 process.on('message', async message => {
@@ -192,7 +191,6 @@ process.on('message', async message => {
 });
 
 fn.processCommand = async message => {
-	let count = 0;
 	message.string = message.string.replace(/\s\s+/g, ' '); // Compact multiple spaces/tabs down to one
 	message.string = message.string.replace('\r', '')
 	if (message.string[0] != '~' && message.string[0] != '?') return;
@@ -204,72 +202,9 @@ fn.processCommand = async message => {
 	};
 
 	message.args = message.string.split('"').map(a => a.split(' ')).flatMap(a => a.indexOf('')!=-1?a.filter(v => v!=''):a);
-	
-	if (message.logTo.discord) {
-		//Mixu spaghetti code begin
-		message.args = message.args.map(message => {
-			if (message.match(/<(.*?)>/g)) count++;
-			return message.replace(/<(.*?)>/g, "&"+count);
-		})
-		message.playerToSearch = [...message.string.matchAll(/<(.*?)>/g)].map(v=>v[1])
-		let foundPlayerMatches = []
-		if (message.playerToSearch.length > 0) {
-			//Has players to search for
-			message.playerToSearch.forEach(pNameStart => {
-				if (playerList.length > 0 && message.playerToSearch.length > 0) {
-					let tempArray = []
-					playerList.forEach(v => {
-						if (v.name.match(pNameStart)) {
-							//found player, slap full name into playerMatches
-							tempArray.push(v.name)
-						}
-					})
-					foundPlayerMatches.push(tempArray)
-				}
-			})
-		}
-		let currArgToReplace = 0
 
-		for (playerNameArray of foundPlayerMatches) {
-			let playerIndex = 0
-			playerIndexArray = playerNameArray.map(x=>{playerIndex++; return playerIndex.toString()})//Give every player in playerNameArray a number, use number in getResponse
+	message.args = message.logTo.discord ? await parsePlayers("DISCORD", message) : message.args
 
-			const [response, user] = await modul.call("discord", "getResponse", {user: message.author.id, channel: message.channel.id, validResponses: playerIndexArray, validResponsesDesc: playerNameArray, timeout: 10})
-			if (response == "INVALID") return await modul.logg({
-				console: `${sS.c['red'].c}Invalid choice by ${user}! Aborting command execution.${sS.c['reset'].c}`,
-				minecraft: `tellraw ${message.logTo.user} ${JSON.stringify([{
-					"text": "Invalid choice! Aborting command execution.",
-					"color": "red"
-				}])}`,
-				discord: {
-					string: null,
-					embed: {
-						color: parseInt(sS.c['red'].h, 16),
-						title: `Invalid choice by ${user}! Aborting command execution.`,
-						timestamp: new Date()
-					}
-				}
-			}, message.logTo);
-			if (response == "TIMEOUT") return await modul.logg({
-				console: `${sS.c['red'].c}Timed out for ${user}! Aborting command execution.${sS.c['reset'].c}`,
-				minecraft: `tellraw ${message.logTo.user} ${JSON.stringify([{
-					"text": "Timed out! Aborting command execution.",
-					"color": "red"
-				}])}`,
-				discord: {
-					string: null,
-					embed: {
-						color: parseInt(sS.c['red'].h, 16),
-						title: `Timed out for ${user}! Aborting command execution.`,
-						timestamp: new Date()
-					}
-				}
-			}, message.logTo);
-			currArgToReplace++;
-			message.args[message.args.findIndex(x=>x=="&"+currArgToReplace)] = playerNameArray[parseInt(response)-1]
-		}
-	}
-	//Mixu spaghetti code end
 	let commandName = null;
 	let inputCommand = message.string.slice(1, message.string.length)
 	Object.keys(commands).forEach(cmd => {
@@ -321,6 +256,7 @@ fn.processCommand = async message => {
 		await modul.logg(result, message.logTo).catch(err => modul.lErr(err, 'Command executed. Error while processing output.', message.logTo))
 	})
 }
+
 function commandMatch(string, commandString) {
 	if (string.toLowerCase() == commandString.toLowerCase()) return true; // If its a identical match pass it
 	commandString = commandString+' '; // Otherwise add a space to avoid continuous commands and check for dynamic commands
@@ -328,6 +264,109 @@ function commandMatch(string, commandString) {
 	return false;
 }
 
+async function parsePlayers(where, message) {
+	let currReplaceArgNum = 0;
+	return new Promise(async (resolve, reject) => {
+		switch (where) {
+			case 'DISCORD':
+				let returnArgs
+				let playerToSearch
+				//Mixu spaghetti code begin
+				returnArgs = message.args.map(message => {
+					if (message.match(/<(.*?)>/g)) currReplaceArgNum++;
+					return message.replace(/<(.*?)>/g, "&"+currReplaceArgNum);
+				})
+				playerToSearch = [...message.string.matchAll(/<(.*?)>/g)].map(v=>v[1])
+
+				let foundPlayerMatches = []
+
+				if (playerToSearch.length > 0) {
+					//Has players to search for
+					playerToSearch.forEach(async pNameStart => {
+						if (playerList.length > 0 && playerToSearch.length > 0) {
+							let tempArray = []
+							playerList.forEach(v => {
+								if (v.name.match(pNameStart)) {
+									//found player, slap full name into playerMatches
+									tempArray.push(v.name)
+								}
+							})
+
+							if (tempArray.length <= 0) {await modul.logg({
+								console: `${sS.c['red'].c}No players found with search ${pNameStart}! Aborting command execution.${sS.c['reset'].c}`,
+								minecraft: `tellraw ${message.logTo.user} No players found with search ${pNameStart}! Aborting command execution.`,
+								discord: {
+									string: null,
+									embed: {
+										color: parseInt(sS.c['red'].h, 16),
+										title: `No players found with search ${pNameStart}! Aborting command execution.`,
+										timestamp: new Date()
+									}
+								}
+							}, message.logTo); reject("No players found")}
+							foundPlayerMatches.push(tempArray)
+						}
+					})
+				}
+				let currArgToReplace = 0
+
+				for (playerNameArray of foundPlayerMatches) {
+					if (playerNameArray.length <= 0) reject("wack shit")
+					let playerIndex = 0
+					playerIndexArray = playerNameArray.map(x=>{playerIndex++; return playerIndex.toString()})//Give every player in playerNameArray a number, use number in getResponse
+
+					const [response, user] = await modul.call("discord", "getResponse", {user: message.author.id, channel: message.channel.id, validResponses: playerIndexArray, validResponsesDesc: playerNameArray, timeout: 10})
+					if (response == "INVALID") {await modul.logg({
+						console: `${sS.c['red'].c}Invalid choice by ${user}! Aborting command execution.${sS.c['reset'].c}`,
+						minecraft: `tellraw ${message.logTo.user} ${JSON.stringify([{
+							"text": "Invalid choice! Aborting command execution.",
+							"color": "red"
+						}])}`,
+						discord: {
+							string: null,
+							embed: {
+								color: parseInt(sS.c['red'].h, 16),
+								title: `Invalid choice by ${user}! Aborting command execution.`,
+								timestamp: new Date()
+							}
+						}
+					}, message.logTo); reject("Invalid choice")}
+					if (response == "TIMEOUT") {await modul.logg({
+						console: `${sS.c['red'].c}Timed out for ${user}! Aborting command execution.${sS.c['reset'].c}`,
+						minecraft: `tellraw ${message.logTo.user} ${JSON.stringify([{
+							"text": "Timed out! Aborting command execution.",
+							"color": "red"
+						}])}`,
+						discord: {
+							string: null,
+							embed: {
+								color: parseInt(sS.c['red'].h, 16),
+								title: `Timed out for ${user}! Aborting command execution.`,
+								timestamp: new Date()
+							}
+						}
+					}, message.logTo);reject("Timed out")}
+					currArgToReplace++;
+					returnArgs[returnArgs.findIndex(x=>x=="&"+currArgToReplace)] = playerNameArray[parseInt(response)-1]
+					resolve(returnArgs)
+				}
+				break;
+			case 'CONSOLE':
+				reject("CONSOLE not supported yet")
+				break;
+
+			case 'MINECRAFT':
+				reject("MINECRAFT not supported yet")
+				break;
+			
+			default:
+				reject(`Unknown type ${where}`)
+				break;
+
+			
+		}})
+	//Mixu spaghetti code end
+}
 
 class command {
 	constructor(obj) {
@@ -359,16 +398,12 @@ class command {
 	}
 }
 
-const playersOnlineListUpdater = setInterval(refreshPlayerList, 20*1000)
+const playersOnlineUpdater = setInterval(refreshTheStuff, 20*1000)
 
-<<<<<<< Updated upstream
-async function refreshPlayerList() {
-let pingTable = await modul.call('properties', 'ping').catch(err => {/*modul.lErr(err)*/})
-=======
 async function refreshTheStuff() {
-	let pingTable = await modul.call('properties', 'ping').catch() //The error is either a timeout or data being corrupt, no need to spam console with those useless errors.
+	let pingTable = await modul.call('properties', 'ping').catch(err => {}) //The error is either a timeout or data being corrupt, no need to spam console with those useless errors.
 	if (!pingTable) return;
 	playerList = pingTable.players.online > 0 ? pingTable.players.sample : []
 }
 
-refreshPlayerList();
+refreshTheStuff();

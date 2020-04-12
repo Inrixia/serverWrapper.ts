@@ -277,7 +277,7 @@ async function checkCommandAuth(allowedCommands, message) {
 			}
 		}
 	};
-	//if (authErr) throw new Error('User not allowed to run this command.');
+
 	if (authErr) throw new Error('User not allowed to run this command.')
 }
 
@@ -304,7 +304,7 @@ async function checkDiscordAuth(message) {
 		};
 	}
 	authErr = true;
-	//if (authErr) throw new Error('User not whitelisted.');
+
 	if (authErr) throw new Error('User not whitelisted')
 }
 
