@@ -398,12 +398,12 @@ class command {
 	}
 }
 
-const playersOnlineUpdater = setInterval(refreshTheStuff, 20*1000)
+const playersOnlineUpdater = setInterval(refreshPlayerList, 20*1000)
 
-async function refreshTheStuff() {
+async function refreshPlayerList() {
 	let pingTable = await modul.call('properties', 'ping').catch(err => {}) //The error is either a timeout or data being corrupt, no need to spam console with those useless errors.
 	if (!pingTable) return;
 	playerList = pingTable.players.online > 0 ? pingTable.players.sample : []
 }
 
-refreshTheStuff();
+refreshPlayerList();
