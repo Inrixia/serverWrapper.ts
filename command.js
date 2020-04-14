@@ -190,6 +190,10 @@ process.on('message', async message => {
 	}
 });
 
+fn.parsePlayers = async args => {
+	return await parsePlayers(args.where, args.message).catch(err => {})
+}
+
 fn.processCommand = async message => {
 	message.string = message.string.replace(/\s\s+/g, ' '); // Compact multiple spaces/tabs down to one
 	message.string = message.string.replace('\r', '')
@@ -291,8 +295,8 @@ async function parsePlayers(where, message) {
 									tempArray.push(v.name)
 								}
 							})
-
-							if (tempArray.length <= 0) {await modul.logg({
+							if (tempArray.length <= 0) {
+								await modul.logg({
 								console: `${sS.c['red'].c}No players found with search ${pNameStart}! Aborting command execution.${sS.c['reset'].c}`,
 								minecraft: `tellraw ${message.logTo.user} No players found with search ${pNameStart}! Aborting command execution.`,
 								discord: {
@@ -303,11 +307,27 @@ async function parsePlayers(where, message) {
 										timestamp: new Date()
 									}
 								}
-							}, message.logTo); reject("No players found")}
-							foundPlayerMatches.push(tempArray)
+							}, message.logTo);
+							reject("No players found");
 						}
+							foundPlayerMatches.push(tempArray)
+						} else {
+							await modul.logg({
+							console: `${sS.c['red'].c}No players found with search ${pNameStart}! Aborting command execution.${sS.c['reset'].c}`,
+							minecraft: `tellraw ${message.logTo.user} No players found with search ${pNameStart}! Aborting command execution.`,
+							discord: {
+								string: null,
+								embed: {
+									color: parseInt(sS.c['red'].h, 16),
+									title: `No players found with search ${pNameStart}! Aborting command execution.`,
+									timestamp: new Date()
+								}
+							}
+						}, message.logTo); 
+						reject("No players found");
+					}
 					})
-				}
+				} else resolve(message.args)
 				let currArgToReplace = 0
 
 				for (playerNameArray of foundPlayerMatches) {
