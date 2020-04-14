@@ -316,6 +316,16 @@ async function processDiscordMessage(message) {
 		if (message.string[0] == '~' || message.string[0] == '?') await modul.call('command', 'processCommand', message)
 		else if (message.string[0] == '!') {
 			await modul.call('discord', 'addTempManagementChannel', message.channel.id)
+			message.args = message.string.split('"').map(a => a.split(' ')).flatMap(a => a.indexOf('')!=-1?a.filter(v => v!=''):a);
+			message.logTo = {
+				console: true,
+				discord: { channel: message.channel.id },
+				minecraft: undefined,
+				user: message.user
+			}
+			temp = await modul.call('command', 'parsePlayers', {where: "DISCORD", message})
+			if (temp == undefined) return;
+			message.string = temp.join(' ')
 			await modul.call('serverWrapper', 'serverStdin', message.string.slice(1,message.length).trim()+'\n') // Message is a serverCommand
 		}
 	}
