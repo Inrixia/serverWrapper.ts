@@ -257,6 +257,14 @@ let fn = {
 			}
 		}
 		}
+		fn.deletePlayerdata = async message => {
+			if (!message.author) {return {
+				console: `No.`,
+				minecraft: `tellraw ${message.logTo.user} No.`
+			}}
+			let response = await deletePlayerdata({username: message.args[1], discordUserId: message.author.id, discordChannel: message.channel.id, message: message})
+			return response;
+		}
 		modul.event.on('fetchCommands', () => {
 			modul.emit('exportCommands', [{
 				name: 'tpo',
@@ -354,13 +362,23 @@ let fn = {
 				module: thisModule,
 				description: {}
 			}, {
-				name: 'getPos',
+				name: 'getPos', 
 				exeFunc: 'getPos',
 				module: thisModule,
 				description: {}
 			}, {
 				name: 'whereIs',
 				exeFunc: 'whereIs',
+				module: thisModule,
+				description: {}
+			}, {
+				name: 'deletePlayerData',
+				exeFunc: 'deletePlayerdata',
+				module: thisModule,
+				description: {}
+			}, {
+				name: 'delPlayerdata',
+				exeFunc: 'deletePlayerdata',
 				module: thisModule,
 				description: {}
 			}])
@@ -485,4 +503,103 @@ async function getPos(args) {
 	args.health = playerData.val[playerHealthIndex].val
 	args.flying = (await modul.getObj(playerAbilities.val, 'name', 'flying')).val
 	return args
+}
+
+async function deletePlayerdata(args) {
+	if (!args.username) throw new Error('Please give a username')
+	if (!args.discordUserId) throw new Error('No discord user id given? Wot?')
+	if (!args.discordChannel) throw new Error('No discord channel given? Wot?')
+
+	let levelName = await modul.call('properties', 'getProperty', 'level-name').catch(err => reject(err))
+    let serverWorldFolder = levelName?levelName:'Cookies';
+
+	let playerObj = await modul.call('mineapi', 'getPlayer', args.username).catch(err => reject(err));
+	let playeruuid = playerObj._dirtyUUID
+
+	const path = `${serverWorldFolder}/playerdata/${playerObj._dirtyUUID}.dat`
+	if (!fs.existsSync(path)) {
+		 return {
+			 console: `${sS.c['red'].c}File ${playerObj._dirtyUUID}.dat does not exist! Nothing to delete!${sS.c['reset'].c}`,
+			 minecraft: `tellraw ${args.message.logTo.user} ${JSON.stringify([
+				 {
+					 "text": `File ${playerObj._dirtyUUID}.dat does not exist! Nothing to delete!`,
+					 "color": "red"
+				 }
+			 ])}`,
+			 discord: {
+				string: null,
+				embed: {
+					color: parseInt(800000, 16),
+					title: `File ${playerObj._dirtyUUID}.dat does not exist! Nothing to delete!`,
+					timestamp: new Date()
+				}
+			}
+		 }
+	}
+
+	const responseArgs = {
+		user: args.discordUserId,
+		channel: args.discordChannel,
+		validResponses: ["Yes", "No"],
+		validResponsesDesc: [`Delete the file ${playeruuid}.dat`, `Don't delete the file ${playeruuid}.dat`],
+		timeout: 5,
+		title: `Delete ${playeruuid}.dat?`
+	}
+	const [userResponse, user] = await modul.call('discord', 'getResponse', responseArgs)
+
+	if (userResponse != "Yes") {
+		return {
+			console: userResponse=="No"?`Chose no, not deleting ${playeruuid}.dat`:userResponse=="INVALID"?`Invalid response, not deleting ${playeruuid}.dat`:`Timeout, not deleting ${playeruuid}.dat`,
+			minecraft: `tellraw ${args.message.logTo.user} ${userResponse=="No"?`Chose no, not deleting ${playeruuid}.dat`:userResponse=="INVALID"?`Invalid response, not deleting ${playeruuid}.dat`:`Timeout, not deleting ${playeruuid}.dat`}`,
+			discord : {
+				string: null,
+				embed: {
+					color: parseInt(800000, 16),
+					title: userResponse=="No"?`Chose no, not deleting ${playeruuid}.dat`:userResponse=="INVALID"?`Invalid response, not deleting ${playeruuid}.dat`:`Timeout, not deleting ${playeruuid}.dat`,
+					timestamp: new Date()
+				}
+			}
+		}
+	}
+	if (!fs.existsSync(path)) {//Some asshole is anyway going to delete the file before the unlink to try and break this command
+		return {
+			console: `${sS.c['red'].c}File ${playerObj._dirtyUUID}.dat does not exist! Nothing to delete!${sS.c['reset'].c}`,
+			minecraft: `tellraw ${args.message.logTo.user} ${JSON.stringify([
+				{
+					"text": `File ${playerObj._dirtyUUID}.dat does not exist! Nothing to delete!`,
+					"color": "red"
+				}
+			])}`,
+			discord: {
+			   string: null,
+			   embed: {
+				   color: parseInt(800000, 16),
+				   title: `File ${playerObj._dirtyUUID}.dat does not exist! Nothing to delete!`,
+				   timestamp: new Date()
+			   }
+		   }
+		}
+   }
+   const success = await new Promise((resolve, reject) => {
+	   fs.unlink(path, (err, data) => {
+		   if (err) reject(err);
+		   else resolve(true);
+	   })
+   })
+
+   if (success) return {
+	   console: `${sS.c['green'].c} Deleted ${playeruuid}.dat${sS.c['reset'].c}`,
+	   minecraft: `tellraw ${args.message.logTo.user} ${JSON.stringify([{
+		   "text": `Deleted ${playeruuid}.dat`,
+		   "color": "green"
+	   }])}`,
+	   discord: {
+		   string: null,
+		   embed: {
+			   color: 2346373,
+			   title: `Deleted ${playeruuid}.dat`,
+			   timestamp: new Date()
+		   }
+	   }
+   }
 }

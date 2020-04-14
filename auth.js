@@ -261,6 +261,7 @@ process.on('message', async message => {
 });
 
 async function checkCommandAuth(allowedCommands, message) {
+	let authErr = false;
 	for (command in allowedCommands) {
 		if (!allowedCommands[command.toLowerCase()].expired && (allowedCommands[command.toLowerCase()].expiresAt === false || new Date(allowedCommands[command.toLowerCase()].expiresAt) > new Date())) { // If permission has not expired
 			if (command == "*") return true;
@@ -271,15 +272,18 @@ async function checkCommandAuth(allowedCommands, message) {
 			if (allowedCommands[command.toLowerCase()].expired && (message.string.slice(0, command.length) == command)) throw new Error('Allowed use of this command has expired.');
 			if (!allowedCommands[command.toLowerCase()].expired) {
 				allowedCommands[command.toLowerCase()].expired = true;
+				authErr = true;
 				await modul.saveSettings(sS, mS)
 			}
 		}
 	};
-	if (!authErr) throw new Error('User not allowed to run this command.');
+
+	if (authErr) throw new Error('User not allowed to run this command.')
 }
 
 
 async function checkDiscordAuth(message) {
+	let authErr = false
 	if (mS.whitelisted_discord_users[message.author.id]) { // If user matches a whitelisted user
 		let whitelisted_user = mS.whitelisted_discord_users[message.author.id];
 		if (whitelisted_user['Username'] != message.author.username) {
@@ -299,7 +303,9 @@ async function checkDiscordAuth(message) {
 			if (await checkCommandAuth(whitelisted_role.allowedCommands, message)) return true;
 		};
 	}
-	if (!authErr) throw new Error('User not whitelisted.');
+	authErr = true;
+
+	if (authErr) throw new Error('User not whitelisted')
 }
 
 async function processDiscordMessage(message) {

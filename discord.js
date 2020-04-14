@@ -16,6 +16,9 @@ let chatChannel = null;
 let discordData = "";
 let flatMessages = {};
 
+let awaitResponseFrom = {};
+let setMsgStatusFor = {};
+
 let fn = {
 	init: async message => {
 		[sS, mS] = modul.loadSettings(message)
@@ -45,6 +48,9 @@ let fn = {
 			managementChannels.push(managementChannel);
 			setTimeout(() => managementChannels.pop(managementChannel), 500)
 		}
+	},
+	getResponse: async args => {
+		return await getUserResponse(args)
 	}
 }
 
@@ -104,6 +110,7 @@ discord.on('message', async message => {
 			avatarURL: ((discord.user||{}).avatarURL||null)
 		},
 		author: {
+			//user: ((message.author||{})),
 			id: ((message.author||{}).id||null),
 			username: ((message.author||{}).username||null),
 			avatarURL: ((message.author||{}).avatarURL||null)
@@ -193,3 +200,91 @@ async function serverStdout(string) {
 		}
 	}, mS.messageFlushRate)
 }
+
+async function getUserResponse(args) {
+	let {user, channel, validResponses, validResponsesDesc, timeout, title, description} = args;
+
+	if (validResponses.length <= 0) return new Promise((resolve, reject) => reject(new Error("Don't give empty arrays ya doofus")))
+
+	if (!title) title = `Select an option`
+	if (!validResponsesDesc) validResponsesDesc = validResponses.map(r=>"No description given.")
+
+	if (validResponses.length == 1) return new Promise((resolve, reject) => resolve(validResponses[0]))
+
+	if (!setMsgStatusFor[user]) setMsgStatusFor[user] = false;
+	if (!awaitResponseFrom[user]) awaitResponseFrom[user] = validResponses
+
+	let cleared = false;
+	let userProfile = await discord.fetchUser(user)
+
+	return new Promise(async (resolve, reject) => {
+		let send = {
+			embed: {
+				title,
+    			color: 16776960,
+				timestamp: new Date(),
+				fields: [],
+				footer: {
+					text: `${timeout} seconds to pick`
+				}
+			}
+		}
+		if (description) send.embed.description = description
+		validResponses.map((thing, index) => {
+			send.embed.fields.push({
+				name: thing,
+				value: validResponsesDesc[index]
+			})})
+		
+		let embedToEdit = send
+		let sentMessage = await discord.channels.get(channel).send(send)
+		let timeLeft = timeout
+		let editer = setInterval(async () => {
+			timeLeft--;
+			let toSend = embedToEdit
+			toSend.embed.footer.text = timeLeft>0?`${timeLeft} seconds to pick`:"Timed out"
+			if (setMsgStatusFor[user]) {toSend.embed.footer.text = setMsgStatusFor[user];}
+			sentMessage.edit(toSend)
+			if (setMsgStatusFor[user]) {
+				clearInterval(editer)
+				delete setMsgStatusFor[user]
+			}
+			if (timeLeft<=0) clearInterval(editer)
+		}, 1000)
+		discord.on("message", handleTheStuff)
+
+		let responseTimeout = setTimeout(async () => {
+			if (cleared) return; //You can NEVER be too safe
+			delete awaitResponseFrom[user];
+			resolve(["TIMEOUT", userProfile.username]);
+		}, timeout*1000)
+
+		async function handleTheStuff(message) {
+			if (message.author.id != user) return;
+			//If nothing to wait for/wrong channel, return
+			if (awaitResponseFrom.length <= 0 || message.channel.id != channel) return;
+			discord.off("message", handleTheStuff)
+			//For every entry in the table thingy
+			for (let [k, v] of Object.entries(awaitResponseFrom)) {
+				//Message author matches wanted author
+				if (message.author.id == k) {
+					let username = message.author.username
+					v.forEach((t, i) => {
+						//If response = valid response
+						if (message.content.toLowerCase().trim() == t.toString().toLowerCase().trim()) {
+							cleared = true;
+							clearTimeout(responseTimeout)
+							setMsgStatusFor[user] = "Responded with "+t
+							delete awaitResponseFrom[user]
+							resolve([t, username])
+						}
+					})
+					setMsgStatusFor[user] = setMsgStatusFor[user]?setMsgStatusFor[user]:"Invalid"
+					resolve(["INVALID", username])
+				}
+			}
+		}
+		
+	})
+}
+//Hard-to-read code end
