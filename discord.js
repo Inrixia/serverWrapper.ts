@@ -40,11 +40,11 @@ let fn = {
 		})
 	},
 	discordStdin: async message => {
-		if (message.channel) await discord.channels.get(message.channel).send(message.msg)
+		if (message.channel) await discord.channels.cache.get(message.channel).send(message.msg)
 	},
 	addTempManagementChannel: async channel => {
 		if (mS.managementChannels.indexOf(channel) == -1) {
-			let managementChannel = discord.channels.get(channel)
+			let managementChannel = discord.channels.cache.get(channel)
 			managementChannels.push(managementChannel);
 			setTimeout(() => managementChannels.pop(managementChannel), 500)
 		}
@@ -73,13 +73,13 @@ async function openDiscord() {
 	// Fetch discordToken to use and display it at launch
 	console.log(`Using Discord Token: ${sS.c[sS.modules['discord'].color].c}${mS.discordToken}${sS.c['reset'].c}`);
 	await discord.login(mS.discordToken);
-	discord.color = (await modul.call('color', 'getColor', discord.user.avatarURL)).int
+	discord.color = (await modul.call('color', 'getColor', discord.user.avatarURL({format: "png"}))).int
 }
 
 // On discord client login
 discord.on('ready', () => {
-	mS.managementChannels.forEach(mChannelId => managementChannels.push(discord.channels.get(mChannelId)))
-	if (mS.chatLink.channelId) chatChannel = discord.channels.get(mS.chatLink.channelId);
+	mS.managementChannels.forEach(mChannelId => managementChannels.push(discord.channels.cache.get(mChannelId)))
+	if (mS.chatLink.channelId) chatChannel = discord.channels.cache.get(mS.chatLink.channelId);
 	properties.parse('./server.properties', {path: true}, (err, properties) => {
 		if (err) modul.lErr(err);
 		else discord.user.setActivity(properties.motd.replace(/§./g, '').replace(/\n.*/g, '').replace('// Von Spookelton - ', '').replace(' \\\\', ''), { type: 'WATCHING' })
@@ -95,7 +95,7 @@ discord.on('message', async message => {
 		.replace("%message%", message.toString().trim())
 		return await modul.call('serverWrapper', 'serverStdin', `/tellraw @a ${msg}\n`);
 	}
-	if (mS.managementChannels.indexOf(message.channel.id) == -1 && !message.isMemberMentioned(discord.user)) return;
+	if (mS.managementChannels.indexOf(message.channel.id) == -1 && !message.mentions.has(message.guild.member(discord.user))) return;
 	let discordMessage = {
 		channel : {
 			id: ((message.channel||{}).id||null),
@@ -107,16 +107,16 @@ discord.on('message', async message => {
 			id: ((discord.user||{}).id||null),
 			username: ((discord.user||{}).username||null),
 			avatar: ((discord.user||{}).avatar||null),
-			avatarURL: ((discord.user||{}).avatarURL||null)
+			avatarURL: ((discord.user||{}).avatarURL({format: "png"})||null)
 		},
 		author: {
 			//user: ((message.author||{})),
 			id: ((message.author||{}).id||null),
 			username: ((message.author||{}).username||null),
-			avatarURL: ((message.author||{}).avatarURL||null)
+			avatarURL: ((message.author||{}).avatarURL({format: "png"})||null)
 		},
 		member: {
-			roles: (((message.member||{}).roles||new discordjs.Collection()).array()||null)
+			roles: (((message.member||{}).roles.cache||new discordjs.Collection()).array()||null)
 		},
 		mentions: {
 			users: (((message.mentions||{}).users||new discordjs.Collection()).map(function(mentionedUser) {
@@ -145,7 +145,7 @@ discord.on('message', async message => {
 			everyone: (((message.mentions||{}).everyone||new discordjs.Collection()).array()||null),
 		}
 	}
-	if (message.isMemberMentioned(discord.user)) discordMessage.string = message.toString().trim().slice(message.toString().trim().indexOf(' ')+1, message.toString().trim().length)
+	if (message.mentions.has(message.guild.member(discord.user))) { discordMessage.string = message.toString().trim().slice(message.toString().trim().indexOf(' ')+1, message.toString().trim().length).replace(discordjs.MessageMentions.USERS_PATTERN, "").replace(discordjs.MessageMentions.ROLES_PATTERN, "").replace(discordjs.MessageMentions.EVERYONE_PATTERN, "").trim() }
 	else discordMessage.string = message.toString().trim();
 	if (discordMessage.string) modul.emit('discordMessage', discordMessage)
 	if(chatChannel && discordMessage.channel.id === mS.chatLink.chatChannelId) {
@@ -215,7 +215,7 @@ async function getUserResponse(args) {
 	if (!awaitResponseFrom[user]) awaitResponseFrom[user] = validResponses
 
 	let cleared = false;
-	let userProfile = await discord.fetchUser(user)
+	let userProfile = await discord.users.fetch(user)
 
 	return new Promise(async (resolve, reject) => {
 		let send = {
@@ -237,7 +237,7 @@ async function getUserResponse(args) {
 			})})
 		
 		let embedToEdit = send
-		let sentMessage = await discord.channels.get(channel).send(send)
+		let sentMessage = await discord.channels.cache.get(channel).send(send)
 		let timeLeft = timeout
 		let editer = setInterval(async () => {
 			timeLeft--;

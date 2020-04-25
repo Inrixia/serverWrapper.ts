@@ -204,8 +204,8 @@ fn.processCommand = async message => {
 		minecraft: message.minecraft,
 		user: message.user
 	};
-
-	message.args = message.string.split('"').map(a => a.split(' ')).flatMap(a => a.indexOf('')!=-1?a.filter(v => v!=''):a);
+	
+	message.args = message.string.search('"')!=-1?message.string.split('"').map(a => a.split(' ')).flatMap(a => a.indexOf('')!=-1?a.filter(v => v!=''):a.join(' ')):message.string.split('"').map(a => a.split(' ')).flatMap(a => a.indexOf('')!=-1?a.filter(v => v!=''):a)
 
 	message.args = message.logTo.discord ? await parsePlayers("DISCORD", message) : message.args
 
