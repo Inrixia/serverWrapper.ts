@@ -30,4 +30,5 @@ ForgeTest/*.bat
 ForgeTest/Start.bat
 ForgeTest/StartWrapper.bat
 ForgeTest/startWrapper.sh
+ForgeTest/SpookUtils/
 test.js
