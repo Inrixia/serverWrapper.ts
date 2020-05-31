@@ -1,4 +1,5 @@
 const thisModule = 'command';
+const discordjs = require("discord.js");
 
 // Import core packages
 const moment = require("moment");
@@ -204,8 +205,8 @@ fn.processCommand = async message => {
 		minecraft: message.minecraft,
 		user: message.user
 	};
-
-	message.args = message.string.split('"').map(a => a.split(' ')).flatMap(a => a.indexOf('')!=-1?a.filter(v => v!=''):a);
+	
+	message.args = message.string.search('"')!=-1?message.string.split('"').map(a => a.split(' ')).flatMap(a => a.indexOf('')!=-1?a.filter(v => v!=''):a.join(' ')):message.string.split('"').map(a => a.split(' ')).flatMap(a => a.indexOf('')!=-1?a.filter(v => v!=''):a)
 
 	message.args = message.logTo.discord ? await parsePlayers("DISCORD", message) : message.args
 
@@ -277,9 +278,11 @@ async function parsePlayers(where, message) {
 				let playerToSearch
 				//Mixu spaghetti code begin
 				returnArgs = message.args.map(message => {
+					message = message.replace(discordjs.MessageMentions.USERS_PATTERN, "").replace(discordjs.MessageMentions.ROLES_PATTERN, "").replace(discordjs.MessageMentions.EVERYONE_PATTERN, "").trim()
 					if (message.match(/<(.*?)>/g)) currReplaceArgNum++;
 					return message.replace(/<(.*?)>/g, "&"+currReplaceArgNum);
 				})
+				message.string = message.string.replace(discordjs.MessageMentions.USERS_PATTERN, "").replace(discordjs.MessageMentions.ROLES_PATTERN, "").replace(discordjs.MessageMentions.EVERYONE_PATTERN, "").trim()
 				playerToSearch = [...message.string.matchAll(/<(.*?)>/g)].map(v=>v[1])
 
 				let foundPlayerMatches = []
