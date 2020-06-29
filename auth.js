@@ -176,11 +176,14 @@ const fn = {
 	commandWhitelistAdd: async message => {
 		// ~commandwhitelist add !list @Inrix 1 hour
 		// ~commandwhitelist remove !list @Inrix 1 hour
+		let whitelisted_object
 		if (message.mentions.users[0].id) {
-			let whitelisted_object = mS.whitelisted_discord_users[message.mentions.users[0].id];
+			mS.whitelisted_discord_users[message.mentions.users[0].id] = {}
+			whitelisted_object = mS.whitelisted_discord_users[message.mentions.users[0].id];
 			whitelisted_object.Username = message.mentions.users[0].username;
 		} else if (message.mentions.roles[0].id) {
-			let whitelisted_object = mS.whitelisted_discord_roles[message.mentions.roles[0].id];
+			mS.whitelisted_discord_roles[message.mentions.roles[0].id] = {}
+			whitelisted_object = mS.whitelisted_discord_roles[message.mentions.roles[0].id];
 			whitelisted_object.Name = message.mentions.roles[0].name;
 		}
 		if (!whitelisted_object.allowAllCommands) whitelisted_object.allowAllCommands = false;

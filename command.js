@@ -272,18 +272,19 @@ function commandMatch(string, commandString) {
 async function parsePlayers(where, message) {
 	let currReplaceArgNum = 0;
 	return new Promise(async (resolve, reject) => {
+		if (message.args[0].toLowerCase() == "~cwremove" || message.args[0].toLowerCase() == "~cwadd") resolve(message.args)
 		switch (where) {
 			case 'DISCORD':
 				let returnArgs
 				let playerToSearch
 				//Mixu spaghetti code begin
 				returnArgs = message.args.map(message => {
-					message = message.replace(discordjs.MessageMentions.USERS_PATTERN, "").replace(discordjs.MessageMentions.ROLES_PATTERN, "").replace(discordjs.MessageMentions.EVERYONE_PATTERN, "").trim()
-					if (message.match(/<(.*?)>/g)) currReplaceArgNum++;
-					return message.replace(/<(.*?)>/g, "&"+currReplaceArgNum);
+					let msg = message.replace(discordjs.MessageMentions.USERS_PATTERN, "").replace(discordjs.MessageMentions.ROLES_PATTERN, "").replace(discordjs.MessageMentions.EVERYONE_PATTERN, "").trim()
+					if (msg.match(/<(.*?)>/g)) currReplaceArgNum++;
+					return msg.replace(/<(.*?)>/g, "&"+currReplaceArgNum);
 				})
-				message.string = message.string.replace(discordjs.MessageMentions.USERS_PATTERN, "").replace(discordjs.MessageMentions.ROLES_PATTERN, "").replace(discordjs.MessageMentions.EVERYONE_PATTERN, "").trim()
-				playerToSearch = [...message.string.matchAll(/<(.*?)>/g)].map(v=>v[1])
+				let s = message.string.replace(discordjs.MessageMentions.USERS_PATTERN, "").replace(discordjs.MessageMentions.ROLES_PATTERN, "").replace(discordjs.MessageMentions.EVERYONE_PATTERN, "").trim()
+				playerToSearch = [...s.matchAll(/<(.*?)>/g)].map(v=>v[1])
 
 				let foundPlayerMatches = []
 
