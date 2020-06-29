@@ -3,7 +3,6 @@
   "minRamAllocation": "2G",
   "maxRamAllocation": "2G",
   "serverStartVars": [
-    "-server",
     "-XX:+UseG1GC",
     "-Dsun.rmi.dgc.server.gcInterval=2147483646",
     "-XX:+UnlockExperimentalVMOptions",
@@ -1003,7 +1002,7 @@
       "mc": ""
     }
   },
-  "server_dir": "C:\\Users\\Mikael\\VisualCode\\Spookelton wrapper\\ForgeTest",
+  "server_dir": "H:\\VisualCode\\Spookelton wrapper\\ForgeTest",
   "serverName": "ForgeTest",
   "lastStartTime": 12780
 }
