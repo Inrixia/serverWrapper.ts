@@ -1,9 +1,12 @@
 const thisModule = 'command';
+const discordjs = require("discord.js");
 
 // Import core packages
 const moment = require("moment");
 const util = require("./util/time.js")
 const modul = new [require('./modul.js')][0](thisModule);
+
+let playerList = []
 
 let commands = [];
 
@@ -15,6 +18,26 @@ const fn = {
 		modul.event.on('exportCommands', commands => fn.importCommands(commands))
 		modul.event.on('fetchCommands', () => {
 			modul.emit('exportCommands', [{
+				name: 'debug',
+				exeFunc: 'debug',
+				module: thisModule,
+				description: {
+					console: `command used for debugging`,
+					minecraft: [{
+						"text": `command used for debugging`,
+						"color": sS.c['brightWhite'].m
+					}],
+					discord: {
+						string: null,
+						embed: {
+							title: "command used for debugging",
+							description: "~debug",
+							color: parseInt(sS.c['white'].h, 16),
+							timestamp: new Date()
+						}
+					}
+				}
+			}, {
 				name: 'help',
 				exeFunc: 'help',
 				module: thisModule,
@@ -93,13 +116,20 @@ const fn = {
 		})
 		modul.emit('fetchCommands')
 	},
+	debug: async message => {
+		delete message.member
+		return {
+			console: JSON.stringify(message, null, 2),
+			minecraft: [{ "text": JSON.stringify(message, null, 2), "color": sS.c['brightWhite'].m }],
+			discord: `\`\`\`json\n${JSON.stringify(message, null, 2)}\n\`\`\``
+		}
+	},
 	help: async message => { // Outputs list of enabled commands
 		if (message.args[1]) return commands[message.args[1].toLowerCase()].help(message);
 		let	helpSummary = {
 			console: ``,
 			minecraft: [],
 			discord: {
-				string: null,
 				embed: {
 					title: "serverWrapper.js Command Info",
 					description: "Currently enabled commands.",
@@ -145,7 +175,6 @@ const fn = {
 // Set defaults
 let sS = {} // serverSettings
 let mS = {} // moduleSettings
-let authErr = null;
 
 // Module command handling
 process.on('message', async message => {
@@ -162,7 +191,11 @@ process.on('message', async message => {
 	}
 });
 
-fn.processCommand = async function (message) {
+fn.parsePlayers = async args => {
+	return await parsePlayers(args.where, args.message).catch(err => {})
+}
+
+fn.processCommand = async message => {
 	message.string = message.string.replace(/\s\s+/g, ' '); // Compact multiple spaces/tabs down to one
 	message.string = message.string.replace('\r', '')
 	if (message.string[0] != '~' && message.string[0] != '?') return;
@@ -172,7 +205,11 @@ fn.processCommand = async function (message) {
 		minecraft: message.minecraft,
 		user: message.user
 	};
-	message.args = await getCommandArgs(message.string);
+	
+	message.args = message.string.search('"')!=-1?message.string.split('"').map(a => a.split(' ')).flatMap(a => a.indexOf('')!=-1?a.filter(v => v!=''):a.join(' ')):message.string.split('"').map(a => a.split(' ')).flatMap(a => a.indexOf('')!=-1?a.filter(v => v!=''):a)
+
+	message.args = message.logTo.discord ? await parsePlayers("DISCORD", message) : message.args
+
 	let commandName = null;
 	let inputCommand = message.string.slice(1, message.string.length)
 	Object.keys(commands).forEach(cmd => {
@@ -195,7 +232,6 @@ fn.processCommand = async function (message) {
 			}]
 		)}\n`,
 		discord : {
-			string: null,
 			embed: {
 				color: parseInt(sS.c['red'].h, 16),
 				title: `The command "${message.string}" could not be matched to a known command...`,
@@ -205,8 +241,7 @@ fn.processCommand = async function (message) {
 		}
 	}, message.logTo);
 	let exeStart = new Date();
-	let commandOutput = await commands[commandName.toLowerCase()].execute(message)
-	.catch(err => {
+	let commandOutput = await commands[commandName.toLowerCase()].execute(message).catch(err => {
 		modul.lErr(err, `Error while executing command "${message.string}"`, message.logTo)
 	});
 	if (!commandOutput) return;
@@ -223,12 +258,8 @@ fn.processCommand = async function (message) {
 				embed.footer.text = exeTime
 			}
 		}
-		await modul.logg(result, message.logTo)
+		await modul.logg(result, message.logTo).catch(err => modul.lErr(err, 'Command executed. Error while processing output.', message.logTo))
 	})
-}
-
-async function getCommandArgs(string) {
-	return string.split(" ")||string;
 }
 
 function commandMatch(string, commandString) {
@@ -236,6 +267,128 @@ function commandMatch(string, commandString) {
 	commandString = commandString+' '; // Otherwise add a space to avoid continuous commands and check for dynamic commands
 	if (string.toLowerCase().slice(0, commandString.length) == commandString.toLowerCase()) return true;
 	return false;
+}
+
+async function parsePlayers(where, message) {
+	let currReplaceArgNum = 0;
+	return new Promise(async (resolve, reject) => {
+		switch (where) {
+			case 'DISCORD':
+				let returnArgs
+				let playerToSearch
+				//Mixu spaghetti code begin
+				returnArgs = message.args.map(message => {
+					message = message.replace(discordjs.MessageMentions.USERS_PATTERN, "").replace(discordjs.MessageMentions.ROLES_PATTERN, "").replace(discordjs.MessageMentions.EVERYONE_PATTERN, "").trim()
+					if (message.match(/<(.*?)>/g)) currReplaceArgNum++;
+					return message.replace(/<(.*?)>/g, "&"+currReplaceArgNum);
+				})
+				message.string = message.string.replace(discordjs.MessageMentions.USERS_PATTERN, "").replace(discordjs.MessageMentions.ROLES_PATTERN, "").replace(discordjs.MessageMentions.EVERYONE_PATTERN, "").trim()
+				playerToSearch = [...message.string.matchAll(/<(.*?)>/g)].map(v=>v[1])
+
+				let foundPlayerMatches = []
+
+				if (playerToSearch.length > 0) {
+					//Has players to search for
+					playerToSearch.forEach(async pNameStart => {
+						if (playerList.length > 0 && playerToSearch.length > 0) {
+							let tempArray = []
+							playerList.forEach(v => {
+								if (v.name.match(pNameStart)) {
+									//found player, slap full name into playerMatches
+									tempArray.push(v.name)
+								}
+							})
+							if (tempArray.length <= 0) {
+								await modul.logg({
+								console: `${sS.c['red'].c}No players found with search ${pNameStart}! Aborting command execution.${sS.c['reset'].c}`,
+								minecraft: `tellraw ${message.logTo.user} No players found with search ${pNameStart}! Aborting command execution.`,
+								discord: {
+									string: null,
+									embed: {
+										color: parseInt(sS.c['red'].h, 16),
+										title: `No players found with search ${pNameStart}! Aborting command execution.`,
+										timestamp: new Date()
+									}
+								}
+							}, message.logTo);
+							reject("No players found");
+						}
+							foundPlayerMatches.push(tempArray)
+						} else {
+							await modul.logg({
+							console: `${sS.c['red'].c}No players found with search ${pNameStart}! Aborting command execution.${sS.c['reset'].c}`,
+							minecraft: `tellraw ${message.logTo.user} No players found with search ${pNameStart}! Aborting command execution.`,
+							discord: {
+								string: null,
+								embed: {
+									color: parseInt(sS.c['red'].h, 16),
+									title: `No players found with search ${pNameStart}! Aborting command execution.`,
+									timestamp: new Date()
+								}
+							}
+						}, message.logTo); 
+						reject("No players found");
+					}
+					})
+				} else resolve(message.args)
+				let currArgToReplace = 0
+
+				for (playerNameArray of foundPlayerMatches) {
+					if (playerNameArray.length <= 0) reject("wack shit")
+					let playerIndex = 0
+					playerIndexArray = playerNameArray.map(x=>{playerIndex++; return playerIndex.toString()})//Give every player in playerNameArray a number, use number in getResponse
+
+					const [response, user] = await modul.call("discord", "getResponse", {user: message.author.id, channel: message.channel.id, validResponses: playerIndexArray, validResponsesDesc: playerNameArray, timeout: 10})
+					if (response == "INVALID") {await modul.logg({
+						console: `${sS.c['red'].c}Invalid choice by ${user}! Aborting command execution.${sS.c['reset'].c}`,
+						minecraft: `tellraw ${message.logTo.user} ${JSON.stringify([{
+							"text": "Invalid choice! Aborting command execution.",
+							"color": "red"
+						}])}`,
+						discord: {
+							string: null,
+							embed: {
+								color: parseInt(sS.c['red'].h, 16),
+								title: `Invalid choice by ${user}! Aborting command execution.`,
+								timestamp: new Date()
+							}
+						}
+					}, message.logTo); reject("Invalid choice")}
+					if (response == "TIMEOUT") {await modul.logg({
+						console: `${sS.c['red'].c}Timed out for ${user}! Aborting command execution.${sS.c['reset'].c}`,
+						minecraft: `tellraw ${message.logTo.user} ${JSON.stringify([{
+							"text": "Timed out! Aborting command execution.",
+							"color": "red"
+						}])}`,
+						discord: {
+							string: null,
+							embed: {
+								color: parseInt(sS.c['red'].h, 16),
+								title: `Timed out for ${user}! Aborting command execution.`,
+								timestamp: new Date()
+							}
+						}
+					}, message.logTo);reject("Timed out")}
+					currArgToReplace++;
+					returnArgs[returnArgs.findIndex(x=>x=="&"+currArgToReplace)] = playerNameArray[parseInt(response)-1]
+					resolve(returnArgs)
+				}
+				break;
+			case 'CONSOLE':
+				reject("CONSOLE not supported yet")
+				break;
+
+			case 'MINECRAFT':
+				reject("MINECRAFT not supported yet")
+				break;
+			
+			default:
+				reject(`Unknown type ${where}`)
+				break;
+
+			
+		}})
+	//Mixu spaghetti code end
 }
 
 class command {
@@ -267,3 +420,13 @@ class command {
 		})
 	}
 }
+
+const playersOnlineUpdater = setInterval(refreshPlayerList, 20*1000)
+
+async function refreshPlayerList() {
+	let pingTable = await modul.call('properties', 'ping').catch(err => {}) //The error is either a timeout or data being corrupt, no need to spam console with those useless errors.
+	if (!pingTable) return;
+	playerList = pingTable.players.online > 0 ? pingTable.players.sample : []
+}
+
+refreshPlayerList();

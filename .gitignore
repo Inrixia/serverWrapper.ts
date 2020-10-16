@@ -21,4 +21,14 @@ ForgeTest/*.jar
 ForgeTest/ops.json
 ForgeTest/ServerStart.bat
 ForgeTest/user*
+ForgeTest/*.backup
 ForgeTest/whitelist.json
+ForgeTest/startWrapper.sh
+ForgeTest/server.properties
+ForgeTest/Start*
+ForgeTest/*.bat
+ForgeTest/Start.bat
+ForgeTest/StartWrapper.bat
+ForgeTest/startWrapper.sh
+ForgeTest/SpookUtils/
+test.js
