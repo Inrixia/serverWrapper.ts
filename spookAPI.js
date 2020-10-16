@@ -12,7 +12,7 @@ let fn = {
 	init: async message => {
         [sS, mS] = modul.loadSettings(message)
     },
-    getSpookREST: async name => return await util.pRequestGet(`${mS.spookREST}/${name}`)
+    getSpookREST: async name => await util.pRequestGet(`${mS.spookREST}/${name}`)
 };
 
 // Module command handling
