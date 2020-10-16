@@ -126,7 +126,7 @@ let fn = {
 		return await new Promise((resolve, reject) => mcping('localhost', serverPort, (err, res) => {
 			if (err) reject(new Error(err));
 			else resolve(res);
-		}, 2000))
+		}, 1000))
 	},
 	getProperty: async propertyKey => {
 		return (await pProp())[propertyKey];

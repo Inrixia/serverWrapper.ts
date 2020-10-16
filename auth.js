@@ -261,7 +261,6 @@ process.on('message', async message => {
 });
 
 async function checkCommandAuth(allowedCommands, message) {
-	let authErr = false;
 	for (command in allowedCommands) {
 		if (!allowedCommands[command.toLowerCase()].expired && (allowedCommands[command.toLowerCase()].expiresAt === false || new Date(allowedCommands[command.toLowerCase()].expiresAt) > new Date())) { // If permission has not expired
 			if (command == "*") return true;
@@ -272,18 +271,15 @@ async function checkCommandAuth(allowedCommands, message) {
 			if (allowedCommands[command.toLowerCase()].expired && (message.string.slice(0, command.length) == command)) throw new Error('Allowed use of this command has expired.');
 			if (!allowedCommands[command.toLowerCase()].expired) {
 				allowedCommands[command.toLowerCase()].expired = true;
-				authErr = true;
 				await modul.saveSettings(sS, mS)
 			}
 		}
 	};
-
-	if (authErr) throw new Error('User not allowed to run this command.')
+	if (!authErr) throw new Error('User not allowed to run this command.');
 }
 
 
 async function checkDiscordAuth(message) {
-	let authErr = false
 	if (mS.whitelisted_discord_users[message.author.id]) { // If user matches a whitelisted user
 		let whitelisted_user = mS.whitelisted_discord_users[message.author.id];
 		if (whitelisted_user['Username'] != message.author.username) {
@@ -303,9 +299,7 @@ async function checkDiscordAuth(message) {
 			if (await checkCommandAuth(whitelisted_role.allowedCommands, message)) return true;
 		};
 	}
-	authErr = true;
-
-	if (authErr) throw new Error('User not whitelisted')
+	if (!authErr) throw new Error('User not whitelisted.');
 }
 
 async function processDiscordMessage(message) {
@@ -316,16 +310,6 @@ async function processDiscordMessage(message) {
 		if (message.string[0] == '~' || message.string[0] == '?') await modul.call('command', 'processCommand', message)
 		else if (message.string[0] == '!') {
 			await modul.call('discord', 'addTempManagementChannel', message.channel.id)
-			message.args = message.string.split('"').map(a => a.split(' ')).flatMap(a => a.indexOf('')!=-1?a.filter(v => v!=''):a);
-			message.logTo = {
-				console: true,
-				discord: { channel: message.channel.id },
-				minecraft: undefined,
-				user: message.user
-			}
-			temp = await modul.call('command', 'parsePlayers', {where: "DISCORD", message})
-			if (temp == undefined) return;
-			message.string = temp.join(' ')
 			await modul.call('serverWrapper', 'serverStdin', message.string.slice(1,message.length).trim()+'\n') // Message is a serverCommand
 		}
 	}

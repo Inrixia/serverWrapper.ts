@@ -16,9 +16,6 @@ let chatChannel = null;
 let discordData = "";
 let flatMessages = {};
 
-let awaitResponseFrom = {};
-let setMsgStatusFor = {};
-
 let fn = {
 	init: async message => {
 		[sS, mS] = modul.loadSettings(message)
@@ -40,17 +37,14 @@ let fn = {
 		})
 	},
 	discordStdin: async message => {
-		if (message.channel) await discord.channels.cache.get(message.channel).send(message.msg)
+		if (message.channel) await discord.channels.get(message.channel).send(message.msg)
 	},
 	addTempManagementChannel: async channel => {
 		if (mS.managementChannels.indexOf(channel) == -1) {
-			let managementChannel = discord.channels.cache.get(channel)
+			let managementChannel = discord.channels.get(channel)
 			managementChannels.push(managementChannel);
 			setTimeout(() => managementChannels.pop(managementChannel), 500)
 		}
-	},
-	getResponse: async args => {
-		return await getUserResponse(args)
 	}
 }
 
@@ -73,13 +67,13 @@ async function openDiscord() {
 	// Fetch discordToken to use and display it at launch
 	console.log(`Using Discord Token: ${sS.c[sS.modules['discord'].color].c}${mS.discordToken}${sS.c['reset'].c}`);
 	await discord.login(mS.discordToken);
-	discord.color = (await modul.call('color', 'getColor', discord.user.avatarURL({format: "png"}))).int
+	discord.color = (await modul.call('color', 'getColor', discord.user.avatarURL)).int
 }
 
 // On discord client login
 discord.on('ready', () => {
-	mS.managementChannels.forEach(mChannelId => managementChannels.push(discord.channels.cache.get(mChannelId)))
-	if (mS.chatLink.channelId) chatChannel = discord.channels.cache.get(mS.chatLink.channelId);
+	mS.managementChannels.forEach(mChannelId => managementChannels.push(discord.channels.get(mChannelId)))
+	if (mS.chatLink.channelId) chatChannel = discord.channels.get(mS.chatLink.channelId);
 	properties.parse('./server.properties', {path: true}, (err, properties) => {
 		if (err) modul.lErr(err);
 		else discord.user.setActivity(properties.motd.replace(/§./g, '').replace(/\n.*/g, '').replace('// Von Spookelton - ', '').replace(' \\\\', ''), { type: 'WATCHING' })
@@ -95,7 +89,7 @@ discord.on('message', async message => {
 		.replace("%message%", message.toString().trim())
 		return await modul.call('serverWrapper', 'serverStdin', `/tellraw @a ${msg}\n`);
 	}
-	if (mS.managementChannels.indexOf(message.channel.id) == -1 && !message.mentions.has(message.guild.member(discord.user))) return;
+	if (!(mS.managementChannels.indexOf(message.channel.id) > -1)) return;
 	let discordMessage = {
 		channel : {
 			id: ((message.channel||{}).id||null),
@@ -107,16 +101,15 @@ discord.on('message', async message => {
 			id: ((discord.user||{}).id||null),
 			username: ((discord.user||{}).username||null),
 			avatar: ((discord.user||{}).avatar||null),
-			avatarURL: ((discord.user||{}).avatarURL({format: "png"})||null)
+			avatarURL: ((discord.user||{}).avatarURL||null)
 		},
 		author: {
-			//user: ((message.author||{})),
 			id: ((message.author||{}).id||null),
 			username: ((message.author||{}).username||null),
-			avatarURL: ((message.author||{}).avatarURL({format: "png"})||null)
+			avatarURL: ((message.author||{}).avatarURL||null)
 		},
 		member: {
-			roles: (((message.member||{}).roles.cache||new discordjs.Collection()).array()||null)
+			roles: (((message.member||{}).roles||new discordjs.Collection()).array()||null)
 		},
 		mentions: {
 			users: (((message.mentions||{}).users||new discordjs.Collection()).map(function(mentionedUser) {
@@ -145,7 +138,7 @@ discord.on('message', async message => {
 			everyone: (((message.mentions||{}).everyone||new discordjs.Collection()).array()||null),
 		}
 	}
-	if (message.mentions.has(message.guild.member(discord.user))) { discordMessage.string = message.toString().trim().slice(message.toString().trim().indexOf(' ')+1, message.toString().trim().length).replace(discordjs.MessageMentions.USERS_PATTERN, "").replace(discordjs.MessageMentions.ROLES_PATTERN, "").replace(discordjs.MessageMentions.EVERYONE_PATTERN, "").trim() }
+	if (message.isMemberMentioned(discord.user)) discordMessage.string = message.toString().trim().slice(message.toString().trim().indexOf(' ')+1, message.toString().trim().length)
 	else discordMessage.string = message.toString().trim();
 	if (discordMessage.string) modul.emit('discordMessage', discordMessage)
 	if(chatChannel && discordMessage.channel.id === mS.chatLink.chatChannelId) {
@@ -200,91 +193,3 @@ async function serverStdout(string) {
 		}
 	}, mS.messageFlushRate)
 }
-
-async function getUserResponse(args) {
-	let {user, channel, validResponses, validResponsesDesc, timeout, title, description} = args;
-
-	if (validResponses.length <= 0) return new Promise((resolve, reject) => reject(new Error("Don't give empty arrays ya doofus")))
-
-	if (!title) title = `Select an option`
-	if (!validResponsesDesc) validResponsesDesc = validResponses.map(r=>"No description given.")
-
-	if (validResponses.length == 1) return new Promise((resolve, reject) => resolve(validResponses[0]))
-
-	if (!setMsgStatusFor[user]) setMsgStatusFor[user] = false;
-	if (!awaitResponseFrom[user]) awaitResponseFrom[user] = validResponses
-
-	let cleared = false;
-	let userProfile = await discord.users.fetch(user)
-
-	return new Promise(async (resolve, reject) => {
-		let send = {
-			embed: {
-				title,
-    			color: 16776960,
-				timestamp: new Date(),
-				fields: [],
-				footer: {
-					text: `${timeout} seconds to pick`
-				}
-			}
-		}
-		if (description) send.embed.description = description
-		validResponses.map((thing, index) => {
-			send.embed.fields.push({
-				name: thing,
-				value: validResponsesDesc[index]
-			})})
-		
-		let embedToEdit = send
-		let sentMessage = await discord.channels.cache.get(channel).send(send)
-		let timeLeft = timeout
-		let editer = setInterval(async () => {
-			timeLeft--;
-			let toSend = embedToEdit
-			toSend.embed.footer.text = timeLeft>0?`${timeLeft} seconds to pick`:"Timed out"
-			if (setMsgStatusFor[user]) {toSend.embed.footer.text = setMsgStatusFor[user];}
-			sentMessage.edit(toSend)
-			if (setMsgStatusFor[user]) {
-				clearInterval(editer)
-				delete setMsgStatusFor[user]
-			}
-			if (timeLeft<=0) clearInterval(editer)
-		}, 1000)
-		discord.on("message", handleTheStuff)
-
-		let responseTimeout = setTimeout(async () => {
-			if (cleared) return; //You can NEVER be too safe
-			delete awaitResponseFrom[user];
-			resolve(["TIMEOUT", userProfile.username]);
-		}, timeout*1000)
-
-		async function handleTheStuff(message) {
-			if (message.author.id != user) return;
-			//If nothing to wait for/wrong channel, return
-			if (awaitResponseFrom.length <= 0 || message.channel.id != channel) return;
-			discord.off("message", handleTheStuff)
-			//For every entry in the table thingy
-			for (let [k, v] of Object.entries(awaitResponseFrom)) {
-				//Message author matches wanted author
-				if (message.author.id == k) {
-					let username = message.author.username
-					v.forEach((t, i) => {
-						//If response = valid response
-						if (message.content.toLowerCase().trim() == t.toString().toLowerCase().trim()) {
-							cleared = true;
-							clearTimeout(responseTimeout)
-							setMsgStatusFor[user] = "Responded with "+t
-							delete awaitResponseFrom[user]
-							resolve([t, username])
-						}
-					})
-					setMsgStatusFor[user] = setMsgStatusFor[user]?setMsgStatusFor[user]:"Invalid"
-					resolve(["INVALID", username])
-				}
-			}
-		}
-		
-	})
-}
-//Hard-to-read code end

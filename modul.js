@@ -112,27 +112,24 @@ module.exports = class Module {
 		})
 	}
 	reject(data, promiseId, returnModule) {
-		if (returnModule != 'serverWrapper') {
-			Module.pSend(process, {
-				function: 'unicast',
-				module: returnModule,
-				message: {
-					function: 'promiseReject',
-					promiseID: promiseId,
-					return: data
-				}
-			}).catch(err => {
-				this.lErr(err, `Failed to reject promise ${promiseId}, to module ${returnModule} in ${this.moduleName}`)
-			})
-		} else {
-			Module.pSend(process, {
+		if (returnModule != 'serverWrapper') Module.pSend(process, {
+			function: 'unicast',
+			module: returnModule,
+			message: {
 				function: 'promiseReject',
 				promiseID: promiseId,
 				return: data
-			}).catch(err => {
-				this.lErr(err, `Failed to reject promise ${promiseId}, to module ${returnModule}in ${this.moduleName}`)
-			});
-		} 
+			}
+		}).catch(err => {
+			this.lErr(err, `Failed to reject promise ${promiseId}, to module ${returnModule} in ${this.moduleName}`)
+		})
+		else Module.pSend(process, {
+			function: 'promiseReject',
+			promiseID: promiseId,
+			return: data
+		}).catch(err => {
+			this.lErr(err, `Failed to reject promise ${promiseId}, to module ${returnModule}in ${this.moduleName}`)
+		});
 	}
 	async logg(logObj, logTo=null) {
 		logTo = {
@@ -165,7 +162,7 @@ module.exports = class Module {
 					timestamp: new Date()
 				}
 			}
-		}, logTo).catch(err => console.log(`\u001b[91;1mError logging Error! Found in ${this.moduleName} Look... Shits real fucked if you're this deep in errors\u001b[0m ${err.message}\n${err.stack}`))
+		}, logTo).catch(err => console.log(`\u001b[91;1mError logging Error! Found in ${this.moduleName} Look... Shits real fucked if your this deep in errors\u001b[0m ${err.message}\n${err.stack}`))
 	}
 	async saveSettings(serverSettings, moduleSettings, thisModuleName=this.thisModule, logTo=null) {
 		serverSettings.modules[thisModuleName].settings = moduleSettings;

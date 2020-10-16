@@ -284,6 +284,8 @@ let fn = {
 			}
 		}
 	},
+	test: async message => {
+	},
 	kickAll: async reason => {
 		let pingTable = await modul.call('properties', 'ping')
 		if (pingTable.players.online !== 0) {
@@ -291,22 +293,8 @@ let fn = {
 				return modul.call('serverWrapper', 'serverStdin', `kick ${player.name} ${reason||''}\n`)
 			}))
 		}
-	},
-	test: async message => {
-		/*let [response, user] = await modul.call('discord', 'getResponse', {user: message.author.id, channel: message.channel.id, validResponses: ["NAW", "YEE", "stuff"], timeout: 6}).catch(err => modul.lErr(err))
-		return {
-			discord: {
-				string: null,
-				embed: {
-					title: "it work, "+ user,
-					description: response,
-					color: parseInt(sS.c['green'].h, 16),
-					timestamp: new Date()
-				}
-			}
-		}*/
 	}
-}
+};
 
 
 // Module command handling
