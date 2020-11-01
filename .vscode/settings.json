@@ -1,3 +1,7 @@
 {
-    "debug.node.autoAttach": "on"
+	"debug.node.autoAttach": "on",
+	"editor.defaultFormatter": "dbaeumer.vscode-eslint",
+	"editor.formatOnSave": true,
+	"eslint.run": "onType",
+	"eslint.format.enable": true,
 }
