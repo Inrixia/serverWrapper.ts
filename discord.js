@@ -37,7 +37,14 @@ let fn = {
 		})
 	},
 	discordStdin: async message => {
-		if (message.channel) await discord.channels.get(message.channel).send(message.msg)
+		if (message.channel) {
+			let c = discord.channels.cache.get(message.channel) || discord.channels.resolve(message.channel)
+			if (c) await c.send(message.msg)
+			else setTimeout(async m => {
+				let c = discord.channels.cache.get(m.channel) || discord.channels.resolve(m.channel)
+				if (c) await c.send(m.msg)
+			}, 2*1000, message)
+		}
 	},
 	addTempManagementChannel: async channel => {
 		if (mS.managementChannels.indexOf(channel) == -1) {

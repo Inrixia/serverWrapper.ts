@@ -238,6 +238,129 @@ function commandMatch(string, commandString) {
 	return false;
 }
 
+async function parsePlayers(where, message) {
+	let currReplaceArgNum = 0;
+	return new Promise(async (resolve, reject) => {
+		if (message.args[0].toLowerCase() == "~cwremove" || message.args[0].toLowerCase() == "~cwadd") resolve(message.args)
+		switch (where) {
+			case 'DISCORD':
+				let returnArgs
+				let playerToSearch
+				//Mixu spaghetti code begin
+				returnArgs = message.args.map(message => {
+					let msg = message.replace(discordjs.MessageMentions.USERS_PATTERN, "").replace(discordjs.MessageMentions.ROLES_PATTERN, "").replace(discordjs.MessageMentions.EVERYONE_PATTERN, "").trim()
+					if (msg.match(/<(.*?)>/g)) currReplaceArgNum++;
+					return msg.replace(/<(.*?)>/g, "&"+currReplaceArgNum);
+				})
+				let s = message.string.replace(discordjs.MessageMentions.USERS_PATTERN, "").replace(discordjs.MessageMentions.ROLES_PATTERN, "").replace(discordjs.MessageMentions.EVERYONE_PATTERN, "").trim()
+				playerToSearch = [...s.matchAll(/<(.*?)>/g)].map(v=>v[1])
+
+				let foundPlayerMatches = []
+
+				if (playerToSearch.length > 0) {
+					//Has players to search for
+					playerToSearch.forEach(async pNameStart => {
+						if (playerList.length > 0 && playerToSearch.length > 0) {
+							let tempArray = []
+							playerList.forEach(v => {
+								if (v.name.match(pNameStart)) {
+									//found player, slap full name into playerMatches
+									tempArray.push(v.name)
+								}
+							})
+							if (tempArray.length <= 0) {
+								await modul.logg({
+								console: `${sS.c['red'].c}No players found with search ${pNameStart}! Aborting command execution.${sS.c['reset'].c}`,
+								minecraft: `tellraw ${message.logTo.user} No players found with search ${pNameStart}! Aborting command execution.`,
+								discord: {
+									string: null,
+									embed: {
+										color: parseInt(sS.c['red'].h, 16),
+										title: `No players found with search ${pNameStart}! Aborting command execution.`,
+										timestamp: new Date()
+									}
+								}
+							}, message.logTo);
+							reject("No players found");
+						}
+							foundPlayerMatches.push(tempArray)
+						} else {
+							await modul.logg({
+							console: `${sS.c['red'].c}No players found with search ${pNameStart}! Aborting command execution.${sS.c['reset'].c}`,
+							minecraft: `tellraw ${message.logTo.user} No players found with search ${pNameStart}! Aborting command execution.`,
+							discord: {
+								string: null,
+								embed: {
+									color: parseInt(sS.c['red'].h, 16),
+									title: `No players found with search ${pNameStart}! Aborting command execution.`,
+									timestamp: new Date()
+								}
+							}
+						}, message.logTo); 
+						reject("No players found");
+					}
+					})
+				} else resolve(message.args)
+				let currArgToReplace = 0
+
+				for (playerNameArray of foundPlayerMatches) {
+					if (playerNameArray.length <= 0) reject("wack shit")
+					let playerIndex = 0
+					playerIndexArray = playerNameArray.map(x=>{playerIndex++; return playerIndex.toString()})//Give every player in playerNameArray a number, use number in getResponse
+
+					const [response, user] = await modul.call("discord", "getResponse", {user: message.author.id, channel: message.channel.id, validResponses: playerIndexArray, validResponsesDesc: playerNameArray, timeout: 10})
+					if (response == "INVALID") {await modul.logg({
+						console: `${sS.c['red'].c}Invalid choice by ${user}! Aborting command execution.${sS.c['reset'].c}`,
+						minecraft: `tellraw ${message.logTo.user} ${JSON.stringify([{
+							"text": "Invalid choice! Aborting command execution.",
+							"color": "red"
+						}])}`,
+						discord: {
+							string: null,
+							embed: {
+								color: parseInt(sS.c['red'].h, 16),
+								title: `Invalid choice by ${user}! Aborting command execution.`,
+								timestamp: new Date()
+							}
+						}
+					}, message.logTo); reject("Invalid choice")}
+					if (response == "TIMEOUT") {await modul.logg({
+						console: `${sS.c['red'].c}Timed out for ${user}! Aborting command execution.${sS.c['reset'].c}`,
+						minecraft: `tellraw ${message.logTo.user} ${JSON.stringify([{
+							"text": "Timed out! Aborting command execution.",
+							"color": "red"
+						}])}`,
+						discord: {
+							string: null,
+							embed: {
+								color: parseInt(sS.c['red'].h, 16),
+								title: `Timed out for ${user}! Aborting command execution.`,
+								timestamp: new Date()
+							}
+						}
+					}, message.logTo);reject("Timed out")}
+					currArgToReplace++;
+					returnArgs[returnArgs.findIndex(x=>x=="&"+currArgToReplace)] = playerNameArray[parseInt(response)-1]
+					resolve(returnArgs)
+				}
+				break;
+			case 'CONSOLE':
+				reject("CONSOLE not supported yet")
+				break;
+
+			case 'MINECRAFT':
+				reject("MINECRAFT not supported yet")
+				break;
+			
+			default:
+				reject(`Unknown type ${where}`)
+				break;
+
+			
+		}})
+	//Mixu spaghetti code end
+}
+
 class command {
 	constructor(obj) {
 		this.name = obj.name;
