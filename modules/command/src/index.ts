@@ -5,7 +5,7 @@ import { mc, hex } from "@spookelton/wrapperHelpers/colors";
 // Import Types
 import type { LogTo, Output, Command } from "@spookelton/wrapperHelpers/types";
 import type { ThreadModule, RequiredThread } from "@inrixia/threads";
-import type { wrapperCoreExports } from "../../../serverWrapper/dist";
+import type { wrapperCoreExports } from "@spookelton/serverwrapper";
 
 const thread = (module.parent as ThreadModule).thread;
 

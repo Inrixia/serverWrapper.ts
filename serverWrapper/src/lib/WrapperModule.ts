@@ -2,8 +2,7 @@ import { Parent, ParentThread } from "@inrixia/threads";
 import chalk from "chalk";
 
 // Import Types
-import * as a from "@spookelton/wrapperhelpers/types";
-import type { RequiredModuleExports } from "@spookelton/wrapperhelpers/types";
+import type { RequiredModuleExports } from "@spookelton/wrapperHelpers/types";
 import type { WrapperModuleConfig } from "./types";
 
 /*

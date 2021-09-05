@@ -7,7 +7,6 @@
 		"chalk": "^4.1.2"
 	},
 	"devDependencies": {
-		"@spookelton/wrapperhelpers": "^1.0.0",
 		"@types/node": "^16.7.10"
 	}
 }
