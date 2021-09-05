@@ -1,0 +1,13 @@
+{
+	"name": "@spookelton/command",
+	"main": "./dist/index.js",
+	"version": "1.0.0",
+	"dependencies": {
+		"@inrixia/threads": "^3.3.2",
+		"chalk": "^4.1.2"
+	},
+	"devDependencies": {
+		"@spookelton/wrapperhelpers": "^1.0.0",
+		"@types/node": "^16.7.10"
+	}
+}

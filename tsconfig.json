@@ -1,15 +1,45 @@
 {
-	"compilerOptions": {
-		"target": "es6",
-		"module": "commonjs",
-		"moduleResolution": "node",
-		"allowJs": true,
-		"allowSyntheticDefaultImports": true,
-		"esModuleInterop": true,
-		"rootDir": "src",
-		"outDir": "out"
-	},
-	"exclude": [
-		"ForgeTest"
-	]
+	"files": [],
+	"references": [
+		{
+			"path": "./modules/backup"
+		},
+		{
+			"path": "./modules/discord"
+		},
+		{
+			"path": "./modules/command"
+		},
+		{
+			"path": "./modules/islands"
+		},
+		{
+			"path": "./modules/math"
+		},
+		{
+			"path": "./modules/mineapi"
+		},
+		{
+			"path": "./modules/nbt"
+		},
+		{
+			"path": "./modules/properties"
+		},
+		{
+			"path": "./modules/stats"
+		},
+		{
+			"path": "./modules/util"
+		},
+		{
+			"path": "./serverWrapper"
+		},
+		{
+			"path": "./wrapperHelpers"
+		}
+	],
+	"paths": {
+		"@wrapperHelpers": ["./wrapperHelpers/src"],
+		"@spookelton/math": ["./modules/math/src"]
+	}
 }

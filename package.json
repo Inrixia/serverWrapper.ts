@@ -1,0 +1,11 @@
+{
+	"name": "serverWrapperMONO",
+	"workspaces": [
+		"wrapperHelpers",
+		"serverWrapper",
+		"modules/*"
+	],
+	"scripts": {
+		"start": "tsc -b && node ./serverWrapper/dist/index.js"
+	}
+}

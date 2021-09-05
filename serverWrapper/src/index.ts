@@ -1,0 +1,135 @@
+// Server Wrapper - By @Inrix \\
+
+// Import core packages
+import path from "path";
+import db from "@inrixia/db";
+import chalk from "chalk";
+import { spawn } from "child_process";
+
+// Import Handlers
+import { consoleHandler } from "./lib/keyPressHandler";
+import WrapperModule from "./lib/WrapperModule";
+
+// Import Commands
+import * as commands from "./commands";
+
+// Import defaults
+import { defaultWrapperSettings } from "./lib/defaults";
+
+// Import Types
+import type { WrapperSettings, ColorMatchers } from "./lib/types";
+import type { ChildProcessWithoutNullStreams } from "child_process";
+
+export const wrapperSettings = db<WrapperSettings>("./wrapperSettings.json", {
+	forceCreate: true,
+	updateOnExternalChanges: true,
+	pretty: true,
+	template: defaultWrapperSettings,
+});
+export const loadedModules: Record<string, WrapperModule> = {};
+
+wrapperSettings.serverName = path.basename(process.cwd());
+
+process.on("SIGTSTP", () => console.log("Caught SIGTSTP, Dont use Ctrl-Z."));
+
+const colorMatchers: ColorMatchers = [
+	// "[" Must go first to avoid replacing color codes
+	{ match: new RegExp("\\[", "g"), replace: chalk`{blackBright [}` },
+	{ match: new RegExp("\\]", "g"), replace: chalk`{blackBright ]}` },
+	{ match: new RegExp("Server thread", "g"), replace: chalk`{greenBright Server thread}` },
+	{ match: new RegExp("INFO", "g"), replace: chalk`{cyan INFO}` },
+	{ match: new RegExp("WARN", "g"), replace: chalk`{redBright WARN}` },
+	{ match: new RegExp("ERROR", "g"), replace: chalk`{red ERROR}` },
+	{ match: new RegExp("FATAL", "g"), replace: chalk`{red FATAL}` },
+	{ match: new RegExp("FML", "g"), replace: chalk`{magentaBright FML}` },
+];
+const color = (string: string) => {
+	for (const colors of colorMatchers) string = string.replace(colors.match, colors.replace);
+	process.stdout.write("\r" + string);
+};
+
+let server: ChildProcessWithoutNullStreams | undefined;
+
+export const serverStdin = (string: string): void => {
+	process.stdout.write(string);
+	if (server !== undefined) server.stdin.write(string);
+};
+
+// Expose wrapperCore to threads
+import { Thread } from "@inrixia/threads/Thread";
+export const wrapperCoreExports = {
+	...commands,
+	serverStdin,
+	getCommands: () => ({
+		wrapperCore: Object.keys(commands),
+	}),
+};
+Thread.newProxyThread("wrapperCore", wrapperCoreExports);
+
+/*
+/ START
+*/
+(async () => {
+	await commands.restartModules(null as never);
+
+	const serverStartTime = Date.now();
+
+	console.log(
+		chalk`{cyanBright Starting server...} ${wrapperSettings.lastStartTime ? chalk`Last start took: {cyanBright ${wrapperSettings.lastStartTime}}ms` : ""}\n`
+	);
+	if (wrapperSettings.command.length === 0) {
+		console.log(
+			chalk`{redBright Hey! wrapperSettings.command is empty...}\nPlease specify a command to start the server in wrapperSettings\nFor example: "command": ["java", "-jar", "minecraft.jar"]`
+		);
+		process.exit();
+	}
+	const command: string = wrapperSettings.command[0];
+	const args: string[] = wrapperSettings.command.slice(1);
+	server = spawn(command, args, { detached: false, cwd: wrapperSettings.commandWorkingDirectory });
+
+	// Server error handling
+	server.on("error", (err) => {
+		console.log(chalk`{redBright An error occoured while attempting to start!}`);
+		throw err;
+	});
+	server.stderr.on("data", (err) => console.log(chalk`{redBright ${err}}`));
+
+	const stdoutPostStart = (string: string) => {
+		color(string.toString()); // Write line to wrapper console
+		// moduleEvent.emit("serverStdout", string.toString());
+	};
+	const stdoutPreStart = (string: string) => {
+		color(string.toString()); // Write line to wrapper console
+		if (string.includes("players online")) {
+			// "list" command has completed, server is now online
+			wrapperSettings.lastStartTime = Date.now() - serverStartTime;
+			stdoutHandler = stdoutPostStart;
+			started();
+		}
+	};
+	const started = () => console.log(chalk`Server started in {cyanBright ${wrapperSettings.lastStartTime}}ms`);
+
+	let stdoutHandler = stdoutPreStart;
+	server.stdout.on("data", stdoutHandler);
+	server.stdin.write("list\n"); // Write list to the console so we can know when the server has finished starting'
+
+	// Server shutdown handling
+	server.on("exit", async (code) => {
+		console.log(chalk`Server {redBright closed} with exit code: {cyanBright ${code}}\n{redBright Killing modules...}`);
+		for (const module of Object.values(loadedModules)) await module.kill(true);
+
+		console.log(chalk`Wrapper shutdown {greenBright finished}... Exiting`);
+		process.exit();
+	});
+
+	/*
+	/ Wrapper Console Handling
+	*/
+	consoleHandler((string) => {
+		// moduleEvent.emit("consoleStdout", trimmedString);
+		for (const module of Object.values(loadedModules)) {
+			if (module.running) module.thread!.emit("consoleStdin", string);
+		}
+		if (string[0] !== "~" && string[0] !== "?" && server !== undefined) server.stdin.write(string + "\n");
+	});
+})();

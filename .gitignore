@@ -1,24 +1,8 @@
-# General (Windows)
-Thumbs.db
-desktop.ini
-
-# Dependency directories
 node_modules/
+build/
+wrapperSettings.json
+package-lock.json
+tsconfig.tsbuildinfo
+dist/
 
-# Testserver Files
-ForgeTest/world/
-ForgeTest/Cookies/
-ForgeTest/logs/
-ForgeTest/mods/
-ForgeTest/config/
-ForgeTest/.mixin.out/
-ForgeTest/crash-reports/
-ForgeTest/libraries/
-ForgeTest/local/
-ForgeTest/banned*
-ForgeTest/eula.txt
-ForgeTest/*.jar
-ForgeTest/ops.json
-ForgeTest/ServerStart.bat
-ForgeTest/user*
-ForgeTest/whitelist.json
+testServer/
