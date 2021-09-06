@@ -11,13 +11,14 @@ type MI = Required<ModuleInfo>;
 / Module class definition
 */
 export default class WrapperModule {
-	private readonly module: string;
-	public enabled: boolean;
-	public readonly settings: unknown;
+	public readonly module: string;
+	private _moduleConfig: WrapperModuleConfig;
 
 	private _persistent: MI["persistent"];
 	private _color: MI["color"];
 	private _description: MI["description"];
+
+	public moduleInfo?: ModuleInfo;
 
 	public get persistent() {
 		return this._persistent;
@@ -30,26 +31,40 @@ export default class WrapperModule {
 	}
 
 	private crashCount: number;
-	thread: ParentThread<{ getModuleInfo: () => ModuleInfo }> | null;
+	thread: ParentThread<{ moduleInfo: () => ModuleInfo; init: () => void }> | null;
 
 	public static readonly loadedModules: Record<string, WrapperModule> = {};
 
-	static loadModules = (modules: Record<string, WrapperModuleConfig>) =>
-		Promise.all(Object.entries(modules).map(([name, config]) => (config.enabled && new WrapperModule(name, config).start()) as never));
+	static runningModules = () => Object.values(WrapperModule.loadedModules).filter((module) => module.running);
+	static enabledModules = () => Object.values(WrapperModule.loadedModules).filter((module) => module.enabled);
 
-	constructor(module: string, moduleSetings: WrapperModuleConfig) {
+	static loadModules = (modules: Record<string, WrapperModuleConfig>) =>
+		Promise.all(
+			Object.entries(modules).map(async ([name, config]) => {
+				const module = new WrapperModule(name, config);
+				if (module.enabled) return module.start();
+			})
+		);
+
+	constructor(module: string, moduleConfig: WrapperModuleConfig) {
 		this.module = module;
 		this.crashCount = 0;
 		this.thread = null;
 		// Set module settings
-		this.enabled = moduleSetings.enabled;
-		this.settings = moduleSetings.settings;
+		this._moduleConfig = moduleConfig;
 
 		// Set exported moduleInfo properties
 		this._color = "white";
 		this._persistent = false;
 		this._description = "No description exported.";
 		WrapperModule.loadedModules[module] = this;
+	}
+
+	get enabled(): boolean {
+		return this._moduleConfig.enabled;
+	}
+	set enabled(value: boolean) {
+		this._moduleConfig.enabled = value;
 	}
 
 	get running(): boolean {
@@ -89,19 +104,27 @@ export default class WrapperModule {
 		const startTime = Date.now();
 		this.thread = Parent(this.module);
 		this.thread.exited.catch(this.onCrashed);
-		const moduleInfo = await this.thread.getModuleInfo().catch(() => undefined);
-		if (moduleInfo !== undefined) {
-			this._color = moduleInfo.color;
-			this._description = moduleInfo.description;
-			this._persistent = moduleInfo.persistent || false;
+		this.moduleInfo = await this.thread.moduleInfo();
+		if (this.moduleInfo !== undefined) {
+			this._color = this.moduleInfo.color;
+			this._description = this.moduleInfo.description;
+			this._persistent = this.moduleInfo.persistent || false;
 		}
 		console.log(chalk`Started {${this.color} ${this.module}} in {redBright ${Date.now() - startTime}}ms`);
+		if (WrapperModule.loadedModules["@spookelton/command"]?.running) {
+			// @ts-expect-error loadModuleCommands exists on @spookelton/command
+			WrapperModule.loadedModules["@spookelton/command"].thread!.loadModuleCommands({ module: this.module, ...this.moduleInfo });
+		}
 	}
 
 	async kill(force?: boolean): Promise<void> {
 		if (this.thread !== null) {
 			await this.terminate();
 			this.thread = null;
+		}
+		if (WrapperModule.loadedModules["@spookelton/command"]?.running) {
+			// @ts-expect-error loadModuleCommands exists on @spookelton/command
+			WrapperModule.loadedModules["@spookelton/command"].thread!.unloadModuleCommands(this.module);
 		}
 		if (!force && this.persistent) await this.start();
 	}

@@ -2,6 +2,12 @@
 	"files": [],
 	"references": [
 		{
+			"path": "./serverWrapper"
+		},
+		{
+			"path": "./wrapperHelpers"
+		},
+		{
 			"path": "./modules/backup"
 		},
 		{
@@ -30,12 +36,6 @@
 		},
 		{
 			"path": "./modules/util"
-		},
-		{
-			"path": "./serverWrapper"
-		},
-		{
-			"path": "./wrapperHelpers"
 		}
 	],
 	"paths": {

@@ -16,6 +16,7 @@ import { consoleHandler } from "./lib/keyPressHandler";
 import WrapperModule from "./lib/WrapperModule";
 
 // Import Commands
+import * as commands from "./commands";
 export * from "./commands";
 
 // Import defaults
@@ -26,8 +27,11 @@ import type { WrapperSettings, ColorMatchers } from "./lib/types";
 import type { ChildProcessWithoutNullStreams } from "child_process";
 import type { ModuleInfo } from "@spookelton/wrapperHelpers/types";
 
+import { buildModuleInfo } from "@spookelton/wrapperHelpers/modul";
 // Export Wrapper core moduleInfo
-export const getModuleInfo = (): ModuleInfo => ({
+export const moduleInfo = buildModuleInfo({
+	commands,
+	module: "@spookelton/serverWrapper",
 	description: "Wrapper core.",
 	color: "cyan",
 });
@@ -68,7 +72,13 @@ export const serverStdin = (string: string): void => {
 	process.stdout.write(string);
 	if (server !== undefined) server.stdin.write(string);
 };
-export const getLoadedModules = () => [...Object.keys(WrapperModule.loadedModules), "@spookelton/serverWrapper"];
+
+export const getRunningModules = (): ModuleInfo[] => [
+	...(WrapperModule.runningModules()
+		.map((module) => module.moduleInfo)
+		.filter((moduleInfo) => moduleInfo !== undefined) as ModuleInfo[]),
+	moduleInfo,
+];
 
 Thread.newProxyThread("@spookelton/serverWrapper", module.exports);
 
@@ -147,10 +157,8 @@ process.on("unhandledRejection", (...args) => {
 	/ Wrapper Console Handling
 	*/
 	consoleHandler((string) => {
-		// moduleEvent.emit("consoleStdout", trimmedString);
-		for (const module of Object.values(WrapperModule.loadedModules)) {
-			if (module.running) module.thread!.emit("consoleStdin", string);
-		}
+		// moduleEvent.emit("consoleStdout", trimmedString);;
+		for (const module of Object.values(WrapperModule.runningModules())) module.thread!.emit("consoleStdin", string);
 		if (string[0] !== "~" && string[0] !== "?" && server !== undefined) server.stdin.write(string + "\n");
 	});
 })();

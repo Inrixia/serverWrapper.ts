@@ -1,12 +1,5 @@
-// Core imports
-import chalk from "chalk";
-import { mc, hex } from "@spookelton/wrapperHelpers/colors";
-
-// Import core wrapper
-import type * as serverWrapper from "@spookelton/serverWrapper";
-
 // Import command Commands
-import * as commandCommands from "./commands";
+import * as _commands from "./commands";
 
 // Import Types
 import type { Command, LogTo, Output, ModuleInfo } from "@spookelton/wrapperHelpers/types";
@@ -14,10 +7,17 @@ import type { ThreadModule, RequiredThread } from "@inrixia/threads";
 
 // Thread stuff
 const thread = (module.parent as ThreadModule).thread;
+
+import type * as serverWrapper from "@spookelton/serverWrapper";
 let wrapperCore: RequiredThread<typeof serverWrapper>;
 
+import { commandHandler } from "./lib/commandHandler";
+thread.on("consoleStdin", commandHandler);
+
+import { buildModuleInfo } from "@spookelton/wrapperHelpers/modul";
 // Export moduleInfo
-export const getModuleInfo = (): ModuleInfo => ({
+export const moduleInfo = buildModuleInfo({
+	commands: _commands,
 	persistent: true,
 	color: "greenBright",
 	description: "Handles all commands.",
@@ -26,91 +26,30 @@ export const getModuleInfo = (): ModuleInfo => ({
 // Export commands for ./commands/help
 export const commands: Record<string, Command & { module: string; moduleInfo: ModuleInfo }> = {};
 
+export const loadModuleCommands = async (moduleInfo: ModuleInfo) => {
+	if (moduleInfo.module === undefined || moduleInfo.commands === undefined) return;
+	let moduleThread;
+	if (moduleInfo.module !== "@spookelton/command") moduleThread = await thread.require<Record<string, Command>>(moduleInfo.module);
+	else moduleThread = _commands;
+	for (const command in moduleInfo.commands) {
+		// @ts-expect-error
+		commands[command] = moduleThread[command];
+		commands[command].help = moduleInfo.commands[command];
+		commands[command].module = moduleInfo.module;
+		commands[command].moduleInfo = moduleInfo;
+	}
+};
+
+export const unloadModuleCommands = async (module: string) => {
+	for (const command in commands) if (commands[command].module === module) delete commands[command];
+};
+
 (async () => {
 	// Load core wrapper commands
 	wrapperCore = await thread.require("@spookelton/serverWrapper");
 	// Fetch other loaded modules and load their commands
-	for (const module of await wrapperCore.getLoadedModules()) {
-		let moduleThread;
-		let moduleCommands;
-		let moduleInfo;
-		if (module !== "@spookelton/command") {
-			moduleThread = await thread.require<Record<string, Command>>(module);
-			moduleCommands = require(`${module}/commands`);
-			// @ts-expect-error
-			moduleInfo = (await moduleThread.getModuleInfo().catch(() => ({ persistent: false, color: "white", description: "No description" }))) as ModuleInfo;
-		} else {
-			moduleThread = moduleCommands = commandCommands;
-			moduleInfo = getModuleInfo();
-		}
-
-		for (const command in moduleCommands) {
-			// @ts-expect-error
-			commands[command] = moduleThread[command];
-			commands[command].help = moduleCommands[command].help;
-			commands[command].module = module;
-			commands[command].moduleInfo = moduleInfo;
-		}
-	}
+	await Promise.all((await wrapperCore.getRunningModules()).map(loadModuleCommands));
 })();
-
-export const commandHandler = async (string: string, logTo?: LogTo): Promise<void> => {
-	string = string.replace(/\s\s+/g, " ").replace("\r", ""); // Compact multiple spaces/tabs down to one
-	if (string[0] !== "~" && string[0] !== "?") return; // If the first character isn't a command, ignore it
-
-	// Generate array of args grouping by spaces and quotes
-	const [commandName, ...args] = string
-		.slice(1)
-		.split(' "')
-		.flatMap((arg) => (arg.includes('"') ? arg.replace('"', "") : arg.split(" ")));
-
-	const command = commands[commandName];
-	if (command === undefined) {
-		await logg(
-			{
-				console: chalk`The command "{redBright ${string}}" could not be matched to a known command...`,
-				minecraft: [
-					{
-						text: 'The command "',
-						color: "white",
-					},
-					{
-						text: string,
-						color: mc.redBright,
-					},
-					{
-						text: '" could not be matched to a known command...',
-						color: "white",
-					},
-				],
-				discord: {
-					color: parseInt(hex["red"], 16),
-					title: `The command "${string}" could not be matched to a known command...`,
-					timestamp: new Date(),
-				},
-			},
-			logTo
-		);
-		return;
-	}
-	const exeStart = Date.now();
-	let commandOutput = await command({ string, args, logTo }).catch((err) => lErr(err, logTo, `Error while executing command "${string}"`));
-	if (commandOutput === undefined) return;
-	if (!Array.isArray(commandOutput)) commandOutput = [commandOutput];
-	for (const output of commandOutput) {
-		if (output.discord !== undefined && typeof output.discord !== "string") {
-			const exeTime = `Executed in ${Date.now() - exeStart}`;
-			if (output.discord?.footer?.text !== undefined) output.discord.footer.text = `${output.discord.footer.text} • ${exeTime}`;
-			else {
-				output.discord = output.discord || {};
-				output.discord.footer = output.discord.footer || {};
-				output.discord.footer.text = exeTime;
-			}
-		}
-		await logg(output, logTo).catch((err) => lErr(err, logTo, `Command executed. Error while processing output for: "${string}"`));
-	}
-};
-thread.on("consoleStdin", commandHandler);
 
 export const logg = async (output: Output, logTo?: LogTo) => {
 	if (output.console !== undefined) console.log(output.console);
@@ -121,7 +60,7 @@ export const logg = async (output: Output, logTo?: LogTo) => {
 	// if (output.discord) logTo.discord.send(output.discord);
 };
 
-const lErr = async (err: Error, logTo?: LogTo, message?: string) =>
+export const lErr = async (err: Error, logTo?: LogTo, message?: string) =>
 	await logg(
 		{
 			console: `${message}\n${err.message}\n${err.stack}`,

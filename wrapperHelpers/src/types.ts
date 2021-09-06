@@ -31,6 +31,8 @@ export type Command = {
 };
 
 export type ModuleInfo = {
+	commands?: Record<string, Command["help"]>;
+	module?: string;
 	persistent?: boolean;
 	color: keyof typeof mc;
 	description: string;

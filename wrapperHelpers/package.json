@@ -12,6 +12,9 @@
 			],
 			"types": [
 				"dist/types"
+			],
+			"modul": [
+				"dist/modul"
 			]
 		}
 	},
