@@ -6,11 +6,10 @@ export type WrapperSettings = {
 	lastStartTime: number;
 	commandWorkingDirectory?: string;
 	command: string[];
-	modules?: Record<string, WrapperModuleConfig>;
+	modules: Record<string, WrapperModuleConfig>;
 };
 
 export type WrapperModuleConfig = {
-	module: string;
 	enabled: boolean;
 	persistent: boolean;
 	color: keyof typeof mc;

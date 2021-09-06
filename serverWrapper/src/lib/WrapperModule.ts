@@ -10,13 +10,21 @@ import type { WrapperModuleConfig } from "./types";
 */
 export default class WrapperModule {
 	public readonly config: WrapperModuleConfig;
+	public readonly module: string;
 	private crashCount: number;
 	thread: ParentThread<RequiredModuleExports, WrapperModuleConfig> | null;
 
-	constructor(moduleSetings: WrapperModuleConfig) {
+	public static readonly loadedModules: Record<string, WrapperModule> = {};
+
+	static loadModules = (modules: Record<string, WrapperModuleConfig>) =>
+		Promise.all(Object.entries(modules).map(([name, config]) => new WrapperModule(name, config).start()));
+
+	constructor(module: string, moduleSetings: WrapperModuleConfig) {
 		this.config = moduleSetings;
+		this.module = module;
 		this.crashCount = 0;
 		this.thread = null;
+		WrapperModule.loadedModules[module] = this;
 	}
 
 	get running(): boolean {
@@ -32,13 +40,13 @@ export default class WrapperModule {
 		}
 
 		if (this.crashCount < 3) {
-			process.stdout.write(chalk`{red Module Crashed}: {${this.config.color}${this.config.module}} Restarting!\n`);
+			process.stdout.write(chalk`{red Module Crashed}: {${this.config.color}${this.module}} Restarting!\n`);
 			await this.restart();
 		} else {
 			if (this.config.persistent === true)
-				process.stdout.write(chalk`{red Module Crashed Repeatedly}: {${this.config.color}${this.config.module}} Unable to disable as module is persistant!\n`);
+				process.stdout.write(chalk`{red Module Crashed Repeatedly}: {${this.config.color}${this.module}} Unable to disable as module is persistant!\n`);
 			else {
-				process.stdout.write(chalk`{red Module Crashed Repeatedly}: {${this.config.color}${this.config.module}} Disabling!\n`);
+				process.stdout.write(chalk`{red Module Crashed Repeatedly}: {${this.config.color}${this.module}} Disabling!\n`);
 				if (this.running) this.kill();
 			}
 		}
@@ -54,9 +62,9 @@ export default class WrapperModule {
 	async start(): Promise<void> {
 		if (!this.config.enabled || this.running) return;
 		const startTime = Date.now();
-		this.thread = Parent<RequiredModuleExports, WrapperModuleConfig>(this.config.module);
+		this.thread = Parent<RequiredModuleExports, WrapperModuleConfig>(this.module);
 		this.thread.exited.catch(this.onCrashed);
-		console.log(chalk`Started {${this.config.color} ${this.config.module}} in {redBright ${Date.now() - startTime}}ms`);
+		console.log(chalk`Started {${this.config.color} ${this.module}} in {redBright ${Date.now() - startTime}}ms`);
 	}
 
 	async kill(force?: boolean): Promise<void> {

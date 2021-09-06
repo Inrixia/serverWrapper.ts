@@ -6,8 +6,7 @@ export const defaultWrapperSettings: WrapperSettings = {
 	commandWorkingDirectory: "./",
 	command: [],
 	modules: {
-		command: {
-			module: "@spookelton/command",
+		"@spookelton/command": {
 			enabled: true,
 			persistent: true,
 			color: "greenBright",

@@ -1,6 +1,6 @@
 import chalk from "chalk";
 
-import { loadedModules } from "../";
+import WrapperModule from "../lib/WrapperModule";
 import { mc, hex } from "@spookelton/wrapperHelpers/colors";
 
 // Import Types
@@ -9,7 +9,7 @@ import type { Command } from "@spookelton/wrapperHelpers/types";
 export const disableModule: Command = async (message) => {
 	const moduleName = message.args[1];
 	if (moduleName === undefined) throw new Error("No module specified.");
-	const moduleToDisable = loadedModules[message.args[1]];
+	const moduleToDisable = WrapperModule.loadedModules[message.args[1]];
 	if (moduleToDisable === undefined) throw new Error(`Module ${moduleName} is not loaded.`);
 	await moduleToDisable.disable();
 	return {

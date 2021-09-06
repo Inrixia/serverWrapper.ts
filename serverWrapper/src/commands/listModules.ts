@@ -1,6 +1,6 @@
 import chalk from "chalk";
 
-import { loadedModules } from "../";
+import WrapperModule from "../lib/WrapperModule";
 import { mc, hex } from "@spookelton/wrapperHelpers/colors";
 
 type ListAggregate = {
@@ -31,10 +31,10 @@ export const listModules: Command = async () => {
 		discord: [],
 	};
 
-	const moduleKeys = Object.keys(loadedModules);
+	const moduleKeys = Object.keys(WrapperModule.loadedModules);
 	const modulesLength = moduleKeys.length;
 	moduleKeys.forEach((moduleName, index) => {
-		const module = loadedModules[moduleName];
+		const module = WrapperModule.loadedModules[moduleName];
 		const moduleColor = module.config.color;
 		const minecraft = [
 			{

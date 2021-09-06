@@ -1,22 +1,13 @@
 import chalk from "chalk";
 
-import { loadedModules, wrapperSettings } from "../";
+import { wrapperSettings } from "../";
 import WrapperModule from "../lib/WrapperModule";
 
 // Import Types
 import type { Command } from "@spookelton/wrapperHelpers/types";
 
 export const restartModules: Command = async () => {
-	// Kill all loaded modules
-	for (const module of Object.values(loadedModules)) await module.kill();
-	// Remove all loaded modules
-	for (const key in loadedModules) delete loadedModules[key];
-	// Load modules from settings
-	for (const moduleName in wrapperSettings.modules) {
-		loadedModules[moduleName] = new WrapperModule(wrapperSettings.modules[moduleName]);
-	}
-	// Start all enabled modules
-	for (const module of Object.values(loadedModules)) await module.restart();
+	await Promise.all(Object.values(WrapperModule.loadedModules).map((module) => module.restart()));
 	return {
 		console: chalk`{cyanBright Restarted all modules...}`,
 		minecraft: [

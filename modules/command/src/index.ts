@@ -2,24 +2,32 @@
 import chalk from "chalk";
 import { mc, hex } from "@spookelton/wrapperHelpers/colors";
 
+// Import core wrapper
+import type * as serverWrapper from "@spookelton/serverWrapper";
+import * as coreCommands from "@spookelton/serverWrapper/commands";
+
 // Import Types
-import type { LogTo, Output, Command } from "@spookelton/wrapperHelpers/types";
+import type { Command, LogTo, Output } from "@spookelton/wrapperHelpers/types";
 import type { ThreadModule, RequiredThread } from "@inrixia/threads";
-import type { wrapperCoreExports } from "@spookelton/serverwrapper";
 
 const thread = (module.parent as ThreadModule).thread;
 
-const threads: Record<string, RequiredThread<Record<string, Command>>> = {};
-let wrapperCore: RequiredThread<typeof wrapperCoreExports>;
+let wrapperCore: RequiredThread<typeof serverWrapper>;
 
-const commands: Record<string, string> = {};
+const commands: Record<string, Command> = {};
 (async () => {
-	// @ts-expect-error Ignore core type mismatch
-	threads.wrapperCore = wrapperCore = await thread.require("wrapperCore");
-	Object.entries(await wrapperCore.getCommands()).reduce((commands, [thread, threadCommands]) => {
-		for (const command of threadCommands) commands[command] = thread;
-		return commands;
-	}, commands);
+	// Load core wrapper commands
+	wrapperCore = await thread.require("@spookelton/serverWrapper");
+	for (const command in commands) {
+		commands[command] = wrapperCore[command as keyof typeof wrapperCore];
+		commands[command].help = coreCommands[command as keyof typeof coreCommands].help;
+	}
+	// Fetch other loaded modules and load their commands
+	for (const module of (await wrapperCore.getLoadedModules()).filter((module) => module !== "@spookelton/command")) {
+		console.log(module);
+		// const module = await thread.require<Record<string, Command>>(module);
+		// commands.push(Object.keys(require(`${module}/commands`)));
+	}
 })();
 
 export const commandHandler = async (string: string, logTo?: LogTo): Promise<void> => {
@@ -32,8 +40,8 @@ export const commandHandler = async (string: string, logTo?: LogTo): Promise<voi
 		.split(' "')
 		.flatMap((arg) => (arg.includes('"') ? arg.replace('"', "") : arg.split(" ")));
 
-	const commandThread = commands[commandName];
-	if (commandThread === undefined) {
+	const command = commands[commandName];
+	if (command === undefined) {
 		await logg(
 			{
 				console: chalk`The command "{redBright ${string}}" could not be matched to a known command...`,
@@ -61,11 +69,8 @@ export const commandHandler = async (string: string, logTo?: LogTo): Promise<voi
 		);
 		return;
 	}
-	if (threads[commandThread] === undefined) threads[commandThread] = await thread.require<Record<string, Command>>(commandThread);
 	const exeStart = Date.now();
-	let commandOutput = await threads[commandThread][commandName]({ string, args, logTo }).catch((err) =>
-		lErr(err, logTo, `Error while executing command "${string}"`)
-	);
+	let commandOutput = await command({ string, args, logTo }).catch((err) => lErr(err, logTo, `Error while executing command "${string}"`));
 	if (commandOutput === undefined) return;
 	if (!Array.isArray(commandOutput)) commandOutput = [commandOutput];
 	for (const output of commandOutput) {

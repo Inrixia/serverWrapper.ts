@@ -6,12 +6,17 @@ import db from "@inrixia/db";
 import chalk from "chalk";
 import { spawn } from "child_process";
 
+// Import and Promisify Terminate
+import terminateCallback from "terminate";
+import { promisify } from "util";
+const terminate = promisify(terminateCallback);
+
 // Import Handlers
 import { consoleHandler } from "./lib/keyPressHandler";
 import WrapperModule from "./lib/WrapperModule";
 
 // Import Commands
-import * as commands from "./commands";
+export * from "./commands";
 
 // Import defaults
 import { defaultWrapperSettings } from "./lib/defaults";
@@ -26,7 +31,6 @@ export const wrapperSettings = db<WrapperSettings>("./wrapperSettings.json", {
 	pretty: true,
 	template: defaultWrapperSettings,
 });
-export const loadedModules: Record<string, WrapperModule> = {};
 
 wrapperSettings.serverName = path.basename(process.cwd());
 
@@ -50,27 +54,30 @@ const color = (string: string) => {
 
 let server: ChildProcessWithoutNullStreams | undefined;
 
+// Expose wrapperCore to threads
+import { Thread } from "@inrixia/threads/Thread";
+
 export const serverStdin = (string: string): void => {
 	process.stdout.write(string);
 	if (server !== undefined) server.stdin.write(string);
 };
+export const getLoadedModules = () => Object.keys(WrapperModule.loadedModules);
 
-// Expose wrapperCore to threads
-import { Thread } from "@inrixia/threads/Thread";
-export const wrapperCoreExports = {
-	...commands,
-	serverStdin,
-	getCommands: () => ({
-		wrapperCore: Object.keys(commands),
-	}),
+Thread.newProxyThread("@spookelton/serverWrapper", module.exports);
+
+export const exitHandler = async () => {
+	if (server?.pid) await terminate(server.pid);
+	return 0;
 };
-Thread.newProxyThread("wrapperCore", wrapperCoreExports);
+process.on("beforeExit", exitHandler);
+process.on("uncaughtException", exitHandler);
+process.on("unhandledRejection", exitHandler);
 
 /*
 / START
 */
 (async () => {
-	await commands.restartModules(null as never);
+	await WrapperModule.loadModules(wrapperSettings.modules);
 
 	const serverStartTime = Date.now();
 
@@ -86,7 +93,6 @@ Thread.newProxyThread("wrapperCore", wrapperCoreExports);
 	const command: string = wrapperSettings.command[0];
 	const args: string[] = wrapperSettings.command.slice(1);
 	server = spawn(command, args, { detached: false, cwd: wrapperSettings.commandWorkingDirectory });
-
 	// Server error handling
 	server.on("error", (err) => {
 		console.log(chalk`{redBright An error occoured while attempting to start!}`);
@@ -116,7 +122,7 @@ Thread.newProxyThread("wrapperCore", wrapperCoreExports);
 	// Server shutdown handling
 	server.on("exit", async (code) => {
 		console.log(chalk`Server {redBright closed} with exit code: {cyanBright ${code}}\n{redBright Killing modules...}`);
-		for (const module of Object.values(loadedModules)) await module.kill(true);
+		for (const module of Object.values(WrapperModule.loadedModules)) await module.kill(true);
 
 		console.log(chalk`Wrapper shutdown {greenBright finished}... Exiting`);
 		process.exit();
@@ -127,7 +133,7 @@ Thread.newProxyThread("wrapperCore", wrapperCoreExports);
 	*/
 	consoleHandler((string) => {
 		// moduleEvent.emit("consoleStdout", trimmedString);
-		for (const module of Object.values(loadedModules)) {
+		for (const module of Object.values(WrapperModule.loadedModules)) {
 			if (module.running) module.thread!.emit("consoleStdin", string);
 		}
 		if (string[0] !== "~" && string[0] !== "?" && server !== undefined) server.stdin.write(string + "\n");

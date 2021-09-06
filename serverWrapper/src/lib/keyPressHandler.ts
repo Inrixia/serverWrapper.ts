@@ -1,6 +1,7 @@
 import readline from "readline";
 
 import { commandCompletions } from "./commandCompletions";
+import { exitHandler } from "..";
 
 export const consoleHandler = (onLine: (char: string) => void) => {
 	// Setup console handling
@@ -19,7 +20,9 @@ export const consoleHandler = (onLine: (char: string) => void) => {
 	let consoleIndex = 0;
 
 	process.stdin.on("keypress", (char, key) => {
-		if (key.name === "c" && key.ctrl === true) process.exit();
+		if (key.ctrl && key.name === "c") {
+			exitHandler().then(process.exit);
+		}
 		switch (key.name) {
 			case "return":
 				onLine(consoleInput.join(""));

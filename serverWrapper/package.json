@@ -3,6 +3,16 @@
 	"version": "4.0.0",
 	"description": "Spookelton serverWrapper",
 	"main": "dist/index.js",
+	"exports": {
+		"./commands": "./dist/commands/index.js"
+	},
+	"typesVersions": {
+		"*": {
+			"commands": [
+				"dist/commands/"
+			]
+		}
+	},
 	"dependencies": {
 		"@inrixia/db": "^1.8.0",
 		"@inrixia/threads": "^3.3.2",
@@ -13,6 +23,7 @@
 		"@typescript-eslint/eslint-plugin": "^4.30.0",
 		"@typescript-eslint/parser": "^4.30.0",
 		"eslint": "^7.32.0",
+		"terminate": "^2.2.2",
 		"typescript": "^4.4.2"
 	},
 	"scripts": {
