@@ -13,7 +13,7 @@ export const restartModule: Command = async (message) => {
 	if (moduleToStart === undefined) throw new Error(`Module ${moduleToStart} is not loaded.`);
 	await moduleToStart.restart();
 	return {
-		console: chalk`{cyanBright Restarted module}: {${moduleToStart.config.color} ${moduleName}}`,
+		console: chalk`{cyanBright Restarted module}: {${moduleToStart.color} ${moduleName}}`,
 		minecraft: [
 			{
 				text: "Restarted module ",
@@ -21,17 +21,18 @@ export const restartModule: Command = async (message) => {
 			},
 			{
 				text: moduleName,
-				color: mc[moduleToStart.config.color],
+				color: mc[moduleToStart.color],
 			},
 		],
 		discord: {
-			color: parseInt(hex[moduleToStart.config.color], 16),
+			color: parseInt(hex[moduleToStart.color], 16),
 			title: `Restarted module: ${moduleName}`,
 			timestamp: Date.now(),
 		},
 	};
 };
 restartModule.help = {
+	summary: "Restarts any given module",
 	console: chalk`{whiteBright Restarts any given module.}\nExample: {yellow ~restartModule} {blueBright discord}`,
 	minecraft: [
 		{

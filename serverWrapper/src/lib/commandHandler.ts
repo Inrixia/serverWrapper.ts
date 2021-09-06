@@ -29,7 +29,7 @@ export const commandHandler = async (string: string, logTo?: LogTo): Promise<voi
 					},
 					{
 						text: string,
-						color: mc["redBright"],
+						color: mc.redBright,
 					},
 					{
 						text: '" could not be matched to a known command...',

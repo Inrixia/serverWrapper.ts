@@ -6,6 +6,7 @@
 		"modules/*"
 	],
 	"scripts": {
-		"start": "tsc -b && node ./serverWrapper/dist/index.js"
+		"start": "tsc -b && node ./serverWrapper/dist/index.js",
+		"watch": "tsc -b --watch"
 	}
 }

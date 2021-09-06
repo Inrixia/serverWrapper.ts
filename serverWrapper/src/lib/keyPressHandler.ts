@@ -22,6 +22,7 @@ export const consoleHandler = (onLine: (char: string) => void) => {
 	process.stdin.on("keypress", (char, key) => {
 		if (key.ctrl && key.name === "c") {
 			exitHandler().then(process.exit);
+			return;
 		}
 		switch (key.name) {
 			case "return":

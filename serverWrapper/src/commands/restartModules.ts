@@ -24,6 +24,7 @@ export const restartModules: Command = async () => {
 	};
 };
 restartModules.help = {
+	summary: "Restarts all modules",
 	console: chalk`{whiteBright Restarts all modules.}\nExample: {yellow ~restartModules}`,
 	minecraft: [
 		{

@@ -2,28 +2,53 @@ import { Parent, ParentThread } from "@inrixia/threads";
 import chalk from "chalk";
 
 // Import Types
-import type { RequiredModuleExports } from "@spookelton/wrapperHelpers/types";
+import type { ModuleInfo } from "@spookelton/wrapperHelpers/types";
 import type { WrapperModuleConfig } from "./types";
+
+type MI = Required<ModuleInfo>;
 
 /*
 / Module class definition
 */
 export default class WrapperModule {
-	public readonly config: WrapperModuleConfig;
-	public readonly module: string;
+	private readonly module: string;
+	public enabled: boolean;
+	public readonly settings: unknown;
+
+	private _persistent: MI["persistent"];
+	private _color: MI["color"];
+	private _description: MI["description"];
+
+	public get persistent() {
+		return this._persistent;
+	}
+	public get color() {
+		return this._color;
+	}
+	public get description() {
+		return this._description;
+	}
+
 	private crashCount: number;
-	thread: ParentThread<RequiredModuleExports, WrapperModuleConfig> | null;
+	thread: ParentThread<{ getModuleInfo: () => ModuleInfo }> | null;
 
 	public static readonly loadedModules: Record<string, WrapperModule> = {};
 
 	static loadModules = (modules: Record<string, WrapperModuleConfig>) =>
-		Promise.all(Object.entries(modules).map(([name, config]) => new WrapperModule(name, config).start()));
+		Promise.all(Object.entries(modules).map(([name, config]) => (config.enabled && new WrapperModule(name, config).start()) as never));
 
 	constructor(module: string, moduleSetings: WrapperModuleConfig) {
-		this.config = moduleSetings;
 		this.module = module;
 		this.crashCount = 0;
 		this.thread = null;
+		// Set module settings
+		this.enabled = moduleSetings.enabled;
+		this.settings = moduleSetings.settings;
+
+		// Set exported moduleInfo properties
+		this._color = "white";
+		this._persistent = false;
+		this._description = "No description exported.";
 		WrapperModule.loadedModules[module] = this;
 	}
 
@@ -40,13 +65,13 @@ export default class WrapperModule {
 		}
 
 		if (this.crashCount < 3) {
-			process.stdout.write(chalk`{red Module Crashed}: {${this.config.color}${this.module}} Restarting!\n`);
+			process.stdout.write(chalk`{red Module Crashed}: {${this.color}${this.module}} Restarting!\n`);
 			await this.restart();
 		} else {
-			if (this.config.persistent === true)
-				process.stdout.write(chalk`{red Module Crashed Repeatedly}: {${this.config.color}${this.module}} Unable to disable as module is persistant!\n`);
+			if (this.persistent === true)
+				process.stdout.write(chalk`{red Module Crashed Repeatedly}: {${this.color}${this.module}} Unable to disable as module is persistant!\n`);
 			else {
-				process.stdout.write(chalk`{red Module Crashed Repeatedly}: {${this.config.color}${this.module}} Disabling!\n`);
+				process.stdout.write(chalk`{red Module Crashed Repeatedly}: {${this.color}${this.module}} Disabling!\n`);
 				if (this.running) this.kill();
 			}
 		}
@@ -54,17 +79,23 @@ export default class WrapperModule {
 	}
 
 	async restart(): Promise<void> {
-		if (!this.config.enabled) return;
+		if (!this.enabled) return;
 		await this.kill(true);
 		await this.start();
 	}
 
 	async start(): Promise<void> {
-		if (!this.config.enabled || this.running) return;
+		if (!this.enabled || this.running) return;
 		const startTime = Date.now();
-		this.thread = Parent<RequiredModuleExports, WrapperModuleConfig>(this.module);
+		this.thread = Parent(this.module);
 		this.thread.exited.catch(this.onCrashed);
-		console.log(chalk`Started {${this.config.color} ${this.module}} in {redBright ${Date.now() - startTime}}ms`);
+		const moduleInfo = await this.thread.getModuleInfo().catch(() => undefined);
+		if (moduleInfo !== undefined) {
+			this._color = moduleInfo.color;
+			this._description = moduleInfo.description;
+			this._persistent = moduleInfo.persistent || false;
+		}
+		console.log(chalk`Started {${this.color} ${this.module}} in {redBright ${Date.now() - startTime}}ms`);
 	}
 
 	async kill(force?: boolean): Promise<void> {
@@ -72,7 +103,7 @@ export default class WrapperModule {
 			await this.terminate();
 			this.thread = null;
 		}
-		if (!force && this.config.persistent) await this.start();
+		if (!force && this.persistent) await this.start();
 	}
 
 	async terminate(): Promise<number | void> {
@@ -82,7 +113,4 @@ export default class WrapperModule {
 			return exitCode;
 		}
 	}
-
-	enable = async (): Promise<boolean> => (this.config.enabled = true);
-	disable = async (): Promise<boolean> => (this.config.enabled = false);
 }

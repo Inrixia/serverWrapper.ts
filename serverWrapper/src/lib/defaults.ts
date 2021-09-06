@@ -8,9 +8,6 @@ export const defaultWrapperSettings: WrapperSettings = {
 	modules: {
 		"@spookelton/command": {
 			enabled: true,
-			persistent: true,
-			color: "greenBright",
-			description: "Handles all commands.",
 		},
 	},
 };

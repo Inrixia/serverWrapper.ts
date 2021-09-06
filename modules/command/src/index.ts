@@ -4,29 +4,53 @@ import { mc, hex } from "@spookelton/wrapperHelpers/colors";
 
 // Import core wrapper
 import type * as serverWrapper from "@spookelton/serverWrapper";
-import * as coreCommands from "@spookelton/serverWrapper/commands";
+
+// Import command Commands
+import * as commandCommands from "./commands";
 
 // Import Types
-import type { Command, LogTo, Output } from "@spookelton/wrapperHelpers/types";
+import type { Command, LogTo, Output, ModuleInfo } from "@spookelton/wrapperHelpers/types";
 import type { ThreadModule, RequiredThread } from "@inrixia/threads";
 
+// Thread stuff
 const thread = (module.parent as ThreadModule).thread;
-
 let wrapperCore: RequiredThread<typeof serverWrapper>;
 
-const commands: Record<string, Command> = {};
+// Export moduleInfo
+export const getModuleInfo = (): ModuleInfo => ({
+	persistent: true,
+	color: "greenBright",
+	description: "Handles all commands.",
+});
+
+// Export commands for ./commands/help
+export const commands: Record<string, Command & { module: string; moduleInfo: ModuleInfo }> = {};
+
 (async () => {
 	// Load core wrapper commands
 	wrapperCore = await thread.require("@spookelton/serverWrapper");
-	for (const command in commands) {
-		commands[command] = wrapperCore[command as keyof typeof wrapperCore];
-		commands[command].help = coreCommands[command as keyof typeof coreCommands].help;
-	}
 	// Fetch other loaded modules and load their commands
-	for (const module of (await wrapperCore.getLoadedModules()).filter((module) => module !== "@spookelton/command")) {
-		console.log(module);
-		// const module = await thread.require<Record<string, Command>>(module);
-		// commands.push(Object.keys(require(`${module}/commands`)));
+	for (const module of await wrapperCore.getLoadedModules()) {
+		let moduleThread;
+		let moduleCommands;
+		let moduleInfo;
+		if (module !== "@spookelton/command") {
+			moduleThread = await thread.require<Record<string, Command>>(module);
+			moduleCommands = require(`${module}/commands`);
+			// @ts-expect-error
+			moduleInfo = (await moduleThread.getModuleInfo().catch(() => ({ persistent: false, color: "white", description: "No description" }))) as ModuleInfo;
+		} else {
+			moduleThread = moduleCommands = commandCommands;
+			moduleInfo = getModuleInfo();
+		}
+
+		for (const command in moduleCommands) {
+			// @ts-expect-error
+			commands[command] = moduleThread[command];
+			commands[command].help = moduleCommands[command].help;
+			commands[command].module = module;
+			commands[command].moduleInfo = moduleInfo;
+		}
 	}
 })();
 
@@ -52,7 +76,7 @@ export const commandHandler = async (string: string, logTo?: LogTo): Promise<voi
 					},
 					{
 						text: string,
-						color: mc["redBright"],
+						color: mc.redBright,
 					},
 					{
 						text: '" could not be matched to a known command...',
@@ -86,7 +110,6 @@ export const commandHandler = async (string: string, logTo?: LogTo): Promise<voi
 		await logg(output, logTo).catch((err) => lErr(err, logTo, `Command executed. Error while processing output for: "${string}"`));
 	}
 };
-
 thread.on("consoleStdin", commandHandler);
 
 export const logg = async (output: Output, logTo?: LogTo) => {

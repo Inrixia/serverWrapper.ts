@@ -1,6 +1,3 @@
-// Import Types
-import type { mc } from "@spookelton/wrapperHelpers/colors";
-
 export type WrapperSettings = {
 	serverName: string;
 	lastStartTime: number;
@@ -11,9 +8,6 @@ export type WrapperSettings = {
 
 export type WrapperModuleConfig = {
 	enabled: boolean;
-	persistent: boolean;
-	color: keyof typeof mc;
-	description: string;
 	settings?: { [key: string]: unknown };
 };
 

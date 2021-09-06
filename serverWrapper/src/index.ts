@@ -24,6 +24,13 @@ import { defaultWrapperSettings } from "./lib/defaults";
 // Import Types
 import type { WrapperSettings, ColorMatchers } from "./lib/types";
 import type { ChildProcessWithoutNullStreams } from "child_process";
+import type { ModuleInfo } from "@spookelton/wrapperHelpers/types";
+
+// Export Wrapper core moduleInfo
+export const getModuleInfo = (): ModuleInfo => ({
+	description: "Wrapper core.",
+	color: "cyan",
+});
 
 export const wrapperSettings = db<WrapperSettings>("./wrapperSettings.json", {
 	forceCreate: true,
@@ -61,7 +68,7 @@ export const serverStdin = (string: string): void => {
 	process.stdout.write(string);
 	if (server !== undefined) server.stdin.write(string);
 };
-export const getLoadedModules = () => Object.keys(WrapperModule.loadedModules);
+export const getLoadedModules = () => [...Object.keys(WrapperModule.loadedModules), "@spookelton/serverWrapper"];
 
 Thread.newProxyThread("@spookelton/serverWrapper", module.exports);
 

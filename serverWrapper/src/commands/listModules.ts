@@ -35,7 +35,7 @@ export const listModules: Command = async () => {
 	const modulesLength = moduleKeys.length;
 	moduleKeys.forEach((moduleName, index) => {
 		const module = WrapperModule.loadedModules[moduleName];
-		const moduleColor = module.config.color;
+		const moduleColor = module.color;
 		const minecraft = [
 			{
 				text: `\n  ${moduleName} `,
@@ -47,7 +47,7 @@ export const listModules: Command = async () => {
 			},
 			{
 				text: `${module.running ? "R" : "S"}`,
-				color: module.running ? mc["green"] : mc["red"],
+				color: module.running ? mc.green : mc.red,
 			},
 			{
 				text: "]",
@@ -58,7 +58,7 @@ export const listModules: Command = async () => {
 			},
 		];
 		const console = chalk`{${moduleColor} ${moduleName}} [${module.running ? chalk`{green R}` : chalk`{red S}`}] `;
-		if (module.config.enabled) {
+		if (module.enabled) {
 			aggregate.enabled.minecraft.push(...minecraft);
 			aggregate.enabled.console += console;
 		} else {
@@ -69,10 +69,10 @@ export const listModules: Command = async () => {
 			discord: {
 				color: parseInt(hex[moduleColor], 16),
 				title: moduleName,
-				description: module.config.description,
+				description: module.description,
 				timestamp: Date.now(),
 				footer: {
-					text: `${module.running ? "Running" : "Stopped"} • ${module.config.enabled ? "Enabled" : "Disabled"}`,
+					text: `${module.running ? "Running" : "Stopped"} • ${module.enabled ? "Enabled" : "Disabled"}`,
 				},
 			},
 		});
@@ -87,6 +87,7 @@ export const listModules: Command = async () => {
 	];
 };
 listModules.help = {
+	summary: "Gets status of all modules currently installed in the wrapper.",
 	console: chalk`{whiteBright Gets status of all modules currently installed.}\nExample: {yellow ~listModules}`,
 	minecraft: [
 		{

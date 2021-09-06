@@ -11,9 +11,9 @@ export const enableModule: Command = async (message) => {
 	if (moduleName === undefined) throw new Error("No module specified.");
 	const moduleToEnable = WrapperModule.loadedModules[moduleName];
 	if (moduleToEnable === undefined) throw new Error(`Module ${moduleToEnable} is not loaded.`);
-	await moduleToEnable.enable();
+	moduleToEnable.enabled = true;
 	return {
-		console: chalk`{cyanBright Enabled module}: {${moduleToEnable.config.color} ${moduleName}}`,
+		console: chalk`{cyanBright Enabled module}: {${moduleToEnable.color} ${moduleName}}`,
 		minecraft: [
 			{
 				text: "Enabled module ",
@@ -21,17 +21,18 @@ export const enableModule: Command = async (message) => {
 			},
 			{
 				text: moduleName,
-				color: mc[moduleToEnable.config.color],
+				color: mc[moduleToEnable.color],
 			},
 		],
 		discord: {
-			color: parseInt(hex[moduleToEnable.config.color], 16),
+			color: parseInt(hex[moduleToEnable.color], 16),
 			title: `Enabled module: ${moduleName}`,
 			timestamp: Date.now(),
 		},
 	};
 };
 enableModule.help = {
+	summary: "Enables any given module.",
 	console: chalk`{whiteBright Enables any given module.}\nExample: {yellow ~enableModule} {blueBright discord}`,
 	minecraft: [
 		{

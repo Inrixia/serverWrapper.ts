@@ -13,7 +13,7 @@ export const killModule: Command = async (message) => {
 	if (moduleToKill === undefined) throw new Error(`Module ${moduleToKill} is not loaded.`);
 	await moduleToKill.kill();
 	return {
-		console: chalk`{cyanBright Killed module}: {${moduleToKill.config.color} ${moduleName}}`,
+		console: chalk`{cyanBright Killed module}: {${moduleToKill.color} ${moduleName}}`,
 		minecraft: [
 			{
 				text: "Killed module ",
@@ -21,17 +21,18 @@ export const killModule: Command = async (message) => {
 			},
 			{
 				text: moduleName,
-				color: mc[moduleToKill.config.color],
+				color: mc[moduleToKill.color],
 			},
 		],
 		discord: {
-			color: parseInt(hex[moduleToKill.config.color], 16),
+			color: parseInt(hex[moduleToKill.color], 16),
 			title: `Killed module: ${moduleName}`,
 			timestamp: Date.now(),
 		},
 	};
 };
 killModule.help = {
+	summary: "Stops any given module.",
 	console: chalk`{whiteBright Stops any given module.}\nExample: {yellow ~killModule} {blueBright discord}`,
 	minecraft: [
 		{

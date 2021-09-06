@@ -11,9 +11,9 @@ export const disableModule: Command = async (message) => {
 	if (moduleName === undefined) throw new Error("No module specified.");
 	const moduleToDisable = WrapperModule.loadedModules[message.args[1]];
 	if (moduleToDisable === undefined) throw new Error(`Module ${moduleName} is not loaded.`);
-	await moduleToDisable.disable();
+	moduleToDisable.enabled = false;
 	return {
-		console: chalk`{cyanBright Disabled module}: {${moduleToDisable.config.color} ${moduleName}}`,
+		console: chalk`{cyanBright Disabled module}: {${moduleToDisable.color} ${moduleName}}`,
 		minecraft: [
 			{
 				text: "Disabled module ",
@@ -21,17 +21,18 @@ export const disableModule: Command = async (message) => {
 			},
 			{
 				text: moduleName,
-				color: mc[moduleToDisable.config.color],
+				color: mc[moduleToDisable.color],
 			},
 		],
 		discord: {
-			color: parseInt(hex[moduleToDisable.config.color], 16),
+			color: parseInt(hex[moduleToDisable.color], 16),
 			title: `Disabled module: ${moduleName}`,
 			timestamp: Date.now(),
 		},
 	};
 };
 disableModule.help = {
+	summary: "Disables any given module.",
 	console: chalk`{whiteBright Disables any given module and saves settings if true.}\nExample: {yellow ~disableModule} {blueBright discord} {redBright true}`,
 	minecraft: [
 		{
