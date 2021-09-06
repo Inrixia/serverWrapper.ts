@@ -51,7 +51,7 @@ enableModule.help = {
 	discord: {
 		title: "Enable Module",
 		description: "~enableModule",
-		color: parseInt("e77c02", 16), // redBright
+		color: parseInt(hex.redBright, 16),
 		timestamp: Date.now(),
 		fields: [
 			{

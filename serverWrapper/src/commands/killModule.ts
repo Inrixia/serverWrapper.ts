@@ -55,7 +55,7 @@ killModule.help = {
 	discord: {
 		title: "Kill Module",
 		description: "~killModule",
-		color: parseInt("e77c02", 16), // redBright
+		color: parseInt(hex.redBright, 16),
 		timestamp: new Date(),
 		fields: [
 			{

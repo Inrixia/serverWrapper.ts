@@ -63,7 +63,7 @@ export const listModules: Command = async () => {
 			aggregate.enabled.console += console;
 		} else {
 			aggregate.disabled.minecraft.push(...minecraft);
-			aggregate.enabled.console += console;
+			aggregate.disabled.console += console;
 		}
 		aggregate.discord.push({
 			discord: {
@@ -106,7 +106,7 @@ listModules.help = {
 	discord: {
 		title: "List Modules",
 		description: "~listModules",
-		color: parseInt("e77c02", 16), // redBright
+		color: parseInt(hex.redBright, 16),
 		timestamp: Date.now(),
 		fields: [
 			{

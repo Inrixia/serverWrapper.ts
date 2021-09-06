@@ -5,9 +5,10 @@ import WrapperModule from "../lib/WrapperModule";
 
 // Import Types
 import type { Command } from "@spookelton/wrapperHelpers/types";
+import { hex } from "@spookelton/wrapperHelpers/colors";
 
 export const restartModules: Command = async () => {
-	await Promise.all(Object.values(WrapperModule.loadedModules).map((module) => module.restart()));
+	await Promise.all(WrapperModule.enabledModules().map((module) => module.restart()));
 	return {
 		console: chalk`{cyanBright Restarted all modules...}`,
 		minecraft: [
@@ -43,7 +44,7 @@ restartModules.help = {
 	discord: {
 		title: "Restart All Modules",
 		description: "~restartModules",
-		color: parseInt("e77c02", 16), // redBright
+		color: parseInt(hex.redBright, 16),
 		timestamp: Date.now(),
 		fields: [
 			{

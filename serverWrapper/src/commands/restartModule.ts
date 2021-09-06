@@ -55,7 +55,7 @@ restartModule.help = {
 	discord: {
 		title: "Restart Module",
 		description: "~restartModule",
-		color: parseInt("e77c02", 16), // redBright
+		color: parseInt(hex.redBright, 16),
 		timestamp: Date.now(),
 		fields: [
 			{

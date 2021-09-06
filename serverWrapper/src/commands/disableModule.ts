@@ -59,7 +59,7 @@ disableModule.help = {
 	discord: {
 		title: "Disable Module",
 		description: "~disableModule",
-		color: parseInt("e77c02", 16), // redBright
+		color: parseInt(hex.redBright, 16),
 		timestamp: Date.now(),
 		fields: [
 			{

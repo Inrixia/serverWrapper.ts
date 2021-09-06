@@ -55,7 +55,7 @@ startModule.help = {
 	discord: {
 		title: "Start Module",
 		description: "~startModule",
-		color: parseInt("e77c02", 16), // redBright
+		color: parseInt(hex.redBright, 16), // redBright
 		timestamp: Date.now(),
 		fields: [
 			{
