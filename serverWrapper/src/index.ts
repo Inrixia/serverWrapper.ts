@@ -77,8 +77,16 @@ export const exitHandler = async () => {
 	return 0;
 };
 process.on("beforeExit", exitHandler);
-process.on("uncaughtException", exitHandler);
-process.on("unhandledRejection", exitHandler);
+process.on("uncaughtException", (...args) => {
+	console.log(...args);
+	exitHandler();
+	process.exit();
+});
+process.on("unhandledRejection", (...args) => {
+	console.log(...args);
+	exitHandler();
+	process.exit();
+});
 
 /*
 / START
