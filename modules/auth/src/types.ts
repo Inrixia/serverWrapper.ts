@@ -12,7 +12,7 @@ export type ModuleSettings = {
 	minecraft: Record<
 		string,
 		{
-			username: string;
+			name: string;
 			allowedCommands: AllowedCommands;
 		}
 	>;

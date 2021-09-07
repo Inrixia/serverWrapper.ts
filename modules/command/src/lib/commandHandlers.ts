@@ -12,7 +12,7 @@ export const minecraftHandler = async (string: string) => {};
 export const discordHandler = async (message: DiscordMessage) => {
 	if (discordModule === undefined) return;
 	if (message.inManagementChannel || message.mentions.bot) {
-		console.log(JSON.stringify(message, null, "  "));
+		// console.log(JSON.stringify(message, null, "  "));
 		if (message.mentions.bot) {
 			if (authModule === undefined) return;
 			message.content = message.content.slice(message.content.indexOf(" ") + 1, message.content.length);

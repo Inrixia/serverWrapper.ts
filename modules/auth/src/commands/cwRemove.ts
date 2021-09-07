@@ -13,7 +13,8 @@ export const cwRemove: Command = async (message) => {
 
 	if (moduleSettings[provider][id]?.allowedCommands?.[command] === undefined) throw new Error(`Command ${command} is not whitelisted for ${name}`);
 
-	delete moduleSettings[provider][id].allowedCommands[command];
+	// @ts-expect-error In order for the delete to show in settings have to set to undefined
+	moduleSettings[provider][id].allowedCommands[command] = undefined;
 	return {
 		console: chalk`Removed command {cyanBright ${command}} for {blueBright ${name}}`,
 		minecraft: [
