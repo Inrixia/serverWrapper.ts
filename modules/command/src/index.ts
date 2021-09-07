@@ -8,9 +8,11 @@ import { commandHandler, discordHandler, minecraftHandler } from "./lib/commandH
 import type { Command, ModuleInfo, CoreExports } from "@spookelton/wrapperHelpers/types";
 import type { ThreadModule, RequiredThread } from "@inrixia/threads";
 import type * as DiscordModule from "@spookelton/discord";
+import type * as AuthModule from "@spookelton/auth";
 
 export let wrapperCore: RequiredThread<CoreExports>;
-export let discordModule: RequiredThread<typeof DiscordModule>;
+export let discordModule: RequiredThread<typeof DiscordModule> | undefined;
+export let authModule: RequiredThread<typeof AuthModule> | undefined;
 
 // Thread stuff
 const thread = (module.parent as ThreadModule).thread;
@@ -61,5 +63,10 @@ export const unloadModuleCommands = async (module: string) => {
 		discordModule.on("discordMessage", discordHandler);
 	} catch (err) {
 		if (err instanceof Error && !err.message.includes("@spookelton/discord has not been spawned")) throw err;
+	}
+	try {
+		authModule = await thread.require("@spookelton/auth");
+	} catch (err) {
+		if (err instanceof Error && !err.message.includes("@spookelton/auth has not been spawned")) throw err;
 	}
 })();

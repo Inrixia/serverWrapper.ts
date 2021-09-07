@@ -2,14 +2,12 @@ export type AssigningUser = {
 	Username: string;
 	discordId?: string;
 };
-export type AllowedCommands = Record<
-	string,
-	{
-		assignedAt: number;
-		assignedBy: AssigningUser;
-		expiresAt: number;
-	}
->;
+export type AllowedCommand = {
+	assignedAt: number;
+	assignedBy: AssigningUser;
+	expiresAt: number;
+};
+export type AllowedCommands = Record<string, AllowedCommand>;
 export type ModuleSettings = {
 	discord: {
 		roles: Record<

@@ -88,12 +88,6 @@ process.on("uncaughtException", async (...args) => {
 	await exitHandler();
 	process.exit();
 });
-// Disabled as uncaughtException should catch all unhandledRejections
-// process.on("unhandledRejection", (...args) => {
-// 	console.log(...args);
-// 	exitHandler();
-// 	process.exit();
-// });
 
 export let serverStarted = false;
 

@@ -88,9 +88,9 @@ const chikachiPath = "./config/Chikachi/DiscordIntegration.json";
 	// Handle Management Channels
 	if (moduleSettings.managementChannels.length !== 0) {
 		// Wait for server to start before redirecting console
-		thread.once("serverStarted", ({ startTime }: { startTime: number }) => (flatMessages[`Server started in ${startTime}}ms`] = 1));
+		thread.once("serverStarted", ({ startTime }: { startTime: number }) => (flatMessages[`Server started in ${startTime}ms\n`] = 1));
 		// Log "Server Starting..." on startup
-		thread.once("serverStdoutPreStart", () => (flatMessages["Server Starting..."] = 1));
+		thread.once("serverStdoutPreStart", () => (flatMessages["Server Starting...\n"] = 1));
 
 		// Once server has started redirect console to management channels
 		thread.on("serverStdout", (string: string) => {

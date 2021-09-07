@@ -11,7 +11,7 @@ export default (message: Message, inManagementChannel: boolean) => ({
 		id: message.author.id,
 		bot: message.author.bot,
 		username: message.author.username,
-		roles: message.member?.roles.cache.toJSON(),
+		roles: message.member?.roles.cache.map((role) => role.id),
 		color: message.member?.roles.color?.hexColor,
 	},
 	createdTimestamp: message.createdTimestamp,
