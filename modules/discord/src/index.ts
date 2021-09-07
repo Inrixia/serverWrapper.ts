@@ -62,7 +62,7 @@ const chikachiPath = "./config/Chikachi/DiscordIntegration.json";
 	await discord.login(moduleSettings.discordToken);
 	await new Promise((res) => discord.once("ready", res));
 	if (discord.user !== null) {
-		const avatarUrl = discord.user.avatarURL();
+		const avatarUrl = discord.user.avatarURL({ format: "png" });
 		if (avatarUrl !== null) {
 			try {
 				const cArr = await ColorThief.getColor(avatarUrl);
@@ -78,10 +78,17 @@ const chikachiPath = "./config/Chikachi/DiscordIntegration.json";
 
 	// Handle Management Channels
 	if (moduleSettings.managementChannels.length !== 0) {
-		thread.on("serverStdout", (string: string) => {
-			if (string.includes("DiscordIntegration")) return;
-			flatMessages[string] ??= 0;
-			flatMessages[string]++;
+		// Log "Server Starting..." on startup
+		flatMessages["Server Starting..."] = 1;
+
+		// Wait for server to start before redirecting console
+		thread.once("serverStarted", ({ startTime }: { startTime: number }) => {
+			flatMessages[`Server started in ${startTime}}ms`] = 1;
+			thread.on("serverStdout", (string: string) => {
+				if (string.includes("DiscordIntegration")) return;
+				flatMessages[string] ??= 0;
+				flatMessages[string]++;
+			});
 		});
 		setInterval(async () => {
 			let discordData = "";

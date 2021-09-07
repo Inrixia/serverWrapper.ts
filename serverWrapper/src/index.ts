@@ -98,6 +98,8 @@ process.on("uncaughtException", async (...args) => {
 // 	process.exit();
 // });
 
+export let serverStarted = false;
+
 /*
 / START
 */
@@ -125,23 +127,19 @@ process.on("uncaughtException", async (...args) => {
 	});
 	server.stderr.on("data", (err) => console.log(chalk`{redBright ${err}}`));
 
-	const stdoutPostStart = (string: string) => {
+	server.stdout.on("data", (string: string) => {
 		color(string.toString()); // Write line to wrapper console
-		for (const module of Object.values(WrapperModule.runningModules())) module.thread!.emit("serverStdout", string);
-	};
-	const stdoutPreStart = (string: string) => {
-		color(string.toString()); // Write line to wrapper console
-		if (string.includes("players online")) {
-			// "list" command has completed, server is now online
-			wrapperSettings.lastStartTime = Date.now() - serverStartTime;
-			stdoutHandler = stdoutPostStart;
-			started();
+		if (!serverStarted) {
+			if (string.includes("players online")) {
+				// "list" command has completed, server is now online
+				serverStarted = true;
+				wrapperSettings.lastStartTime = Date.now() - serverStartTime;
+				console.log(chalk`Server started in {cyanBright ${wrapperSettings.lastStartTime}}ms`);
+				for (const module of Object.values(WrapperModule.runningModules())) module.thread!.emit("serverStarted", { startTime: wrapperSettings.lastStartTime });
+			}
 		}
-	};
-	const started = () => console.log(chalk`Server started in {cyanBright ${wrapperSettings.lastStartTime}}ms`);
-
-	let stdoutHandler = stdoutPreStart;
-	server.stdout.on("data", stdoutHandler);
+		for (const module of Object.values(WrapperModule.runningModules())) module.thread!.emit("serverStdout", string.toString());
+	});
 	server.stdin.write("list\n"); // Write list to the console so we can know when the server has finished starting'
 
 	// Server shutdown handling
