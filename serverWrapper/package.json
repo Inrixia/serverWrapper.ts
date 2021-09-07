@@ -14,8 +14,7 @@
 		}
 	},
 	"dependencies": {
-		"terminate": "^2.2.2",
-		"@inrixia/db": "^1.8.0"
+		"terminate": "^2.2.2"
 	},
 	"scripts": {
 		"start": "tsc && node ./dist/index.js",

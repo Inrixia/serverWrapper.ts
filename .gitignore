@@ -1,6 +1,6 @@
 node_modules/
 build/
-wrapperSettings.json
+_db/
 package-lock.json
 tsconfig.tsbuildinfo
 dist/

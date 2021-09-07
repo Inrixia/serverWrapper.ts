@@ -1,4 +1,8 @@
 {
 	"name": "@spookelton/discord",
-	"main": "./dist/index.js"
+	"main": "./dist/index.js",
+	"dependencies": {
+		"colorthief": "^2.3.2",
+		"discord.js": "^13.1.0"
+	}
 }
