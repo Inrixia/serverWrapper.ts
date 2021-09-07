@@ -1,29 +1,26 @@
 export type AssigningUser = {
-	Username: string;
-	discordId?: string;
+	name: string;
+	id: string;
 };
 export type AllowedCommand = {
 	assignedAt: number;
 	assignedBy: AssigningUser;
-	expiresAt: number;
+	expiresAt?: number;
 };
 export type AllowedCommands = Record<string, AllowedCommand>;
 export type ModuleSettings = {
-	discord: {
-		roles: Record<
-			string,
-			{
-				name: string;
-				allowedCommands: AllowedCommands;
-			}
-		>;
-		users: Record<
-			string,
-			{
-				username: string;
-				allowedCommands: AllowedCommands;
-				allowAllCommands: false;
-			}
-		>;
-	};
+	minecraft: Record<
+		string,
+		{
+			username: string;
+			allowedCommands: AllowedCommands;
+		}
+	>;
+	discord: Record<
+		string,
+		{
+			name: string;
+			allowedCommands: AllowedCommands;
+		}
+	>;
 };

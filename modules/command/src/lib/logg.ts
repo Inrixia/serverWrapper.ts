@@ -14,6 +14,6 @@ export const logg = async (output: Output, logTo?: LogTo) => {
 			message = {
 				embeds: [output.discord],
 			};
-		if (discordModule !== undefined) await discordModule.sendToChannel(logTo.discord, message);
+		if (discordModule !== undefined) await discordModule.sendToChannel(logTo.discord.channelId, message);
 	}
 };

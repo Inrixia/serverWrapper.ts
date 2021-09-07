@@ -5,40 +5,48 @@ import { mc, hex } from "@spookelton/wrapperHelpers/colors";
 // Import Types
 import type { Command } from "@spookelton/wrapperHelpers/types";
 
+import { moduleSettings } from "..";
+import { cwParams } from "../lib/cwParams";
+
 export const cwRemove: Command = async (message) => {
-	return {};
-	// if (message.args[0] == "~cwRemove") {
-	// 	let whitelisted_object = mS.whitelisted_discord_users[message.mentions.users[0].id];
-	// 	if (message.mentions.users[0].id) delete mS.whitelisted_discord_users[message.mentions.users[0].id];
-	// 	else if (message.mentions.roles[0].id) delete mS.whitelisted_discord_roles[message.mentions.roles[0].id];
-	// 	await modul.saveSettings(sS, mS);
-	// 	return whitelisted_object;
-	// } else {
-	// 	let whitelisted_object = mS.whitelisted_discord_users[message.mentions.users[0].id].allowedCommands[message.args[1].toLowerCase()];
-	// 	if (message.mentions.users[0].id) delete mS.whitelisted_discord_users[message.mentions.users[0].id].allowedCommands[message.args[1].toLowerCase()];
-	// 	else if (message.mentions.roles[0].id) delete mS.whitelisted_discord_roles[message.mentions.roles[0].id].allowedCommands[message.args[1].toLowerCase()];
-	// 	await modul.saveSettings(sS, mS);
-	// 	return whitelisted_object;
-	// }
-	// // cwRemove: function(vars) {
-	// // 	return [{
-	// // 		discord: { string: `Removed all commands from **${(vars.whitelisted_object.Username) ? vars.whitelisted_object.Username : vars.whitelisted_object.Name}**`, embed: null }
-	// // 	}]
-	// // },
-	// // cw_remove: function(vars) {
-	// // 	return [{
-	// // 		discord: { string: `Removed command **${vars.args[1]}** from **${(vars.whitelisted_object.Username) ? vars.whitelisted_object.Username : vars.whitelisted_object.Name}**`, embed: null }
-	// // 	}]
-	// // },
+	const { provider, command, id, name } = cwParams(message);
+
+	if (moduleSettings[provider][id]?.allowedCommands?.[command] === undefined) throw new Error(`Command ${command} is not whitelisted for ${name}`);
+
+	delete moduleSettings[provider][id].allowedCommands[command];
+	return {
+		console: chalk`Removed command {cyanBright ${command}} for {blueBright ${name}}`,
+		minecraft: [
+			{
+				text: "Removed command ",
+			},
+			{
+				text: command,
+				color: mc.cyanBright,
+			},
+			{
+				text: " for ",
+			},
+			{
+				text: name,
+				color: mc.blueBright,
+			},
+		],
+		discord: {
+			color: parseInt(hex.whiteBright, 16),
+			title: `Removed command ${command} for ${name}`,
+			timestamp: Date.now(),
+		},
+	};
 };
+const DiscordUser = chalk.keyword("orange")("@DiscordUser");
+const DiscordRole = chalk.keyword("orange")("@DiscordRole");
 cwRemove.help = {
-	summary: "Removes given whitelisted commands from a discord role or user.",
-	console: chalk`{white Removes given whitelisted commands from a discord role or user.}\nExamples:\n{yellow ~cw_remove} ${chalk.keyword("orange")(
-		"@DiscordUser"
-	)}\n{yellow ~cw_remove} ${chalk.keyword("orange")("@DiscordRole")}`,
+	summary: "Removes given whitelisted commands from a role or user.",
+	console: chalk`{white Removes given whitelisted commands from a role or user.}\nExamples:\n{yellow ~cw_remove} ~killModule ${DiscordUser}\n{yellow ~cw_remove} !tps ${DiscordRole}\n{yellow ~cw_remove} ~* Minecraft_user1873425\n`,
 	minecraft: [
 		{
-			text: `Removes given whitelisted commands from a discord role or user.\n`,
+			text: `Removes given whitelisted commands from a role or user.\n`,
 			color: mc.whiteBright,
 		},
 		{
@@ -46,19 +54,39 @@ cwRemove.help = {
 			color: mc.white,
 		},
 		{
-			text: `~cw_remove `,
+			text: `~cwRemove `,
 			color: mc.yellow,
+		},
+		{
+			text: `~killModule `,
+			color: mc.blueBright,
 		},
 		{
 			text: `@DiscordUser\n`,
 			color: mc.blueBright,
 		},
 		{
-			text: `~cw_remove `,
+			text: `~cwRemove `,
 			color: mc.yellow,
 		},
 		{
-			text: `@DiscordUser`,
+			text: `!tps `,
+			color: mc.blueBright,
+		},
+		{
+			text: `@DiscordRole\n`,
+			color: mc.blueBright,
+		},
+		{
+			text: `~cwRemove `,
+			color: mc.yellow,
+		},
+		{
+			text: `~* `,
+			color: mc.blueBright,
+		},
+		{
+			text: `Minecraft_user1873425`,
 			color: mc.blueBright,
 		},
 	],
@@ -74,7 +102,7 @@ cwRemove.help = {
 			},
 			{
 				name: "Example",
-				value: "**~cw_remove** @DiscordUser\n**~cw_remove** @DiscordRole",
+				value: "**~cwRemove** ~killModule @DiscordUser\n**~cwRemove** !tps @DiscordRole\n**~cwRemove** ~* Minecraft_user1873425",
 			},
 		],
 	},

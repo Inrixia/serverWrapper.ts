@@ -1,6 +1,5 @@
 import type { Message } from "discord.js";
-
-export default (message: Message, inManagementChannel: boolean) => ({
+export const buildMessage = (message: Message, inManagementChannel: boolean) => ({
 	inManagementChannel,
 	channelId: message.channelId,
 	guildId: message.guildId,

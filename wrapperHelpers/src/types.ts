@@ -1,11 +1,14 @@
 import type { MessageEmbedOptions } from "discord.js";
-import type { mc } from "./colors";
 import type { ValueOf } from "@inrixia/helpers/ts";
-
 import type { ThreadModule } from "@inrixia/threads";
 
+import type { buildMessage } from "./discord";
+import type { mc } from "./colors";
+
+export type DiscordMessage = ReturnType<typeof buildMessage>;
+
 export type LogTo = {
-	discord?: string;
+	discord?: DiscordMessage;
 	minecraft?: string | true;
 };
 
