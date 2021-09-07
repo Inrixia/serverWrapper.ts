@@ -2,7 +2,7 @@
 import * as _commands from "./commands";
 
 // Import command handlers
-import { commandHandler, discordHandler } from "./lib/commandHandlers";
+import { commandHandler, discordHandler, minecraftHandler } from "./lib/commandHandlers";
 
 // Import Types
 import type { Command, ModuleInfo, CoreExports } from "@spookelton/wrapperHelpers/types";
@@ -15,6 +15,7 @@ export let discordModule: RequiredThread<typeof DiscordModule>;
 // Thread stuff
 const thread = (module.parent as ThreadModule).thread;
 thread.on("consoleStdin", commandHandler);
+thread.on("serverStdout", minecraftHandler);
 
 import { buildModuleInfo } from "@spookelton/wrapperHelpers/modul";
 // Export moduleInfo

@@ -11,7 +11,9 @@ export const minecraftHandler = async (string: string) => {};
 
 export const discordHandler = async (message: DiscordMessage) => {
 	if (message.inManagementChannel || message.mentions.bot) {
-		console.log(chalk`{grey [}{blueBright @${message.author.username}}{grey ]}: ${message.content}`);
+		// Do auth check here
+		if (message.mentions.bot && !true) return;
+		console.log(chalk`{grey [}${chalk.hex(message.author.color || "")(`@${message.author.username}`)}{grey ]}: ${message.content}`);
 		if (message.mentions.bot) message.content = message.content.slice(message.content.indexOf(" ") + 1, message.content.length);
 		if (message.content[0] === "!") {
 			if (message.mentions.bot) await discordModule.addTempManagementChannel(message.channelId);
