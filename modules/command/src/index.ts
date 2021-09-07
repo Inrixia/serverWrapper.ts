@@ -2,8 +2,10 @@
 import * as _commands from "./commands";
 
 // Import Types
-import type { Command, LogTo, Output, ModuleInfo } from "@spookelton/wrapperHelpers/types";
+import type { Command, ModuleInfo, CoreExports } from "@spookelton/wrapperHelpers/types";
 import type { ThreadModule, RequiredThread } from "@inrixia/threads";
+
+export let wrapperCore: RequiredThread<CoreExports>;
 
 // Thread stuff
 const thread = (module.parent as ThreadModule).thread;

@@ -1,0 +1,4 @@
+{
+	"name": "@spookelton/auth",
+	"main": "./dist/index.js"
+}

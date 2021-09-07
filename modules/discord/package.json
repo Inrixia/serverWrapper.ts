@@ -4,5 +4,10 @@
 	"dependencies": {
 		"colorthief": "^2.3.2",
 		"discord.js": "^13.1.0"
-	}
+	},
+	"references": [
+		{
+			"path": "../../wrapperHelpers"
+		}
+	]
 }

@@ -3,5 +3,11 @@
 	"compilerOptions": {
 		"outDir": "./dist",
 		"rootDir": "./src"
-	}
+	},
+	"references": [
+		{ "path": "../wrapperHelpers" },
+		{
+			"path": "../modules/command"
+		}
+	]
 }
