@@ -36,13 +36,12 @@ export const moduleInfo = buildModuleInfo({
 	color: "cyan",
 });
 
-export const wrapperSettings = db<WrapperSettings>("./wrapperSettings.json", {
+export const wrapperSettings = db<WrapperSettings>("./_db/wrapperSettings.json", {
 	forceCreate: true,
 	updateOnExternalChanges: true,
 	pretty: true,
 	template: defaultWrapperSettings,
 });
-
 wrapperSettings.serverName = path.basename(process.cwd());
 
 process.on("SIGTSTP", () => console.log("Caught SIGTSTP, Dont use Ctrl-Z."));
@@ -87,16 +86,17 @@ export const exitHandler = async () => {
 	return 0;
 };
 process.on("beforeExit", exitHandler);
-process.on("uncaughtException", (...args) => {
+process.on("uncaughtException", async (...args) => {
 	console.log(...args);
-	exitHandler();
+	await exitHandler();
 	process.exit();
 });
-process.on("unhandledRejection", (...args) => {
-	console.log(...args);
-	exitHandler();
-	process.exit();
-});
+// Disabled as uncaughtException should catch all unhandledRejections
+// process.on("unhandledRejection", (...args) => {
+// 	console.log(...args);
+// 	exitHandler();
+// 	process.exit();
+// });
 
 /*
 / START
@@ -127,7 +127,7 @@ process.on("unhandledRejection", (...args) => {
 
 	const stdoutPostStart = (string: string) => {
 		color(string.toString()); // Write line to wrapper console
-		// moduleEvent.emit("serverStdout", string.toString());
+		for (const module of Object.values(WrapperModule.runningModules())) module.thread!.emit("serverStdout", string);
 	};
 	const stdoutPreStart = (string: string) => {
 		color(string.toString()); // Write line to wrapper console
