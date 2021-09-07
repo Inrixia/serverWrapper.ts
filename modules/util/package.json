@@ -1,4 +1,13 @@
 {
 	"name": "@spookelton/util",
-	"main": "./dist/index.js"
+	"exports": {
+		".": "./dist/index.js"
+	},
+	"typesVersions": {
+		"*": {
+			"*": [
+				"dist/*"
+			]
+		}
+	}
 }

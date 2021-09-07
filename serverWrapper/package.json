@@ -2,14 +2,14 @@
 	"name": "@spookelton/serverwrapper",
 	"version": "4.0.0",
 	"description": "Spookelton serverWrapper",
-	"main": "dist/index.js",
 	"exports": {
+		".": "./dist/index.js",
 		"./commands": "./dist/commands/index.js"
 	},
 	"typesVersions": {
 		"*": {
-			"commands": [
-				"dist/commands/"
+			"*": [
+				"dist/*"
 			]
 		}
 	},

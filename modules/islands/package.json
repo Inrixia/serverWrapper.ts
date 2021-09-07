@@ -1,4 +1,13 @@
 {
 	"name": "@spookelton/islands",
-	"main": "./dist/index.js"
+	"exports": {
+		".": "./dist/index.js"
+	},
+	"typesVersions": {
+		"*": {
+			"*": [
+				"dist/*"
+			]
+		}
+	}
 }

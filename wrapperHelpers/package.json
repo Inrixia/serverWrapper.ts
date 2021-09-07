@@ -7,14 +7,8 @@
 	},
 	"typesVersions": {
 		"*": {
-			"colors": [
-				"dist/colors"
-			],
-			"types": [
-				"dist/types"
-			],
-			"modul": [
-				"dist/modul"
+			"*": [
+				"dist/*"
 			]
 		}
 	},

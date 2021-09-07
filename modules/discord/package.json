@@ -1,13 +1,13 @@
 {
 	"name": "@spookelton/discord",
-	"main": "./dist/index.js",
 	"exports": {
-		"./types": "./dist/types/index.js"
+		"./types": "./dist/types/index.js",
+		".": "./dist/index.js"
 	},
 	"typesVersions": {
 		"*": {
-			"types": [
-				"dist/types"
+			"*": [
+				"dist/*"
 			]
 		}
 	},

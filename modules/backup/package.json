@@ -1,4 +1,13 @@
 {
 	"name": "@spookelton/backup",
-	"main": "./dist/index.js"
+	"exports": {
+		".": "./dist/index.js"
+	},
+	"typesVersions": {
+		"*": {
+			"*": [
+				"dist/*"
+			]
+		}
+	}
 }

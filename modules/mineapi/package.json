@@ -1,4 +1,13 @@
 {
 	"name": "@spookelton/mineapi",
-	"main": "./dist/index.js"
+	"exports": {
+		".": "./dist/index.js"
+	},
+	"typesVersions": {
+		"*": {
+			"*": [
+				"dist/*"
+			]
+		}
+	}
 }

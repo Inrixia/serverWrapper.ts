@@ -1,6 +1,15 @@
 {
 	"name": "@spookelton/command",
-	"main": "./dist/index.js",
+	"exports": {
+		".": "./dist/index.js"
+	},
+	"typesVersions": {
+		"*": {
+			"*": [
+				"dist/*"
+			]
+		}
+	},
 	"dependencies": {
 		"mathjs": "^9.4.4"
 	}
