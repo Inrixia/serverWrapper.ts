@@ -8,7 +8,6 @@ export type WrapperSettings = {
 
 export type WrapperModuleConfig = {
 	enabled: boolean;
-	settings?: { [key: string]: unknown };
 };
 
 export type ColorMatchers = {

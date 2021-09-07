@@ -2,6 +2,8 @@ import type { MessageEmbedOptions } from "discord.js";
 import type { mc } from "./colors";
 import type { ValueOf } from "@inrixia/helpers/ts";
 
+import type { ThreadModule } from "@inrixia/threads";
+
 export type LogTo = {
 	discord?: number;
 	minecraft?: string | true;
@@ -37,3 +39,6 @@ export type ModuleInfo = {
 	color: keyof typeof mc;
 	description?: string;
 };
+
+// TODO: Get event types for stdin/stdout mapped to thsi
+export type WrapperModule = ThreadModule<{}>;
