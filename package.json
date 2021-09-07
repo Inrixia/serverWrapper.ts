@@ -10,9 +10,11 @@
 		"watch": "tsc -b --watch"
 	},
 	"dependencies": {
-		"@inrixia/threads": "^3.4.3",
 		"@inrixia/db": "^1.8.0",
-		"chalk": "^4.1.2"
+		"@inrixia/helpers": "^1.22.2",
+		"@inrixia/threads": "^3.4.3",
+		"chalk": "^4.1.2",
+		"discord.js": "^13.1.0"
 	},
 	"devDependencies": {
 		"@types/node": "^16.7.13",

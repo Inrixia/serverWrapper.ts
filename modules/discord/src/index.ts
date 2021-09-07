@@ -4,6 +4,7 @@ import ColorThief from "colorthief";
 import { Client, Intents } from "discord.js";
 
 import db from "@inrixia/db";
+import { chunkArray } from "@inrixia/helpers/object";
 
 import { buildModuleInfo } from "@spookelton/wrapperHelpers/modul";
 import buildMessage from "./lib/buildMessage";
@@ -105,7 +106,11 @@ const chikachiPath = "./config/Chikachi/DiscordIntegration.json";
 				delete flatMessages[string];
 			}
 			if (discordData !== "") {
-				for (const channel of await managementChannels()) channel.send(discordData).catch(console.error);
+				for (const channel of await managementChannels()) {
+					for (const chunk of chunkArray(discordData, 2000)) {
+						channel.send(chunk).catch(console.error);
+					}
+				}
 				discordData = "";
 			}
 		}, moduleSettings.messageFlushRate);

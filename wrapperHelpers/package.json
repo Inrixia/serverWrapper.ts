@@ -31,9 +31,5 @@
 	"license": "ISC",
 	"bugs": {
 		"url": "https://github.com/Spookelton/wrapperTypes/issues"
-	},
-	"devDependencies": {
-		"@inrixia/helpers": "^1.22.1",
-		"discord.js": "^13.1.0"
 	}
 }
