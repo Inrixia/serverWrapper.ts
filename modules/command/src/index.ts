@@ -1,6 +1,9 @@
 // Import command Commands
 import * as _commands from "./commands";
 
+// Import command handlers
+import { commandHandler, discordHandler } from "./lib/commandHandlers";
+
 // Import Types
 import type { Command, ModuleInfo, CoreExports } from "@spookelton/wrapperHelpers/types";
 import type { ThreadModule, RequiredThread } from "@inrixia/threads";
@@ -9,7 +12,6 @@ export let wrapperCore: RequiredThread<CoreExports>;
 
 // Thread stuff
 const thread = (module.parent as ThreadModule).thread;
-import { commandHandler } from "./lib/commandHandler";
 thread.on("consoleStdin", commandHandler);
 
 import { buildModuleInfo } from "@spookelton/wrapperHelpers/modul";
@@ -53,8 +55,8 @@ export const unloadModuleCommands = async (module: string) => {
 
 	try {
 		const discordThread = await thread.require("@spookelton/discord");
-		// discordThread.on("discordMessage", console.log);
+		discordThread.on("discordMessage", discordHandler);
 	} catch (err) {
-		console.log(err);
+		if (err instanceof Error && !err.message.includes("@spookelton/discord has not been spawned")) throw err;
 	}
 })();

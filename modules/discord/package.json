@@ -1,6 +1,16 @@
 {
 	"name": "@spookelton/discord",
 	"main": "./dist/index.js",
+	"exports": {
+		"./types": "./dist/types/index.js"
+	},
+	"typesVersions": {
+		"*": {
+			"types": [
+				"dist/types"
+			]
+		}
+	},
 	"dependencies": {
 		"colorthief": "^2.3.2",
 		"discord.js": "^13.1.0"

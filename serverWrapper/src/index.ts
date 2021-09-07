@@ -67,10 +67,7 @@ let server: ChildProcessWithoutNullStreams | undefined;
 // Expose wrapperCore to threads
 import { Thread } from "@inrixia/threads/Thread";
 
-export const serverStdin = (string: string): void => {
-	process.stdout.write(string);
-	if (server !== undefined) server.stdin.write(string);
-};
+export const serverStdin = (string: string): boolean => server !== undefined && server.stdin.write(string);
 
 export const getRunningModules = (): ModuleInfo[] => [
 	...(WrapperModule.runningModules()
@@ -127,6 +124,7 @@ export let serverStarted = false;
 	});
 	server.stderr.on("data", (err) => console.log(chalk`{redBright ${err}}`));
 
+	let stdoutChannel = "serverStdoutPreStart";
 	server.stdout.on("data", (string: string) => {
 		color(string.toString()); // Write line to wrapper console
 		if (!serverStarted) {
@@ -136,9 +134,10 @@ export let serverStarted = false;
 				wrapperSettings.lastStartTime = Date.now() - serverStartTime;
 				console.log(chalk`Server started in {cyanBright ${wrapperSettings.lastStartTime}}ms`);
 				for (const module of Object.values(WrapperModule.runningModules())) module.thread!.emit("serverStarted", { startTime: wrapperSettings.lastStartTime });
+				stdoutChannel = "serverStdout";
 			}
 		}
-		for (const module of Object.values(WrapperModule.runningModules())) module.thread!.emit("serverStdout", string.toString());
+		for (const module of Object.values(WrapperModule.runningModules())) module.thread!.emit(stdoutChannel, string.toString());
 	});
 	server.stdin.write("list\n"); // Write list to the console so we can know when the server has finished starting'
 

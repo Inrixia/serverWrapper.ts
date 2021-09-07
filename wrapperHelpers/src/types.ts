@@ -43,4 +43,4 @@ export type ModuleInfo = {
 // TODO: Get event types for stdin/stdout mapped to thsi
 export type WrapperModule = ThreadModule<{}>;
 
-export type CoreExports = { getRunningModules: () => ModuleInfo[]; serverStdin: (string: string) => void };
+export type CoreExports = { getRunningModules: () => ModuleInfo[]; serverStdin: (string: string) => boolean };

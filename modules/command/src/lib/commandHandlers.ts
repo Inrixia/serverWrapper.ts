@@ -3,7 +3,16 @@ import chalk from "chalk";
 import { mc, hex } from "@spookelton/wrapperHelpers/colors";
 import { commands, logg, lErr } from "..";
 
+// Import Types
 import type { LogTo } from "@spookelton/wrapperHelpers/types";
+import type { DiscordMessage } from "@spookelton/discord/types";
+
+export const minecraftHandler = async (string: string) => {};
+
+export const discordHandler = async (message: DiscordMessage) => {
+	if (message.inManagementChannel) console.log(chalk`{grey [}{blueBright @${message.author.username}}{grey ]}: ${message.content}`);
+	if (message.content[0] === "!") return logg({ minecraft: `${message.content.slice(1)}\n` }, { minecraft: true });
+};
 
 export const commandHandler = async (string: string, logTo?: LogTo): Promise<void> => {
 	string = string.replace(/\s\s+/g, " ").replace("\r", ""); // Compact multiple spaces/tabs down to one

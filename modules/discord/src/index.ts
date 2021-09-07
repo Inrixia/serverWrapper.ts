@@ -65,8 +65,8 @@ const chikachiPath = "./config/Chikachi/DiscordIntegration.json";
 	// On receive message from discord server
 	discord.on("messageCreate", async (message) => {
 		if (message.author.id === discord.user!.id) return;
-		if (moduleSettings.managementChannels.includes(message.channelId)) return;
-		thread.emit("discordMessage", buildMessage(message));
+		if (message.author.bot) return;
+		thread.emit("discordMessage", buildMessage(message, moduleSettings.managementChannels.includes(message.channelId)));
 	});
 
 	if (discord.user !== null) {
@@ -86,17 +86,16 @@ const chikachiPath = "./config/Chikachi/DiscordIntegration.json";
 
 	// Handle Management Channels
 	if (moduleSettings.managementChannels.length !== 0) {
-		// Log "Server Starting..." on startup
-		flatMessages["Server Starting..."] = 1;
-
 		// Wait for server to start before redirecting console
-		thread.once("serverStarted", ({ startTime }: { startTime: number }) => {
-			flatMessages[`Server started in ${startTime}}ms`] = 1;
-			thread.on("serverStdout", (string: string) => {
-				if (string.includes("DiscordIntegration")) return;
-				flatMessages[string] ??= 0;
-				flatMessages[string]++;
-			});
+		thread.once("serverStarted", ({ startTime }: { startTime: number }) => (flatMessages[`Server started in ${startTime}}ms`] = 1));
+		// Log "Server Starting..." on startup
+		thread.once("serverStdoutPreStart", () => (flatMessages["Server Starting..."] = 1));
+
+		// Once server has started redirect console to management channels
+		thread.on("serverStdout", (string: string) => {
+			if (string.includes("DiscordIntegration")) return;
+			flatMessages[string] ??= 0;
+			flatMessages[string]++;
 		});
 		setInterval(async () => {
 			let discordData = "";
@@ -112,7 +111,7 @@ const chikachiPath = "./config/Chikachi/DiscordIntegration.json";
 		}, moduleSettings.messageFlushRate);
 
 		thread.on("consoleStdin", async (string: string) => {
-			for (const channel of await managementChannels()) channel.send(`[Console] > ${string}\n`).catch(console.error);
+			for (const channel of await managementChannels()) channel.send(`[Console]: ${string}\n`).catch(console.error);
 		});
 	}
 })();
