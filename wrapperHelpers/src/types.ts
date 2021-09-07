@@ -5,7 +5,7 @@ import type { ValueOf } from "@inrixia/helpers/ts";
 import type { ThreadModule } from "@inrixia/threads";
 
 export type LogTo = {
-	discord?: number;
+	discord?: string;
 	minecraft?: string | true;
 };
 

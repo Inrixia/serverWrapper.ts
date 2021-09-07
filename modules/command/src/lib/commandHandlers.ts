@@ -16,7 +16,7 @@ export const discordHandler = async (message: DiscordMessage) => {
 		if (message.content[0] === "!") {
 			if (message.mentions.bot) await discordModule.addTempManagementChannel(message.channelId);
 			return logg({ minecraft: `${message.content.slice(1)}\n` }, { minecraft: true });
-		}
+		} else commandHandler(message.content, { discord: message.channelId });
 	}
 };
 
@@ -52,7 +52,7 @@ export const commandHandler = async (string: string, logTo?: LogTo): Promise<voi
 				discord: {
 					color: parseInt(hex["red"], 16),
 					title: `The command "${string}" could not be matched to a known command...`,
-					timestamp: new Date(),
+					timestamp: Date.now(),
 				},
 			},
 			logTo
@@ -65,7 +65,7 @@ export const commandHandler = async (string: string, logTo?: LogTo): Promise<voi
 	if (!Array.isArray(commandOutput)) commandOutput = [commandOutput];
 	for (const output of commandOutput) {
 		if (output.discord !== undefined && typeof output.discord !== "string") {
-			const exeTime = `Executed in ${Date.now() - exeStart}`;
+			const exeTime = `Executed in ${Date.now() - exeStart}ms`;
 			if (output.discord?.footer?.text !== undefined) output.discord.footer.text = `${output.discord.footer.text} • ${exeTime}`;
 			else {
 				output.discord = output.discord || {};
