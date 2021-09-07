@@ -1,11 +1,4 @@
 {
-	"main": "./dist/index.js",
-	"dependencies": {
-		"@inrixia/threads": "^3.3.2",
-		"@spookelton/wrapperHelpers": "../../submodules/wrapperHelpers/dist",
-		"chalk": "^4.1.2"
-	},
-	"devDependencies": {
-		"@types/node": "^16.7.10"
-	}
+	"name": "@spookelton/properties",
+	"main": "./dist/index.js"
 }

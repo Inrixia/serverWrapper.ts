@@ -1,0 +1,4 @@
+{
+	"name": "@spookelton/discord",
+	"main": "./dist/index.js"
+}

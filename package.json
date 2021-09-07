@@ -8,5 +8,16 @@
 	"scripts": {
 		"start": "tsc -b && node ./serverWrapper/dist/index.js",
 		"watch": "tsc -b --watch"
+	},
+	"dependencies": {
+		"@inrixia/threads": "^3.3.4",
+		"chalk": "^4.1.2"
+	},
+	"devDependencies": {
+		"@types/node": "^16.7.11",
+		"@typescript-eslint/eslint-plugin": "^4.31.0",
+		"@typescript-eslint/parser": "^4.31.0",
+		"eslint": "^7.32.0",
+		"typescript": "^4.4.2"
 	}
 }

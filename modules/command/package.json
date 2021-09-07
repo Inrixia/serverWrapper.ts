@@ -1,12 +1,7 @@
 {
 	"name": "@spookelton/command",
 	"main": "./dist/index.js",
-	"version": "1.0.0",
 	"dependencies": {
-		"@inrixia/threads": "^3.3.2",
-		"chalk": "^4.1.2"
-	},
-	"devDependencies": {
-		"@types/node": "^16.7.10"
+		"mathjs": "^9.4.4"
 	}
 }

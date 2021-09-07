@@ -1,12 +1,4 @@
 {
 	"name": "@spookelton/math",
-	"main": "./dist/index.js",
-	"dependencies": {
-		"@inrixia/threads": "^3.3.2",
-		"chalk": "^4.1.2",
-		"mathjs": "^9.4.4"
-	},
-	"devDependencies": {
-		"@types/node": "^16.7.10"
-	}
+	"main": "./dist/index.js"
 }
