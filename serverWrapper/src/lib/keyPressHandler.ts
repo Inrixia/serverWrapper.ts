@@ -47,13 +47,17 @@ export const consoleHandler = (onLine: (char: string) => void) => {
 				break;
 			case "up":
 				if (consoleHistoryIndex !== 0) consoleHistoryIndex--;
-				consoleInput = consoleHistory[consoleHistoryIndex];
-				consoleIndex = consoleHistory[consoleHistoryIndex].length;
+				if (consoleHistory[consoleHistoryIndex] !== undefined) {
+					consoleInput = consoleHistory[consoleHistoryIndex];
+					consoleIndex = consoleHistory[consoleHistoryIndex].length;
+				}
 				break;
 			case "down":
 				if (consoleHistoryIndex !== consoleHistory.length - 1) consoleHistoryIndex++;
-				consoleInput = consoleHistory[consoleHistoryIndex];
-				consoleIndex = consoleHistory[consoleHistoryIndex].length;
+				if (consoleHistory[consoleHistoryIndex] !== undefined) {
+					consoleInput = consoleHistory[consoleHistoryIndex];
+					consoleIndex = consoleHistory[consoleHistoryIndex].length;
+				}
 				break;
 			case "end":
 				consoleIndex = consoleInput.length;

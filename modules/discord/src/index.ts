@@ -6,6 +6,7 @@ import { Client, Intents } from "discord.js";
 import db from "@inrixia/db";
 
 import { buildModuleInfo } from "@spookelton/wrapperHelpers/modul";
+import buildMessage from "./lib/buildMessage";
 
 // Import Types
 import type { WrapperModule } from "@spookelton/wrapperHelpers/types";
@@ -34,7 +35,7 @@ export const moduleSettings = db<ModuleSettings>("./_db/discord.json", {
 	},
 });
 
-const discord = new Client({ intents: [Intents.FLAGS.GUILDS] });
+const discord = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] });
 
 const flatMessages: Record<string, number> = {};
 const managementChannels = async () => {
@@ -61,6 +62,13 @@ const chikachiPath = "./config/Chikachi/DiscordIntegration.json";
 	console.log(chalk`Using Discord Token: {${moduleInfo.color} ${moduleSettings.discordToken}}`);
 	await discord.login(moduleSettings.discordToken);
 	await new Promise((res) => discord.once("ready", res));
+	// On receive message from discord server
+	discord.on("messageCreate", async (message) => {
+		if (message.author.id === discord.user!.id) return;
+		if (moduleSettings.managementChannels.includes(message.channelId)) return;
+		thread.emit("discordMessage", buildMessage(message));
+	});
+
 	if (discord.user !== null) {
 		const avatarUrl = discord.user.avatarURL({ format: "png" });
 		if (avatarUrl !== null) {
@@ -123,10 +131,3 @@ export const addTempManagementChannel = async (channelId: string, timeout = 500)
 	moduleSettings.managementChannels.push(channelId);
 	setTimeout(() => (moduleSettings.managementChannels = moduleSettings.managementChannels.filter((channelId) => channelId !== channelId)), timeout);
 };
-
-// On receive message from discord server
-discord.on("messageCreate", async (message) => {
-	if (message.author.id === discord.user!.id) return;
-	if (moduleSettings.managementChannels.includes(message.channelId)) return;
-	thread.emit("discordMessage", message.toJSON());
-});

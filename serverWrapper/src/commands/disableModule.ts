@@ -7,7 +7,7 @@ import { mc, hex } from "@spookelton/wrapperHelpers/colors";
 import type { Command } from "@spookelton/wrapperHelpers/types";
 
 export const disableModule: Command = async (message) => {
-	const moduleName = message.args[1];
+	const moduleName = message.args[0];
 	if (moduleName === undefined) throw new Error("No module specified.");
 	const moduleToDisable = WrapperModule.loadedModules[message.args[1]];
 	if (moduleToDisable === undefined) throw new Error(`Module ${moduleName} is not loaded.`);
