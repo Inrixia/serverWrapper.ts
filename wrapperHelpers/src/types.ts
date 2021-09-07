@@ -35,5 +35,5 @@ export type ModuleInfo = {
 	module?: string;
 	persistent?: boolean;
 	color: keyof typeof mc;
-	description: string;
+	description?: string;
 };

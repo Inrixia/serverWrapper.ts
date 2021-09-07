@@ -1,42 +1,45 @@
 import { Parent, ParentThread } from "@inrixia/threads";
 import chalk from "chalk";
 
+// Import CommandModule Types
+import type * as CommandModule from "@spookelton/command";
+
 // Import Types
 import type { ModuleInfo } from "@spookelton/wrapperHelpers/types";
 import type { WrapperModuleConfig } from "./types";
 
-type MI = Required<ModuleInfo>;
+type DefaultExports = { moduleInfo: ModuleInfo };
 
 /*
 / Module class definition
 */
-export default class WrapperModule {
+export default class WrapperModule<E extends DefaultExports = DefaultExports> {
 	public readonly module: string;
 	private _moduleConfig: WrapperModuleConfig;
 
-	private _persistent: MI["persistent"];
-	private _color: MI["color"];
-	private _description: MI["description"];
-
-	public moduleInfo?: ModuleInfo;
+	public moduleInfo: ModuleInfo;
 
 	public get persistent() {
-		return this._persistent;
+		return this.moduleInfo.persistent;
 	}
 	public get color() {
-		return this._color;
+		return this.moduleInfo.color;
 	}
 	public get description() {
-		return this._description;
+		return this.moduleInfo.description;
 	}
 
 	private crashCount: number;
-	thread: ParentThread<{ moduleInfo: () => ModuleInfo; init: () => void }> | null;
+	thread: ParentThread<E> | null;
 
 	public static readonly loadedModules: Record<string, WrapperModule> = {};
 
 	static runningModules = () => Object.values(WrapperModule.loadedModules).filter((module) => module.running);
 	static enabledModules = () => Object.values(WrapperModule.loadedModules).filter((module) => module.enabled);
+
+	static get commandModule() {
+		return WrapperModule.loadedModules["@spookelton/command"] as WrapperModule<typeof CommandModule>;
+	}
 
 	static loadModules = (modules: Record<string, WrapperModuleConfig>) =>
 		Promise.all(
@@ -52,11 +55,9 @@ export default class WrapperModule {
 		this.thread = null;
 		// Set module settings
 		this._moduleConfig = moduleConfig;
-
-		// Set exported moduleInfo properties
-		this._color = "white";
-		this._persistent = false;
-		this._description = "No description exported.";
+		this.moduleInfo = {
+			color: "white",
+		};
 		WrapperModule.loadedModules[module] = this;
 	}
 
@@ -105,15 +106,9 @@ export default class WrapperModule {
 		this.thread = Parent(this.module);
 		this.thread.exited.catch(this.onCrashed);
 		this.moduleInfo = await this.thread.moduleInfo();
-		if (this.moduleInfo !== undefined) {
-			this._color = this.moduleInfo.color;
-			this._description = this.moduleInfo.description;
-			this._persistent = this.moduleInfo.persistent || false;
-		}
 		console.log(chalk`Started {${this.color} ${this.module}} in {redBright ${Date.now() - startTime}}ms`);
-		if (WrapperModule.loadedModules["@spookelton/command"]?.running) {
-			// @ts-expect-error loadModuleCommands exists on @spookelton/command
-			WrapperModule.loadedModules["@spookelton/command"].thread!.loadModuleCommands({ module: this.module, ...this.moduleInfo });
+		if (WrapperModule.commandModule?.running) {
+			WrapperModule.commandModule.thread!.loadModuleCommands({ module: this.module, ...this.moduleInfo });
 		}
 	}
 
@@ -122,9 +117,8 @@ export default class WrapperModule {
 			await this.terminate();
 			this.thread = null;
 		}
-		if (WrapperModule.loadedModules["@spookelton/command"]?.running) {
-			// @ts-expect-error loadModuleCommands exists on @spookelton/command
-			WrapperModule.loadedModules["@spookelton/command"].thread!.unloadModuleCommands(this.module);
+		if (WrapperModule.commandModule?.running) {
+			WrapperModule.commandModule.thread!.unloadModuleCommands(this.module);
 		}
 		if (!force && this.persistent) await this.start();
 	}
