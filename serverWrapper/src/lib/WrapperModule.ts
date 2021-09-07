@@ -1,4 +1,4 @@
-import { Parent, ParentThread } from "@inrixia/threads";
+import { Parent, ParentThread, ThreadExitInfo } from "@inrixia/threads";
 import chalk from "chalk";
 
 // Import CommandModule Types
@@ -69,29 +69,30 @@ export default class WrapperModule<E extends DefaultExports = DefaultExports> {
 	}
 
 	get running(): boolean {
-		return this.thread !== null;
+		return this.thread !== null && this.thread.running;
 	}
 
-	async onCrashed(error: Error): Promise<void> {
+	async onExited(exitInfo: ThreadExitInfo): Promise<void> {
+		if (exitInfo.err === undefined) return;
 		this.crashCount += 1;
 		setTimeout(() => this.crashCount--, 5000);
-		if (this.running) {
-			await this.terminate();
-			this.thread = null;
-		}
+		await this.terminate();
 
 		if (this.crashCount < 3) {
-			process.stdout.write(chalk`{red Module Crashed}: {${this.color}${this.module}} Restarting!\n`);
+			process.stdout.write(chalk`{red Module Crashed}: [{${this.color} ${this.module}}] Restarting!\n`);
+			console.log(exitInfo.err);
 			await this.restart();
 		} else {
-			if (this.persistent === true)
-				process.stdout.write(chalk`{red Module Crashed Repeatedly}: {${this.color}${this.module}} Unable to disable as module is persistant!\n`);
-			else {
-				process.stdout.write(chalk`{red Module Crashed Repeatedly}: {${this.color}${this.module}} Disabling!\n`);
+			if (this.persistent === true) {
+				process.stdout.write(chalk`{red Module Crashed Repeatedly}: {${this.color} ${this.module}} Unable to disable as module is persistant!\n`);
+				console.log(exitInfo.err);
+				await this.restart();
+			} else {
+				process.stdout.write(chalk`{red Module Crashed Repeatedly}: {${this.color} ${this.module}} Disabling!\n`);
+				console.log(exitInfo.err);
 				if (this.running) this.kill();
 			}
 		}
-		console.log(error);
 	}
 
 	async restart(): Promise<void> {
@@ -104,7 +105,7 @@ export default class WrapperModule<E extends DefaultExports = DefaultExports> {
 		if (!this.enabled || this.running) return;
 		const startTime = Date.now();
 		this.thread = Parent(this.module);
-		this.thread.exited.catch(this.onCrashed);
+		this.thread.exited.then(this.onExited.bind(this));
 		this.moduleInfo = await this.thread.moduleInfo();
 		console.log(chalk`Started {${this.color} ${this.module}} in {redBright ${Date.now() - startTime}}ms`);
 		if (WrapperModule.commandModule?.running) {
@@ -124,8 +125,8 @@ export default class WrapperModule<E extends DefaultExports = DefaultExports> {
 	}
 
 	async terminate(): Promise<number | void> {
-		if (this.thread !== null) {
-			const exitCode = await this.thread.terminate();
+		if (this.running) {
+			const exitCode = await this.thread!.terminate();
 			this.thread = null;
 			return exitCode;
 		}

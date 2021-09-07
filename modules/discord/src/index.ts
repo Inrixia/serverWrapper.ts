@@ -56,7 +56,7 @@ const chikachiPath = "./config/Chikachi/DiscordIntegration.json";
 
 (async () => {
 	if (moduleSettings.discordToken === "" && fs.existsSync(chikachiPath)) moduleSettings.discordToken = fs.readFileSync(chikachiPath, "utf8").slice(31, 90);
-	if (moduleSettings.discordToken === "") throw new Error(chalk`[{${moduleInfo.color} @spookelton/discord}]: {redBright No Token Found!}\n`);
+	if (moduleSettings.discordToken === "") throw new Error("No Token Found!");
 	// Sign into discord and attempt to fetch avatar color
 	console.log(chalk`Using Discord Token: {${moduleInfo.color} ${moduleSettings.discordToken}}`);
 	await discord.login(moduleSettings.discordToken);
@@ -69,7 +69,7 @@ const chikachiPath = "./config/Chikachi/DiscordIntegration.json";
 				clientAvatarColor = parseInt(rgbToHex(cArr[0]) + rgbToHex(cArr[1]) + rgbToHex(cArr[2]), 16);
 			} catch (err) {
 				if (err instanceof Error) {
-					err.message = chalk`[{${moduleInfo.color} @spookelton/discord}]: {redBright Failed to parse discordBot avatar color!}\n${err.message}`;
+					err.message = `Failed to parse discordBot avatar color!\n${err.message}`;
 				}
 				throw err;
 			}
