@@ -44,8 +44,10 @@ export default class WrapperModule<E extends DefaultExports = DefaultExports> {
 	static loadModules = (modules: Record<string, WrapperModuleConfig>) =>
 		Promise.all(
 			Object.entries(modules).map(async ([name, config]) => {
-				const module = new WrapperModule(name, config);
-				if (module.enabled) return module.start();
+				if (WrapperModule.loadedModules[name] === undefined) {
+					const module = new WrapperModule(name, config);
+					if (module.enabled) return module.start();
+				}
 			})
 		);
 
@@ -109,7 +111,7 @@ export default class WrapperModule<E extends DefaultExports = DefaultExports> {
 		this.moduleInfo = await this.thread.moduleInfo();
 		console.log(chalk`Started {${this.color} ${this.module}} in {redBright ${Date.now() - startTime}}ms`);
 		if (WrapperModule.commandModule?.running) {
-			WrapperModule.commandModule.thread!.loadModuleCommands({ module: this.module, ...this.moduleInfo });
+			WrapperModule.commandModule.thread!.loadModuleCommands({ module: this.module, ...this.moduleInfo }).catch(() => null);
 		}
 	}
 
@@ -119,7 +121,7 @@ export default class WrapperModule<E extends DefaultExports = DefaultExports> {
 			this.thread = null;
 		}
 		if (WrapperModule.commandModule?.running) {
-			WrapperModule.commandModule.thread!.unloadModuleCommands(this.module);
+			WrapperModule.commandModule.thread!.unloadModuleCommands(this.module).catch(() => null);
 		}
 		if (!force && this.persistent) await this.start();
 	}
