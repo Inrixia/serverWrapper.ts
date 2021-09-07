@@ -122,11 +122,11 @@ export const sendToChannel = async (channelId: string, message: string | Message
 	throw new Error("Channel is not a text channel");
 };
 
-export const addTempManagementChannel = async (channelId: string, timeout = 500): Promise<void> => {
-	if (moduleSettings.managementChannels.includes(channelId)) return;
-	const channel = await discord.channels.fetch(channelId);
-	if (channel === null) throw new Error(`Management channel ${channelId} is null!`);
-	if (!channel.isText()) throw new Error(`Management channel ${channelId} is not a text channel!`);
-	moduleSettings.managementChannels.push(channelId);
-	setTimeout(() => (moduleSettings.managementChannels = moduleSettings.managementChannels.filter((channelId) => channelId !== channelId)), timeout);
+export const addTempManagementChannel = async (tempChannelId: string, timeout = 500): Promise<void> => {
+	if (moduleSettings.managementChannels.includes(tempChannelId)) return;
+	const channel = await discord.channels.fetch(tempChannelId);
+	if (channel === null) throw new Error(`Management channel ${tempChannelId} is null!`);
+	if (!channel.isText()) throw new Error(`Management channel ${tempChannelId} is not a text channel!`);
+	moduleSettings.managementChannels.push(tempChannelId);
+	setTimeout(() => (moduleSettings.managementChannels = moduleSettings.managementChannels.filter((channelId) => channelId !== tempChannelId)), timeout);
 };

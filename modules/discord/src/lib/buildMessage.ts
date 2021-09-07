@@ -6,7 +6,7 @@ export default (message: Message, inManagementChannel: boolean) => ({
 	guildId: message.guildId,
 	deleted: message.deleted,
 	id: message.id,
-	content: message.content,
+	content: message.cleanContent,
 	author: {
 		id: message.author.id,
 		bot: message.author.bot,
@@ -15,6 +15,7 @@ export default (message: Message, inManagementChannel: boolean) => ({
 	createdTimestamp: message.createdTimestamp,
 	editedTimestamp: message.editedTimestamp,
 	mentions: {
+		bot: message.mentions.has(message.client.user!.id),
 		everyone: message.mentions.everyone,
 		users: message.mentions.users.map((user) => ({
 			avatar: user.avatar,

@@ -7,8 +7,10 @@ import { commandHandler, discordHandler } from "./lib/commandHandlers";
 // Import Types
 import type { Command, ModuleInfo, CoreExports } from "@spookelton/wrapperHelpers/types";
 import type { ThreadModule, RequiredThread } from "@inrixia/threads";
+import type * as DiscordModule from "@spookelton/discord";
 
 export let wrapperCore: RequiredThread<CoreExports>;
+export let discordModule: RequiredThread<typeof DiscordModule>;
 
 // Thread stuff
 const thread = (module.parent as ThreadModule).thread;
@@ -54,8 +56,8 @@ export const unloadModuleCommands = async (module: string) => {
 	await Promise.all((await wrapperCore.getRunningModules()).map(loadModuleCommands));
 
 	try {
-		const discordThread = await thread.require("@spookelton/discord");
-		discordThread.on("discordMessage", discordHandler);
+		discordModule = await thread.require("@spookelton/discord");
+		discordModule.on("discordMessage", discordHandler);
 	} catch (err) {
 		if (err instanceof Error && !err.message.includes("@spookelton/discord has not been spawned")) throw err;
 	}

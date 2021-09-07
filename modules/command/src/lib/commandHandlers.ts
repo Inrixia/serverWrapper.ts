@@ -1,7 +1,7 @@
 import chalk from "chalk";
 
 import { mc, hex } from "@spookelton/wrapperHelpers/colors";
-import { commands, logg, lErr } from "..";
+import { commands, logg, lErr, discordModule } from "..";
 
 // Import Types
 import type { LogTo } from "@spookelton/wrapperHelpers/types";
@@ -10,8 +10,14 @@ import type { DiscordMessage } from "@spookelton/discord/types";
 export const minecraftHandler = async (string: string) => {};
 
 export const discordHandler = async (message: DiscordMessage) => {
-	if (message.inManagementChannel) console.log(chalk`{grey [}{blueBright @${message.author.username}}{grey ]}: ${message.content}`);
-	if (message.content[0] === "!") return logg({ minecraft: `${message.content.slice(1)}\n` }, { minecraft: true });
+	if (message.inManagementChannel || message.mentions.bot) {
+		console.log(chalk`{grey [}{blueBright @${message.author.username}}{grey ]}: ${message.content}`);
+		if (message.mentions.bot) message.content = message.content.slice(message.content.indexOf(" ") + 1, message.content.length);
+		if (message.content[0] === "!") {
+			if (message.mentions.bot) await discordModule.addTempManagementChannel(message.channelId);
+			return logg({ minecraft: `${message.content.slice(1)}\n` }, { minecraft: true });
+		}
+	}
 };
 
 export const commandHandler = async (string: string, logTo?: LogTo): Promise<void> => {
