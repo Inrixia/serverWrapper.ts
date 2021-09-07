@@ -9,7 +9,7 @@ import type { Command, MinecraftOutputArray, DiscordEmbed, ModuleInfo } from "@s
 import { commands } from "../";
 
 export const help: Command = async (message) => {
-	const givenCommandName = message.args[1];
+	const givenCommandName = message.args[0];
 	if (givenCommandName !== undefined) return commands[givenCommandName].help;
 	const helpSummary: { console: string; minecraft: MinecraftOutputArray; discord: DiscordEmbed } = {
 		console: ``,

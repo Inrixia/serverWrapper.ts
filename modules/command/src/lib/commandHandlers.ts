@@ -61,6 +61,10 @@ export const commandHandler = async (string: string, logTo?: LogTo): Promise<voi
 		);
 		return;
 	}
+	if (string[0] === "?") {
+		await logg(command.help, logTo);
+		return;
+	}
 	const exeStart = Date.now();
 	let commandOutput = await command({ string, args, logTo }).catch((err) => lErr(err, logTo, `Error while executing command "${string}"`));
 	if (commandOutput === undefined) return;

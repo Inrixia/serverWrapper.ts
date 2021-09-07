@@ -28,7 +28,7 @@ export const moduleSettings = db<ModuleSettings>("./_db/auth.json", {
 	},
 });
 
-// export const discordUserAllowedCommand(string: command, string: )
+// export const discordUserAllowedCommand(command: command, userId: string, roles: )
 
 // async function checkCommandAuth(allowedCommands, message) {
 // 	for (command in allowedCommands) {
