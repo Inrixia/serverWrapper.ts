@@ -97,8 +97,8 @@ help.help = {
 	discord: {
 		title: "Help! I have fallen and cant get up.",
 		description: "~help",
-		color: parseInt(hex["orange"], 16),
-		timestamp: new Date(),
+		color: parseInt(hex.orange, 16),
+		timestamp: Date.now(),
 		fields: [
 			{
 				name: "Description",

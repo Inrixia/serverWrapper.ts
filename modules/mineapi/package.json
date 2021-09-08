@@ -9,5 +9,10 @@
 				"dist/*"
 			]
 		}
+	},
+	"dependencies": {
+		"got": "^11.8.2",
+		"minecraft-server-util": "^3.6.0",
+		"properties": "^1.2.1"
 	}
 }
