@@ -43,7 +43,26 @@ export type ModuleInfo = {
 	description?: string;
 };
 
+export type WrapperSettings = {
+	serverName: string;
+	lastStartTime: number;
+	commandWorkingDirectory?: string;
+	command: string[];
+	modules: Record<string, WrapperModuleConfig>;
+};
+
+export type WrapperModuleConfig = {
+	enabled: boolean;
+};
+
 // TODO: Get event types for stdin/stdout mapped to thsi
 export type WrapperModule = ThreadModule<{}>;
 
-export type CoreExports = { getRunningModules: () => ModuleInfo[]; serverStdin: (string: string) => boolean };
+export type CoreExports = {
+	startTime: number;
+	serverStarted: boolean;
+	getRunningModules: () => ModuleInfo[];
+	serverStdin: (string: string) => boolean;
+	serverPid: () => number | undefined;
+	settings: () => Readonly<WrapperSettings>;
+};

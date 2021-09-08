@@ -23,11 +23,11 @@ export * from "./commands";
 import { defaultWrapperSettings } from "./lib/defaults";
 
 // Import Types
-import type { WrapperSettings, ColorMatchers } from "./lib/types";
+import type { ColorMatchers } from "./lib/types";
 import type { ChildProcessWithoutNullStreams } from "child_process";
-import type { ModuleInfo } from "@spookelton/wrapperHelpers/types";
+import type { CoreExports, ModuleInfo, WrapperSettings } from "@spookelton/wrapperHelpers/types";
 
-import { buildModuleInfo } from "@spookelton/wrapperHelpers/modul";
+import { buildModuleInfo, setTitleBar } from "@spookelton/wrapperHelpers/modul";
 // Export Wrapper core moduleInfo
 export const moduleInfo = buildModuleInfo({
 	commands,
@@ -43,6 +43,7 @@ export const wrapperSettings = db<WrapperSettings>("./_db/wrapperSettings.json",
 	template: defaultWrapperSettings,
 });
 wrapperSettings.serverName = path.basename(process.cwd());
+setTitleBar(wrapperSettings.serverName);
 
 process.on("SIGTSTP", () => console.log("Caught SIGTSTP, Dont use Ctrl-Z."));
 
@@ -64,18 +65,21 @@ const color = (string: string) => {
 
 let server: ChildProcessWithoutNullStreams | undefined;
 
-// Expose wrapperCore to threads
-import { Thread } from "@inrixia/threads/Thread";
-
-export const serverStdin = (string: string): boolean => server !== undefined && server.stdin.write(string);
-
-export const getRunningModules = (): ModuleInfo[] => [
+// Export Core functions
+export const startTime: CoreExports["startTime"] = Date.now();
+export let serverStarted: CoreExports["serverStarted"] = false;
+export const settings: CoreExports["settings"] = () => JSON.parse(JSON.stringify(wrapperSettings));
+export const serverPid: CoreExports["serverPid"] = () => server?.pid;
+export const serverStdin: CoreExports["serverStdin"] = (string: string): boolean => server !== undefined && server.stdin.write(string);
+export const getRunningModules: CoreExports["getRunningModules"] = (): ModuleInfo[] => [
 	...(WrapperModule.runningModules()
 		.map((module) => module.moduleInfo)
 		.filter((moduleInfo) => moduleInfo !== undefined) as ModuleInfo[]),
 	moduleInfo,
 ];
 
+// Expose wrapperCore to threads
+import { Thread } from "@inrixia/threads/Thread";
 Thread.newProxyThread("@spookelton/serverWrapper", module.exports);
 
 export const exitHandler = async () => {
@@ -88,8 +92,6 @@ process.on("uncaughtException", async (...args) => {
 	await exitHandler();
 	process.exit();
 });
-
-export let serverStarted = false;
 
 /*
 / START
@@ -111,6 +113,7 @@ export let serverStarted = false;
 	const command: string = wrapperSettings.command[0];
 	const args: string[] = wrapperSettings.command.slice(1);
 	server = spawn(command, args, { detached: false, cwd: wrapperSettings.commandWorkingDirectory });
+
 	// Server error handling
 	server.on("error", (err) => {
 		console.log(chalk`{redBright An error occoured while attempting to start!}`);

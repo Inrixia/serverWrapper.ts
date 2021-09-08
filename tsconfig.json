@@ -37,9 +37,5 @@
 		{
 			"path": "./modules/util"
 		}
-	],
-	"paths": {
-		"@wrapperHelpers": ["./wrapperHelpers/src"],
-		"@spookelton/math": ["./modules/math/src"]
-	}
+	]
 }

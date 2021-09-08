@@ -9,5 +9,11 @@
 				"dist/*"
 			]
 		}
+	},
+	"dependencies": {
+		"pidusage": "^2.0.21"
+	},
+	"devDependencies": {
+		"@types/pidusage": "^2.0.1"
 	}
 }

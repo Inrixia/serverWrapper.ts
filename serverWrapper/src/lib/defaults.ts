@@ -1,4 +1,4 @@
-import type { WrapperSettings } from "./types";
+import type { WrapperSettings } from "@spookelton/wrapperHelpers/types";
 
 export const defaultWrapperSettings: WrapperSettings = {
 	serverName: "",

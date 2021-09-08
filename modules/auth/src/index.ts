@@ -23,7 +23,20 @@ export const moduleSettings = db<ModuleSettings>("./_db/auth.json", {
 	pretty: true,
 	template: {
 		minecraft: {},
-		discord: {},
+		discord: {
+			"344286675691896832": {
+				name: "Mods",
+				allowedCommands: {
+					"*": {
+						assignedAt: 1631023635304,
+						assignedBy: {
+							name: "Inrixia",
+							id: "155530711326130176",
+						},
+					},
+				},
+			},
+		},
 	},
 });
 

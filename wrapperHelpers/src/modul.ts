@@ -12,3 +12,5 @@ export const buildModuleInfo = (options: ModuleInfoOptions): ModuleInfo => ({
 		  }, {} as Record<string, Command["help"]>)
 		: undefined,
 });
+
+export const setTitleBar = (string: string) => process.stdout.write(`${String.fromCharCode(27)}]0;${string}${String.fromCharCode(7)}`);

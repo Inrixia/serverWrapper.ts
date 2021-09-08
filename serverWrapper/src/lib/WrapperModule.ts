@@ -5,8 +5,7 @@ import chalk from "chalk";
 import type * as CommandModule from "@spookelton/command";
 
 // Import Types
-import type { ModuleInfo } from "@spookelton/wrapperHelpers/types";
-import type { WrapperModuleConfig } from "./types";
+import type { ModuleInfo, WrapperModuleConfig } from "@spookelton/wrapperHelpers/types";
 
 type DefaultExports = { moduleInfo: ModuleInfo };
 
