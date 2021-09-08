@@ -2,6 +2,7 @@ import chalk from "chalk";
 
 import WrapperModule from "../lib/WrapperModule";
 import { mc, hex } from "@spookelton/wrapperHelpers/colors";
+import { helpHelper } from "@spookelton/wrapperHelpers/modul";
 
 // Import Types
 import type { Command } from "@spookelton/wrapperHelpers/types";
@@ -31,41 +32,8 @@ export const startModule: Command = async (message) => {
 		},
 	};
 };
-startModule.help = {
-	summary: "'Starts any given module.",
-	console: chalk`{whiteBright Starts any given module.}\nExample: {yellow ~startModule} {blueBright discord}`,
-	minecraft: [
-		{
-			text: "Starts any given module. ",
-			color: "white",
-		},
-		{
-			text: "Example: ",
-			color: "gray",
-		},
-		{
-			text: "~startModule ",
-			color: "gold",
-		},
-		{
-			text: "discord",
-			color: "blue",
-		},
-	],
-	discord: {
-		title: "Start Module",
-		description: "~startModule",
-		color: parseInt(hex.redBright, 16), // redBright
-		timestamp: Date.now(),
-		fields: [
-			{
-				name: "Description",
-				value: "Starts any given module.",
-			},
-			{
-				name: "Example",
-				value: "**~startModule** discord",
-			},
-		],
-	},
-};
+startModule.help = helpHelper({
+	commandString: "~startModule",
+	summary: "Starts any given module.",
+	exampleArgs: [["discord"], ["auth"]],
+});

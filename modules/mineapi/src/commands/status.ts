@@ -6,6 +6,7 @@ import { mc, hex } from "@spookelton/wrapperHelpers/colors";
 
 import { getStatus } from "../";
 import { flattenObject } from "../lib/flattenObject";
+import { helpHelper } from "@spookelton/wrapperHelpers/modul";
 
 export const status: Command = async (message) => {
 	const pingInfo = await getStatus();
@@ -37,37 +38,7 @@ export const status: Command = async (message) => {
 		},
 	};
 };
-status.help = {
+status.help = helpHelper({
+	commandString: "~status",
 	summary: "Fetches server status.",
-	console: chalk`{whiteBright Fetches server status.}Example: {yellow ~status}`,
-	minecraft: [
-		{
-			text: `Fetches server status. `,
-			color: "white",
-		},
-		{
-			text: `Example: `,
-			color: "gray",
-		},
-		{
-			text: `~status`,
-			color: "gold",
-		},
-	],
-	discord: {
-		title: "Fetches server status",
-		description: "~ping",
-		color: parseInt(hex.orange, 16),
-		timestamp: Date.now(),
-		fields: [
-			{
-				name: "Description",
-				value: "Fetches server status.",
-			},
-			{
-				name: "Example",
-				value: "**~ping**",
-			},
-		],
-	},
-};
+});

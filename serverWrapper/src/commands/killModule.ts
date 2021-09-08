@@ -2,6 +2,7 @@ import chalk from "chalk";
 
 import WrapperModule from "../lib/WrapperModule";
 import { mc, hex } from "@spookelton/wrapperHelpers/colors";
+import { helpHelper } from "@spookelton/wrapperHelpers/modul";
 
 // Import Types
 import type { Command } from "@spookelton/wrapperHelpers/types";
@@ -31,41 +32,8 @@ export const killModule: Command = async (message) => {
 		},
 	};
 };
-killModule.help = {
-	summary: "Stops any given module.",
-	console: chalk`{whiteBright Stops any given module.}\nExample: {yellow ~killModule} {blueBright discord}`,
-	minecraft: [
-		{
-			text: "Stops any given module. ",
-			color: "white",
-		},
-		{
-			text: "Example: ",
-			color: "gray",
-		},
-		{
-			text: "~killModule ",
-			color: "gold",
-		},
-		{
-			text: "discord",
-			color: "blue",
-		},
-	],
-	discord: {
-		title: "Kill Module",
-		description: "~killModule",
-		color: parseInt(hex.redBright, 16),
-		timestamp: new Date(),
-		fields: [
-			{
-				name: "Description",
-				value: "Stops any given module.",
-			},
-			{
-				name: "Example",
-				value: "**~killModule** discord",
-			},
-		],
-	},
-};
+killModule.help = helpHelper({
+	commandString: "~killModule",
+	summary: "Kills any given module.",
+	exampleArgs: [["discord"], ["auth"]],
+});

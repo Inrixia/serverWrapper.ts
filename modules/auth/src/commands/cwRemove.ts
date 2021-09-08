@@ -7,6 +7,7 @@ import type { Command } from "@spookelton/wrapperHelpers/types";
 
 import { moduleSettings } from "..";
 import { cwParams } from "../lib/cwParams";
+import { helpHelper } from "@spookelton/wrapperHelpers/modul";
 
 export const cwRemove: Command = async (message) => {
 	const { provider, command, id, name } = cwParams(message);
@@ -40,71 +41,12 @@ export const cwRemove: Command = async (message) => {
 		},
 	};
 };
-const DiscordUser = chalk.keyword("orange")("@DiscordUser");
-const DiscordRole = chalk.keyword("orange")("@DiscordRole");
-cwRemove.help = {
+cwRemove.help = helpHelper({
+	commandString: "~cwRemove",
 	summary: "Removes given whitelisted commands from a role or user.",
-	console: chalk`{white Removes given whitelisted commands from a role or user.}\nExamples:\n{yellow ~cw_remove} ~killModule ${DiscordUser}\n{yellow ~cw_remove} !tps ${DiscordRole}\n{yellow ~cw_remove} ~* Minecraft_user1873425\n`,
-	minecraft: [
-		{
-			text: `Removes given whitelisted commands from a role or user.\n`,
-			color: mc.whiteBright,
-		},
-		{
-			text: `Examples:\n`,
-			color: mc.white,
-		},
-		{
-			text: `~cwRemove `,
-			color: mc.yellow,
-		},
-		{
-			text: `~killModule `,
-			color: mc.blueBright,
-		},
-		{
-			text: `@DiscordUser\n`,
-			color: mc.blueBright,
-		},
-		{
-			text: `~cwRemove `,
-			color: mc.yellow,
-		},
-		{
-			text: `!tps `,
-			color: mc.blueBright,
-		},
-		{
-			text: `@DiscordRole\n`,
-			color: mc.blueBright,
-		},
-		{
-			text: `~cwRemove `,
-			color: mc.yellow,
-		},
-		{
-			text: `~* `,
-			color: mc.blueBright,
-		},
-		{
-			text: `Minecraft_user1873425`,
-			color: mc.blueBright,
-		},
+	exampleArgs: [
+		["~killModule", ["@DiscordUser", "redBright"]],
+		["!tps", ["@DiscordRole", "redBright"]],
+		["~*", ["Minecraft_user1873425", "redBright"]],
 	],
-	discord: {
-		title: "Command Whitelist Remove",
-		description: "~cwRemove",
-		color: parseInt(hex.orange, 16),
-		timestamp: Date.now(),
-		fields: [
-			{
-				name: "Description",
-				value: "Removes given whitelisted commands from a discord role or user.",
-			},
-			{
-				name: "Example",
-				value: "**~cwRemove** ~killModule @DiscordUser\n**~cwRemove** !tps @DiscordRole\n**~cwRemove** ~* Minecraft_user1873425",
-			},
-		],
-	},
-};
+});

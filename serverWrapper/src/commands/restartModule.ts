@@ -2,6 +2,7 @@ import chalk from "chalk";
 
 import WrapperModule from "../lib/WrapperModule";
 import { mc, hex } from "@spookelton/wrapperHelpers/colors";
+import { helpHelper } from "@spookelton/wrapperHelpers/modul";
 
 // Import Types
 import type { Command } from "@spookelton/wrapperHelpers/types";
@@ -31,41 +32,8 @@ export const restartModule: Command = async (message) => {
 		},
 	};
 };
-restartModule.help = {
-	summary: "Restarts any given module",
-	console: chalk`{whiteBright Restarts any given module.}\nExample: {yellow ~restartModule} {blueBright discord}`,
-	minecraft: [
-		{
-			text: "Restarts any given module. ",
-			color: "white",
-		},
-		{
-			text: "Example: ",
-			color: "gray",
-		},
-		{
-			text: "~restartModule ",
-			color: "gold",
-		},
-		{
-			text: "discord",
-			color: "blue",
-		},
-	],
-	discord: {
-		title: "Restart Module",
-		description: "~restartModule",
-		color: parseInt(hex.redBright, 16),
-		timestamp: Date.now(),
-		fields: [
-			{
-				name: "Description",
-				value: "Restarts any given module.",
-			},
-			{
-				name: "Example",
-				value: "**~restartModule** discord",
-			},
-		],
-	},
-};
+restartModule.help = helpHelper({
+	commandString: "~restartModule",
+	summary: "Restarts any given module.",
+	exampleArgs: [["discord"], ["auth"]],
+});

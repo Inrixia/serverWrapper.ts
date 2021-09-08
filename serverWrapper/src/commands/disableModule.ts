@@ -2,6 +2,7 @@ import chalk from "chalk";
 
 import WrapperModule from "../lib/WrapperModule";
 import { mc, hex } from "@spookelton/wrapperHelpers/colors";
+import { helpHelper } from "@spookelton/wrapperHelpers/modul";
 
 // Import Types
 import type { Command } from "@spookelton/wrapperHelpers/types";
@@ -31,45 +32,8 @@ export const disableModule: Command = async (message) => {
 		},
 	};
 };
-disableModule.help = {
+disableModule.help = helpHelper({
+	commandString: "~disableModule",
 	summary: "Disables any given module.",
-	console: chalk`{whiteBright Disables any given module and saves settings if true.}\nExample: {yellow ~disableModule} {blueBright discord} {redBright true}`,
-	minecraft: [
-		{
-			text: "Disables any given module and saves settings if true.\n",
-			color: "white",
-		},
-		{
-			text: "Example: ",
-			color: "gray",
-		},
-		{
-			text: "~disableModule ",
-			color: "gold",
-		},
-		{
-			text: "discord ",
-			color: "blue",
-		},
-		{
-			text: "true",
-			color: "gold",
-		},
-	],
-	discord: {
-		title: "Disable Module",
-		description: "~disableModule",
-		color: parseInt(hex.redBright, 16),
-		timestamp: Date.now(),
-		fields: [
-			{
-				name: "Description",
-				value: "Disables any given module. Excepts an optional parameter which if true, saves the updated settings.",
-			},
-			{
-				name: "Example",
-				value: "**~disableModule** discord true",
-			},
-		],
-	},
-};
+	exampleArgs: [["discord"], ["auth"]],
+});

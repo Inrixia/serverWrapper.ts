@@ -7,6 +7,7 @@ import type { Command, MinecraftOutputArray, DiscordEmbed, ModuleInfo } from "@s
 
 // Import commands
 import { commands } from "../";
+import { helpHelper } from "@spookelton/wrapperHelpers/modul";
 
 export const help: Command = async (message) => {
 	const givenCommandName = message.args[0];
@@ -65,49 +66,8 @@ export const help: Command = async (message) => {
 	}
 	return helpSummary;
 };
-help.help = {
-	summary: "Displays all commands or gives info on a specific given command.",
-	console: chalk`{whiteBright Returns all commands or gives info on a specific command given.}\nExamples: {yellow ~help} {blueBright listmodules}\n{yellow ?}{blueBright listmodules}`,
-	minecraft: [
-		{
-			text: `Returns all commands or gives info on a specific command given. `,
-			color: mc.whiteBright,
-		},
-		{
-			text: `Examples: \n`,
-			color: mc.white,
-		},
-		{
-			text: `~help `,
-			color: mc.yellow,
-		},
-		{
-			text: `listmodules\n`,
-			color: mc.blueBright,
-		},
-		{
-			text: `?`,
-			color: mc.yellow,
-		},
-		{
-			text: `listmodules`,
-			color: mc.blueBright,
-		},
-	],
-	discord: {
-		title: "Help! I have fallen and cant get up.",
-		description: "~help",
-		color: parseInt(hex.orange, 16),
-		timestamp: Date.now(),
-		fields: [
-			{
-				name: "Description",
-				value: "Returns all commands or gives info on a specific command given.",
-			},
-			{
-				name: "Examples",
-				value: "**~help** listmodules\n**?**listmodules",
-			},
-		],
-	},
-};
+help.help = helpHelper({
+	commandString: "~help",
+	summary: "Displays all commands or gives info on a specific given command.\nAlso works using ?commandName.",
+	exampleArgs: [["listModules"], ["help"]],
+});

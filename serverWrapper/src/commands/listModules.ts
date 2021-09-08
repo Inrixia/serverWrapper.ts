@@ -2,6 +2,7 @@ import chalk from "chalk";
 
 import WrapperModule from "../lib/WrapperModule";
 import { mc, hex } from "@spookelton/wrapperHelpers/colors";
+import { helpHelper } from "@spookelton/wrapperHelpers/modul";
 
 type ListAggregate = {
 	enabled: {
@@ -86,37 +87,7 @@ export const listModules: Command = async () => {
 		...aggregate.discord,
 	];
 };
-listModules.help = {
+listModules.help = helpHelper({
+	commandString: "~listModules",
 	summary: "Gets status of all modules currently installed in the wrapper.",
-	console: chalk`{whiteBright Gets status of all modules currently installed.}\nExample: {yellow ~listModules}`,
-	minecraft: [
-		{
-			text: "Gets status of all modules currently insalled. ",
-			color: "white",
-		},
-		{
-			text: "Example: ",
-			color: "gray",
-		},
-		{
-			text: "~listModules",
-			color: "gold",
-		},
-	],
-	discord: {
-		title: "List Modules",
-		description: "~listModules",
-		color: parseInt(hex.redBright, 16),
-		timestamp: Date.now(),
-		fields: [
-			{
-				name: "Description",
-				value: "Gets status of all modules currently installed.",
-			},
-			{
-				name: "Example",
-				value: "**~listModules**",
-			},
-		],
-	},
-};
+});
