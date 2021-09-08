@@ -29,9 +29,6 @@
 			"path": "./modules/nbt"
 		},
 		{
-			"path": "./modules/properties"
-		},
-		{
 			"path": "./modules/stats"
 		},
 		{

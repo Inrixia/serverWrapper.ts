@@ -18,6 +18,7 @@ export type Message = {
 	args: Array<string>;
 };
 
+export type ColorKey = keyof typeof mc;
 export type MinecraftOutputArray = Array<{
 	text: string;
 	color?: ValueOf<typeof mc>;
