@@ -5,21 +5,12 @@ import { Command } from "@spookelton/wrapperHelpers/types";
 import { mc, hex } from "@spookelton/wrapperHelpers/colors";
 
 import { getStatus } from "../";
+import { flattenObject } from "../lib/flattenObject";
 
-const flattenObject = (ob: Record<string, any>) => {
-	const toReturn: Record<string, any> = {};
-	for (const key in ob) {
-		if (typeof ob[key] == "object") {
-			const flatObject = flattenObject(ob[key]);
-			for (const flatKey in flatObject) {
-				toReturn[key + "." + flatKey] = flatObject[flatKey];
-			}
-		} else toReturn[key] = ob[key];
-	}
-	return toReturn;
-};
 export const status: Command = async (message) => {
 	const pingInfo = await getStatus();
+	// @ts-expect-error Delete this regardless
+	delete pingInfo.rawResponse;
 	const flattenedPingInfo = flattenObject(pingInfo);
 	return {
 		console: Object.entries(flattenedPingInfo)
@@ -41,14 +32,14 @@ export const status: Command = async (message) => {
 		discord: {
 			color: parseInt(hex.cyan, 16),
 			title: `Status`,
-			description: "```json\n" + JSON.stringify(status, null, 2) + "```",
+			description: "```json\n" + JSON.stringify(pingInfo, null, 2) + "```",
 			timestamp: Date.now(),
 		},
 	};
 };
 status.help = {
 	summary: "Fetches server status.",
-	console: chalk`{white Fetches server status.}Example: {yellow ~status}`,
+	console: chalk`{whiteBright Fetches server status.}Example: {yellow ~status}`,
 	minecraft: [
 		{
 			text: `Fetches server status. `,
