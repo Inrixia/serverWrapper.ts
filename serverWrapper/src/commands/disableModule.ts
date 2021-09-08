@@ -10,7 +10,7 @@ export const disableModule: Command = async (message) => {
 	const moduleName = message.args[0];
 	if (moduleName === undefined) throw new Error("No module specified.");
 	const moduleToDisable = WrapperModule.loadedModules[moduleName];
-	if (moduleToDisable === undefined) throw new Error(`Module ${moduleName} is not loaded.`);
+	if (moduleToDisable === undefined) throw new Error(`Module ${moduleName} is not loaded. Loaded modules: ${Object.keys(WrapperModule.loadModules).join(" ")}`);
 	moduleToDisable.enabled = false;
 	return {
 		console: chalk`{cyanBright Disabled module}: {${moduleToDisable.color} ${moduleName}}`,

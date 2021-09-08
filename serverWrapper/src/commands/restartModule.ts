@@ -10,7 +10,7 @@ export const restartModule: Command = async (message) => {
 	const moduleName = message.args[0];
 	if (moduleName === undefined) throw new Error("No module specified.");
 	const moduleToStart = WrapperModule.loadedModules[moduleName];
-	if (moduleToStart === undefined) throw new Error(`Module ${moduleToStart} is not loaded.`);
+	if (moduleToStart === undefined) throw new Error(`Module ${moduleName} is not loaded. Loaded modules: ${Object.keys(WrapperModule.loadModules).join(" ")}`);
 	await moduleToStart.restart();
 	return {
 		console: chalk`{cyanBright Restarted module}: {${moduleToStart.color} ${moduleName}}`,

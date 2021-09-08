@@ -10,7 +10,7 @@ export const killModule: Command = async (message) => {
 	const moduleName = message.args[0];
 	if (moduleName === undefined) throw new Error("No module specified.");
 	const moduleToKill = WrapperModule.loadedModules[moduleName];
-	if (moduleToKill === undefined) throw new Error(`Module ${moduleToKill} is not loaded.`);
+	if (moduleToKill === undefined) throw new Error(`Module ${moduleName} is not loaded. Loaded modules: ${Object.keys(WrapperModule.loadModules).join(" ")}`);
 	await moduleToKill.kill();
 	return {
 		console: chalk`{cyanBright Killed module}: {${moduleToKill.color} ${moduleName}}`,

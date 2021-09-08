@@ -10,7 +10,7 @@ export const enableModule: Command = async (message) => {
 	const moduleName = message.args[0];
 	if (moduleName === undefined) throw new Error("No module specified.");
 	const moduleToEnable = WrapperModule.loadedModules[moduleName];
-	if (moduleToEnable === undefined) throw new Error(`Module ${moduleToEnable} is not loaded.`);
+	if (moduleToEnable === undefined) throw new Error(`Module ${moduleName} is not loaded. Loaded modules: ${Object.keys(WrapperModule.loadModules).join(" ")}`);
 	moduleToEnable.enabled = true;
 	return {
 		console: chalk`{cyanBright Enabled module}: {${moduleToEnable.color} ${moduleName}}`,
