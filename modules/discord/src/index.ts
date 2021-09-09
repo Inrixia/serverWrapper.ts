@@ -58,7 +58,10 @@ const chikachiPath = "./config/Chikachi/DiscordIntegration.json";
 
 (async () => {
 	if (moduleSettings.discordToken === "" && fs.existsSync(chikachiPath)) moduleSettings.discordToken = fs.readFileSync(chikachiPath, "utf8").slice(31, 90);
-	if (moduleSettings.discordToken === "") throw new Error("No Token Found!");
+	if (moduleSettings.discordToken === "") {
+		console.log(chalk`[{red @spookelton/discord}]: No Token Found! Exiting...`);
+		return;
+	}
 	// Sign into discord and attempt to fetch avatar color
 	console.log(chalk`Using Discord Token: {${moduleInfo.color} ${moduleSettings.discordToken}}`);
 	await discord.login(moduleSettings.discordToken);
