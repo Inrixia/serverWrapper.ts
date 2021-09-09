@@ -1,7 +1,7 @@
 import fs from "fs/promises";
 
 import { patchErr } from "@spookelton/wrapperHelpers/modul";
-import { NBT, parse, writeUncompressed } from "prismarine-nbt";
+import { Metadata, NBT, NBTFormat, parse } from "prismarine-nbt";
 
 export const cleanNBT = (nbt: any): any => {
 	if (typeof nbt === "object") {
@@ -13,7 +13,12 @@ export const cleanNBT = (nbt: any): any => {
 	return nbt;
 };
 
-export const readNbt = async <T extends Record<string, unknown> = {}>(path: string, dirty?: boolean): Promise<T & NBT> => {
+export function readNBT<T extends Record<string, any> = Record<string, any>>(path: string, dirty?: false): Promise<T>;
+export function readNBT(path: string, dirty: true): Promise<{ parsed: NBT; type: NBTFormat; metadata: Metadata }>;
+export async function readNBT<T extends Record<string, any> = Record<string, any>>(
+	path: string,
+	dirty?: boolean
+): Promise<T | Promise<{ parsed: NBT; type: NBTFormat; metadata: Metadata }>> {
 	let file;
 	try {
 		file = await fs.readFile(path);
@@ -21,10 +26,10 @@ export const readNbt = async <T extends Record<string, unknown> = {}>(path: stri
 		throw patchErr(err, "Unable to read file!");
 	}
 	try {
-		const nbt = (await parse(file)).parsed;
-		if (dirty === true) return nbt as unknown as T & NBT;
-		return cleanNBT(nbt) as unknown as T & NBT;
+		const nbt = await parse(file);
+		if (dirty === true) return nbt;
+		return cleanNBT(nbt.parsed) as unknown as T;
 	} catch (err) {
 		throw patchErr(err, "Unable to parse nbt!");
 	}
-};
+}

@@ -6,8 +6,10 @@ import { inspect } from "util";
 import type { Output } from "../types";
 
 export const flattenObject = (ob: Record<string, any>) => {
+	if (typeof ob !== "object") return ob;
 	if (Array.isArray(ob)) {
 		for (const key in ob) ob[key] = flattenObject(ob[key]);
+		return ob;
 	}
 	const toReturn: Record<string, any> = {};
 	for (const key in ob) {
