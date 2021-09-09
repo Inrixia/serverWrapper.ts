@@ -5,13 +5,15 @@ import { exitHandler } from "..";
 
 export const consoleHandler = (onLine: (char: string) => void) => {
 	// Setup console handling
-	readline.createInterface({
-		input: process.stdin,
-		output: process.stdout,
-		terminal: true,
-		historySize: 10000,
-		prompt: "",
-	});
+	readline
+		.createInterface({
+			input: process.stdin,
+			output: process.stdout,
+			terminal: true,
+			historySize: 10000,
+			prompt: "",
+		})
+		.on("SIGINT", () => null);
 	process.stdin.setRawMode(true);
 
 	let consoleInput: string[] = [];
@@ -21,7 +23,12 @@ export const consoleHandler = (onLine: (char: string) => void) => {
 
 	process.stdin.on("keypress", (char, key) => {
 		if (key.ctrl && key.name === "c") {
-			exitHandler().then(process.exit);
+			if (consoleInput.length !== 0) {
+				consoleInput = [];
+				consoleIndex = 0;
+				process.stdout.clearLine(0);
+				process.stdout.cursorTo(consoleIndex);
+			} else exitHandler().then(process.exit);
 			return;
 		}
 		switch (key.name) {
