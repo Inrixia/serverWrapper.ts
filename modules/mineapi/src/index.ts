@@ -23,7 +23,7 @@ export const moduleInfo = buildModuleInfo({
 	description: "All things minecraft.",
 });
 
-type JSON = { [key: string]: unknown };
+type JSON = Record<string, any>;
 
 export const getProperties = async (): Promise<JSON | undefined> => {
 	const wrapperCore = await thread.require<CoreExports>("@spookelton/serverWrapper");
