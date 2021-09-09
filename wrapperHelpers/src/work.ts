@@ -1,12 +1,13 @@
-import * as fs from "fs";
+import fs from "fs";
+import path from "path";
 
 const reqRegex = /require\(\"(.*?)\"\)/g;
 
 console.log("Patching files...");
 
 const references = require("../../tsconfig.json").references;
-for (const { path } of Object.values<{ path: string }>(references)) {
-	for (const file of listFiles(`${path}/dist`).filter((file) => file.endsWith(".js"))) {
+for (const { path: refPath } of Object.values<{ path: string }>(references)) {
+	for (const file of listFiles(`${refPath}/dist`).filter((file) => file.endsWith(".js"))) {
 		if (file === "./wrapperHelpers/dist/work.js") continue;
 		// fs.unlink(file, () => {});
 		let content = fs.readFileSync(file, "utf8");
@@ -22,9 +23,11 @@ for (const { path } of Object.values<{ path: string }>(references)) {
 				if (groupIndex === 0 || matchString === "chalk" || matchString[0] === ".") return;
 				const _path = file.slice(0, file.lastIndexOf("/"));
 				try {
-					content = content.replace(/\.require/g, "_____dotrequire______");
-					content = content.replace(`require("${matchString}")`, `require("${require.resolve(matchString, { paths: [_path] }).replace(/\\/g, "\\\\")}")`);
-					content = content.replace(/\_\_\_\_\_dotrequire\_\_\_\_\_\_/g, ".require");
+					content = content
+						.replace(/\.require/g, "_____dotrequire______")
+						.replace(`require("${matchString}")`, `require("${require.resolve(matchString, { paths: [_path] }).replace(/\\/g, "/")}")`)
+						.replace(/\_\_\_\_\_dotrequire\_\_\_\_\_\_/g, ".require")
+						.replaceAll(__dirname, "/snapshot/project");
 				} catch (e) {
 					console.log(e);
 					console.log(file, matchString);
