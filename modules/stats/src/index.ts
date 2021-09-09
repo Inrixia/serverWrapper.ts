@@ -32,21 +32,21 @@ export const stats: {
 
 const cores = cpus().length;
 
-thread.require<CoreExports>("@spookelton/serverWrapper").then(async (wrapperCore) => {
+thread.require<CoreExports>("@spookelton/serverWrapper").then(async (wrapperThread) => {
 	const getPid = async (): Promise<number> => {
-		const pid = await wrapperCore.serverPid();
+		const pid = await wrapperThread.serverPid();
 		if (pid !== undefined) return pid;
 		await sleep(250);
 		return getPid();
 	};
 	stats.pid = await getPid();
 
-	const startTime = await wrapperCore.startTime();
+	const startTime = await wrapperThread.startTime();
 
-	let serverStarted = await wrapperCore.serverStarted();
+	let serverStarted = await wrapperThread.serverStarted();
 	thread.once("serverStarted", () => (serverStarted = true));
 
-	const { serverName, lastStartTime } = await wrapperCore.settings();
+	const { serverName, lastStartTime } = await wrapperThread.settings();
 
 	setInterval(async () => {
 		const usage = await pidusage(stats.pid);

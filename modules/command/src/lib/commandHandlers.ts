@@ -1,7 +1,7 @@
 import chalk from "chalk";
 
 import { mc, hex } from "@spookelton/wrapperHelpers/colors";
-import { commands, logg, lErr, discordModule, authModule } from "..";
+import { commands, logg, lErr, getDiscordThread, getAuthThread } from "..";
 
 // Import Types
 import type { LogTo } from "@spookelton/wrapperHelpers/types";
@@ -12,18 +12,20 @@ export const minecraftHandler = (string: string) => {};
 export const consoleHandler = (string: string) => commandHandler(string, { console: true });
 
 export const discordHandler = async (message: DiscordMessage) => {
-	if (discordModule === undefined) return;
+	const discordThread = await getDiscordThread();
+	if (discordThread === undefined) return;
 	if (message.inManagementChannel || message.mentions.bot) {
 		// console.log(JSON.stringify(message, null, "  "));
 		if (message.mentions.bot) {
-			if (authModule === undefined) return;
+			const authThread = await getAuthThread();
+			if (authThread === undefined) return;
 			message.content = message.content.slice(message.content.indexOf(" ") + 1, message.content.length);
-			const canRunCommand = await authModule.discordUserAllowedCommand(message.content, message.author).catch((err: Error) => lErr(err, { discord: message }));
+			const canRunCommand = await authThread.discordUserAllowedCommand(message.content, message.author).catch((err: Error) => lErr(err, { discord: message }));
 			if (!canRunCommand) return;
 		}
 		console.log(chalk`{grey [}${chalk.hex(message.author.color || "")(`@${message.author.username}`)}{grey ]}: ${message.content}`);
 		if (message.content[0] === "!") {
-			if (message.mentions.bot) await discordModule.addTempManagementChannel(message.channelId);
+			if (message.mentions.bot) await discordThread.addTempManagementChannel(message.channelId);
 			return logg({ minecraft: `${message.content.slice(1)}\n` }, { minecraft: true });
 		} else commandHandler(message.content, { discord: message });
 	}

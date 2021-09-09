@@ -26,8 +26,8 @@ export const moduleInfo = buildModuleInfo({
 type JSON = Record<string, any>;
 
 export const getProperties = async (): Promise<JSON | undefined> => {
-	const wrapperCore = await thread.require<CoreExports>("@spookelton/serverWrapper");
-	const { commandWorkingDirectory } = await wrapperCore.settings();
+	const wrapperThread = await thread.require<CoreExports>("@spookelton/serverWrapper");
+	const { commandWorkingDirectory } = await wrapperThread.settings();
 	return properties(`${commandWorkingDirectory + "/" || "./"}server.properties`, { path: true });
 };
 export const getStatus = async () => {
@@ -38,8 +38,8 @@ export const getStatus = async () => {
 let commandWorkingDirectory: string | undefined;
 export const getCommandWorkingDirectory = async () => {
 	if (commandWorkingDirectory !== undefined) return commandWorkingDirectory;
-	const wrapperCore = await thread.require<CoreExports>("@spookelton/serverWrapper");
-	return (commandWorkingDirectory = (await wrapperCore.settings()).commandWorkingDirectory);
+	const wrapperThread = await thread.require<CoreExports>("@spookelton/serverWrapper");
+	return (commandWorkingDirectory = (await wrapperThread.settings()).commandWorkingDirectory);
 };
 
 let worldFolder: string;
