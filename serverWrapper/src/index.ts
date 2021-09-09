@@ -83,7 +83,7 @@ import { Thread } from "@inrixia/threads/Thread";
 Thread.newProxyThread("@spookelton/serverWrapper", module.exports);
 
 export const exitHandler = async () => {
-	if (server?.pid) await terminate(server.pid);
+	if (server?.pid) await terminate(server.pid).catch(() => null);
 	return 0;
 };
 process.on("beforeExit", exitHandler);
