@@ -1,4 +1,5 @@
-// export * from "./getSpawn";
+export * from "./getSpawn";
+export * from "./leveldat";
 export * from "./playerdata";
 export * from "./properties";
 export * from "./property";

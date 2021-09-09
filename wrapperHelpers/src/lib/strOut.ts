@@ -3,9 +3,21 @@ import type { Output, ColorfulString, ColorKey } from "../types";
 import { hex } from "../colors";
 import * as colorize from "./colorize";
 
-export const strOut = (string: ColorfulString[], discordColor?: ColorKey): Output => {
+export const strOut = (string: ColorfulString[] | string, discordColor?: ColorKey): Output => {
 	if (typeof string === "string") {
-		return {};
+		return {
+			console: string,
+			minecraft: string,
+			discord: {
+				embeds: [
+					{
+						color: discordColor ? parseInt(hex[discordColor], 16) : undefined,
+						title: string,
+						timestamp: Date.now(),
+					},
+				],
+			},
+		};
 	}
 	return {
 		console: string.map(colorize.console()).join(" "),
@@ -14,7 +26,7 @@ export const strOut = (string: ColorfulString[], discordColor?: ColorKey): Outpu
 			embeds: [
 				{
 					color: discordColor ? parseInt(hex[discordColor], 16) : undefined,
-					title: string.map(([text]) => text).join(" "),
+					title: string.map((val) => (typeof val === "string" ? val : val[0])).join(" "),
 					timestamp: Date.now(),
 				},
 			],

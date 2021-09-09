@@ -1,3 +1,31 @@
+// function tpo(args) {
+// 	return new Promise((resolve, reject) => {
+// 		(async () => {
+// 			let playerObj = await modul.call("mineapi", "getPlayer", args.username).catch((err) => reject(err));
+// 			let levelName = await modul.call("properties", "getProperty", "level-name").catch((err) => reject(err));
+// 			let serverWorldFolder = levelName ? levelName : "Cookies";
+// 			fs.readFile(`${serverWorldFolder}/playerdata/${playerObj._dirtyUUID}.dat`, (err, data) => {
+// 				if (err) reject(err);
+// 				else
+// 					zlib.gunzip(data, async (err, buffer) => {
+// 						if (err) reject(err);
+// 						let playerData = NbtReader.readTag(buffer);
+// 						let playerPosIndex = playerData.val.indexOf(await modul.getObj(playerData.val, "name", "Pos"));
+// 						playerData.val[playerPosIndex].val.list[0].val = args.x;
+// 						playerData.val[playerPosIndex].val.list[1].val = args.y;
+// 						playerData.val[playerPosIndex].val.list[2].val = args.z;
+// 						zlib.gzip(NbtWriter.writeTag(playerData), (err, playerDataBuffer) => {
+// 							fs.writeFile(serverWorldFolder + `/playerdata/${playerObj._dirtyUUID}.dat`, playerDataBuffer, (err, data) => {
+// 								if (err) reject(err);
+// 								resolve(args);
+// 							});
+// 						});
+// 					});
+// 			});
+// 		})();
+// 	});
+// }
+
 // 			(fn.tpo = async (message) => {
 // 				let vars = await tpo({
 // 					username: message.args[1],

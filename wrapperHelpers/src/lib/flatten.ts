@@ -6,6 +6,9 @@ import { inspect } from "util";
 import type { Output } from "../types";
 
 export const flattenObject = (ob: Record<string, any>) => {
+	if (Array.isArray(ob)) {
+		for (const key in ob) ob[key] = flattenObject(ob[key]);
+	}
 	const toReturn: Record<string, any> = {};
 	for (const key in ob) {
 		if (typeof ob[key] == "object") {
@@ -52,7 +55,7 @@ export const flatOut = (ob: any, title?: string): Output => {
 	const flatObject = flattenObject(ob);
 	let description: string | undefined = "```json\n" + JSON.stringify(flatObject, null, 2) + "```";
 	let files;
-	if (description.length > 6000) {
+	if (description.length > 4096) {
 		files = [{ name: title, attachment: Buffer.from(JSON.stringify(ob, null, 2)) }];
 		description = undefined;
 	}

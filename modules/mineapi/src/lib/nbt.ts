@@ -1,8 +1,7 @@
 import fs from "fs/promises";
 
 import { patchErr } from "@spookelton/wrapperHelpers/modul";
-import { parse, writeUncompressed } from "prismarine-nbt";
-import { getWorldFolder } from "..";
+import { NBT, parse, writeUncompressed } from "prismarine-nbt";
 
 export const cleanNBT = (nbt: any): any => {
 	if (typeof nbt === "object") {
@@ -14,16 +13,18 @@ export const cleanNBT = (nbt: any): any => {
 	return nbt;
 };
 
-export const readPlayerdata = async (uuid: string) => {
+export const readNbt = async <T extends Record<string, unknown> = {}>(path: string, dirty?: boolean): Promise<T & NBT> => {
 	let file;
 	try {
-		file = await fs.readFile(`${await getWorldFolder()}/playerdata/${uuid}.dat`);
+		file = await fs.readFile(path);
 	} catch (err) {
-		throw patchErr(err, "Unable to read playerdata!");
+		throw patchErr(err, "Unable to read file!");
 	}
 	try {
-		return parse(file);
+		const nbt = (await parse(file)).parsed;
+		if (dirty === true) return nbt as unknown as T & NBT;
+		return cleanNBT(nbt) as unknown as T & NBT;
 	} catch (err) {
-		throw patchErr(err, "Unable to parse playerdata!");
+		throw patchErr(err, "Unable to parse nbt!");
 	}
 };
