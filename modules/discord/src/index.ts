@@ -54,7 +54,7 @@ const rgbToHex = (rgb: number): string => {
 	return hex;
 };
 
-const chikachiPath = "./config/Chikachi/DiscordIntegration.json";
+const chikachiPath = "./config/Chikachi/discordintegration.json";
 
 (async () => {
 	if (moduleSettings.discordToken === "" && fs.existsSync(chikachiPath)) moduleSettings.discordToken = fs.readFileSync(chikachiPath, "utf8").slice(31, 90);
