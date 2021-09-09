@@ -1,7 +1,7 @@
 import fs from "fs";
 import chalk from "chalk";
 import ColorThief from "colorthief";
-import { Client, Intents } from "discord.js";
+import { Client, FileOptions, Intents, MessageAttachment } from "discord.js";
 
 import db from "@inrixia/db";
 import { chunkArray } from "@inrixia/helpers/object";
@@ -121,8 +121,23 @@ const chikachiPath = "./config/Chikachi/DiscordIntegration.json";
 	}
 })();
 
-export const sendToChannel = async (channelId: string, message: string | MessagePayload | MessageOptions): Promise<Message> => {
+const typedarrayToBuffer = (arr: Uint8Array) =>
+	ArrayBuffer.isView(arr)
+		? // To avoid a copy, use the typed array's underlying ArrayBuffer to back
+		  // new Buffer, respecting the "view", i.e. byteOffset and byteLength
+		  Buffer.from(arr.buffer, arr.byteOffset, arr.byteLength)
+		: // Pass through all other types to `Buffer.from`
+		  Buffer.from(arr);
+
+export const sendToChannel = async (channelId: string, message: string | MessageOptions): Promise<Message> => {
 	const channel = await discord.channels.fetch(channelId);
+
+	if (typeof message !== "string" && message.files !== undefined) {
+		message.files = (message.files as FileOptions[]).map((file) => {
+			if (typeof file.attachment !== "string") return { ...file, attachment: Buffer.from(file.attachment as any) };
+			return file;
+		});
+	}
 	if (channel?.isText()) return channel.send(message);
 	throw new Error("Channel is not a text channel");
 };

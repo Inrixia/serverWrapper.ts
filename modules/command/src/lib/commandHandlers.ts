@@ -7,7 +7,9 @@ import { commands, logg, lErr, discordModule, authModule } from "..";
 import type { LogTo } from "@spookelton/wrapperHelpers/types";
 import type { DiscordMessage } from "@spookelton/wrapperHelpers/types";
 
-export const minecraftHandler = async (string: string) => {};
+export const minecraftHandler = (string: string) => {};
+
+export const consoleHandler = (string: string) => commandHandler(string, { console: true });
 
 export const discordHandler = async (message: DiscordMessage) => {
 	if (discordModule === undefined) return;
@@ -57,9 +59,13 @@ export const commandHandler = async (string: string, logTo?: LogTo): Promise<voi
 					},
 				],
 				discord: {
-					color: parseInt(hex["red"], 16),
-					title: `The command "${string}" could not be matched to a known command...`,
-					timestamp: Date.now(),
+					embeds: [
+						{
+							color: parseInt(hex["red"], 16),
+							title: `The command "${string}" could not be matched to a known command...`,
+							timestamp: Date.now(),
+						},
+					],
 				},
 			},
 			logTo
@@ -71,17 +77,18 @@ export const commandHandler = async (string: string, logTo?: LogTo): Promise<voi
 		return;
 	}
 	const exeStart = Date.now();
-	let commandOutput = await command({ string, args, logTo }).catch((err) => lErr(err, logTo, `Error while executing command "${string}"`));
+	let commandOutput = await command({ string, args, logTo }).catch((err) => lErr(err, logTo, `Executing command failed "${string}"`));
 	if (commandOutput === undefined) return;
 	if (!Array.isArray(commandOutput)) commandOutput = [commandOutput];
 	for (const output of commandOutput) {
 		if (output.discord !== undefined && typeof output.discord !== "string") {
 			const exeTime = `Executed in ${Date.now() - exeStart}ms`;
-			if (output.discord?.footer?.text !== undefined) output.discord.footer.text = `${output.discord.footer.text} • ${exeTime}`;
-			else {
-				output.discord = output.discord || {};
-				output.discord.footer = output.discord.footer || {};
-				output.discord.footer.text = exeTime;
+			for (const embed of output.discord?.embeds || []) {
+				if (embed.footer?.text !== undefined) embed.footer.text = `${embed.footer.text} • ${exeTime}`;
+				else {
+					embed.footer ??= {};
+					embed.footer.text ??= exeTime;
+				}
 			}
 		}
 		await logg(output, logTo).catch((err) => lErr(err, logTo, `Command executed. Error while processing output for: "${string}"`));

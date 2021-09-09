@@ -1,13 +1,9 @@
-import chalk from "chalk";
-
-import { mc, hex } from "@spookelton/wrapperHelpers/colors";
-
 // Import Types
 import type { Command } from "@spookelton/wrapperHelpers/types";
 
 import { moduleSettings } from "..";
 import { cwParams } from "../lib/cwParams";
-import { helpHelper } from "@spookelton/wrapperHelpers/modul";
+import { helpHelper, strOut } from "@spookelton/wrapperHelpers/modul";
 
 export const cwRemove: Command = async (message) => {
 	const { provider, command, id, name } = cwParams(message);
@@ -16,30 +12,7 @@ export const cwRemove: Command = async (message) => {
 
 	// @ts-expect-error In order for the delete to show in settings have to set to undefined
 	moduleSettings[provider][id].allowedCommands[command] = undefined;
-	return {
-		console: chalk`Removed command {cyanBright ${command}} for {blueBright ${name}}`,
-		minecraft: [
-			{
-				text: "Removed command ",
-			},
-			{
-				text: command,
-				color: mc.cyanBright,
-			},
-			{
-				text: " for ",
-			},
-			{
-				text: name,
-				color: mc.blueBright,
-			},
-		],
-		discord: {
-			color: parseInt(hex.whiteBright, 16),
-			title: `Removed command ${command} for ${name}`,
-			timestamp: Date.now(),
-		},
-	};
+	return strOut(["Removed command ", [command, "cyanBright"], " from ", [name, "cyanBright"], "."]);
 };
 cwRemove.help = helpHelper({
 	commandString: "~cwRemove",

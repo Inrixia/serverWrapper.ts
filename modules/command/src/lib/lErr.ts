@@ -3,7 +3,8 @@ import { logg } from "./logg";
 
 export const lErr = async (err: Error, logTo?: LogTo, message?: string) => {
 	message = message ? message + "\n" : "";
-	err.message = err.message ? err.message : "An unknown error occoured\n";
+	if ((err.stack || "").includes(err.message)) err.message = "";
+	else err.message = err.message ? err.message : "An unknown error occoured\n";
 	err.stack = err.stack ? err.stack + "\n" : "";
 	await logg(
 		{
@@ -23,10 +24,14 @@ export const lErr = async (err: Error, logTo?: LogTo, message?: string) => {
 				},
 			],
 			discord: {
-				color: parseInt("800000", 16),
-				title: message ? `${message} • ${err.message}` : err.message,
-				description: err.stack,
-				timestamp: Date.now(),
+				embeds: [
+					{
+						color: parseInt("800000", 16),
+						title: message ? `${message}\n${err.message}` : err.message,
+						description: err.stack,
+						timestamp: Date.now(),
+					},
+				],
 			},
 		},
 		logTo

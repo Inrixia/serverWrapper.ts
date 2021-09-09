@@ -1,4 +1,4 @@
-import type { MessageEmbedOptions } from "discord.js";
+import type { MessageEmbedOptions, MessageOptions } from "discord.js";
 import type { ValueOf } from "@inrixia/helpers/ts";
 import type { ThreadModule } from "@inrixia/threads";
 
@@ -8,6 +8,7 @@ import type { mc } from "./colors";
 export type DiscordMessage = ReturnType<typeof buildMessage>;
 
 export type LogTo = {
+	console?: true;
 	discord?: DiscordMessage;
 	minecraft?: string | true;
 };
@@ -18,6 +19,7 @@ export type Message = {
 	args: Array<string>;
 };
 
+export type ColorfulString = [text: string, color?: ColorKey] | string;
 export type ColorKey = keyof typeof mc;
 export type MinecraftOutputArray = Array<{
 	text: string;
@@ -27,8 +29,9 @@ export type MinecraftOutputArray = Array<{
 export type Output = {
 	console?: string;
 	minecraft?: string | MinecraftOutputArray;
-	discord?: string | MessageEmbedOptions;
+	discord?: string | MessageOptions;
 };
+export type DiscordMessageOptions = MessageOptions;
 export type DiscordEmbed = MessageEmbedOptions;
 
 export type Command = {

@@ -1,6 +1,10 @@
 import chalk from "chalk";
 import { mc, hex } from "../colors";
 
+import { inspect } from "util";
+
+import type { Output } from "../types";
+
 export const flattenObject = (ob: Record<string, any>) => {
 	const toReturn: Record<string, any> = {};
 	for (const key in ob) {
@@ -14,15 +18,20 @@ export const flattenObject = (ob: Record<string, any>) => {
 	return toReturn;
 };
 
-export const flatOutput = (ob: Record<string, any> | undefined) => {
+export const flatOut = (ob: any, title?: string): Output => {
 	if (ob === undefined)
 		return {
 			console: "undefined",
 			minecraft: [{ text: "undefined" }],
 			discord: {
-				color: parseInt(hex.cyan, 16),
-				description: '```json\n"undefined"```',
-				timestamp: Date.now(),
+				embeds: [
+					{
+						title,
+						color: parseInt(hex.cyanBright, 16),
+						description: "```\nundefined```",
+						timestamp: Date.now(),
+					},
+				],
 			},
 		};
 	if (typeof ob !== "object")
@@ -30,16 +39,25 @@ export const flatOutput = (ob: Record<string, any> | undefined) => {
 			console: ob,
 			minecraft: [{ text: ob }],
 			discord: {
-				color: parseInt(hex.cyan, 16),
-				description: `\`\`\`json\n${ob}\`\`\``,
-				timestamp: Date.now(),
+				embeds: [
+					{
+						title,
+						color: parseInt(hex.cyanBright, 16),
+						description: `\`\`\`\n${ob}\`\`\``,
+						timestamp: Date.now(),
+					},
+				],
 			},
 		};
 	const flatObject = flattenObject(ob);
+	let description: string | undefined = "```json\n" + JSON.stringify(flatObject, null, 2) + "```";
+	let files;
+	if (description.length > 6000) {
+		files = [{ name: title, attachment: Buffer.from(JSON.stringify(ob, null, 2)) }];
+		description = undefined;
+	}
 	return {
-		console: Object.entries(flatObject)
-			.map(([key, value]) => chalk`{cyan ${key}}: {red ${value}}`)
-			.join("\n"),
+		console: inspect(ob, false, 99, true),
 		minecraft: Object.entries(flatObject).flatMap(([key, value]) => [
 			{
 				text: key,
@@ -54,9 +72,15 @@ export const flatOutput = (ob: Record<string, any> | undefined) => {
 			},
 		]),
 		discord: {
-			color: parseInt(hex.cyan, 16),
-			description: "```json\n" + JSON.stringify(flatObject, null, 2) + "```",
-			timestamp: Date.now(),
+			files,
+			embeds: [
+				{
+					title,
+					color: parseInt(hex.cyanBright, 16),
+					description,
+					timestamp: Date.now(),
+				},
+			],
 		},
 	};
 };

@@ -3,7 +3,7 @@ import chalk from "chalk";
 import { mc, hex } from "@spookelton/wrapperHelpers/colors";
 
 // Import Types
-import type { Command, MinecraftOutputArray, DiscordEmbed, ModuleInfo } from "@spookelton/wrapperHelpers/types";
+import type { Command, MinecraftOutputArray, ModuleInfo, DiscordMessageOptions } from "@spookelton/wrapperHelpers/types";
 
 // Import commands
 import { commands } from "../";
@@ -12,15 +12,19 @@ import { helpHelper } from "@spookelton/wrapperHelpers/modul";
 export const help: Command = async (message) => {
 	const givenCommandName = message.args[0];
 	if (givenCommandName !== undefined) return commands[givenCommandName].help;
-	const helpSummary: { console: string; minecraft: MinecraftOutputArray; discord: DiscordEmbed } = {
+	const helpSummary: { console: string; minecraft: MinecraftOutputArray; discord: DiscordMessageOptions } = {
 		console: ``,
 		minecraft: [],
 		discord: {
-			title: "serverWrapper Command Info",
-			description: "Currently enabled commands.",
-			color: parseInt(hex["orange"], 16),
-			timestamp: Date.now(),
-			fields: [],
+			embeds: [
+				{
+					title: "serverWrapper Command Info",
+					description: "Currently enabled commands.",
+					color: parseInt(hex.orange, 16),
+					timestamp: Date.now(),
+					fields: [],
+				},
+			],
 		},
 	};
 	const moduleSummary: Record<string, { minecraft: MinecraftOutputArray; console: string; discord: string; moduleInfo: ModuleInfo }> = {};
@@ -59,9 +63,10 @@ export const help: Command = async (message) => {
 				},
 			]
 		);
-		helpSummary.discord.fields!.push({
+		helpSummary.discord.embeds![0].fields!.push({
 			name: `${module} • ${moduleSummary[module].moduleInfo.description}`,
 			value: moduleSummary[module].discord,
+			inline: false,
 		});
 	}
 	return helpSummary;

@@ -13,11 +13,11 @@ type ListAggregate = {
 		console: string;
 		minecraft: MinecraftOutputArray;
 	};
-	discord: Output[];
+	discord: DiscordEmbed[];
 };
 
 // Import Types
-import type { Command, Output, MinecraftOutputArray } from "@spookelton/wrapperHelpers/types";
+import type { Command, MinecraftOutputArray, DiscordEmbed } from "@spookelton/wrapperHelpers/types";
 
 export const listModules: Command = async () => {
 	const aggregate: ListAggregate = {
@@ -67,25 +67,23 @@ export const listModules: Command = async () => {
 			aggregate.disabled.console += console;
 		}
 		aggregate.discord.push({
-			discord: {
-				color: parseInt(hex[moduleColor], 16),
-				title: moduleName,
-				description: module.description,
-				timestamp: Date.now(),
-				footer: {
-					text: `${module.running ? "Running" : "Stopped"} • ${module.enabled ? "Enabled" : "Disabled"}`,
-				},
+			color: parseInt(hex[moduleColor], 16),
+			title: moduleName,
+			description: module.description,
+			timestamp: Date.now(),
+			footer: {
+				text: `${module.running ? "Running" : "Stopped"} • ${module.enabled ? "Enabled" : "Disabled"}`,
 			},
 		});
 	});
-	return [
-		{
-			minecraft: [{ text: "Enabled: " }, ...aggregate.enabled.minecraft, { text: "Disabled: " }, ...aggregate.disabled.minecraft],
-			console:
-				chalk`{cyanBright Enabled wrapper modules}: ${aggregate.enabled.console}\n` + chalk`{cyanBright Disabled wrapper modules}: ${aggregate.disabled.console}`,
+	return {
+		minecraft: [{ text: "Enabled: " }, ...aggregate.enabled.minecraft, { text: "Disabled: " }, ...aggregate.disabled.minecraft],
+		console:
+			chalk`{cyanBright Enabled wrapper modules}: ${aggregate.enabled.console}\n` + chalk`{cyanBright Disabled wrapper modules}: ${aggregate.disabled.console}`,
+		discord: {
+			embeds: aggregate.discord,
 		},
-		...aggregate.discord,
-	];
+	};
 };
 listModules.help = helpHelper({
 	commandString: "~listModules",

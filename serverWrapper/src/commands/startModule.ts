@@ -1,8 +1,5 @@
-import chalk from "chalk";
-
 import WrapperModule from "../lib/WrapperModule";
-import { mc, hex } from "@spookelton/wrapperHelpers/colors";
-import { helpHelper } from "@spookelton/wrapperHelpers/modul";
+import { helpHelper, strOut } from "@spookelton/wrapperHelpers/modul";
 
 // Import Types
 import type { Command } from "@spookelton/wrapperHelpers/types";
@@ -13,24 +10,13 @@ export const startModule: Command = async (message) => {
 	const moduleToStart = WrapperModule.loadedModules[moduleName];
 	if (moduleToStart === undefined) throw new Error(`Module ${moduleName} is not loaded. Loaded modules: ${Object.keys(WrapperModule.loadModules).join(" ")}`);
 	await moduleToStart.start();
-	return {
-		console: chalk`{cyanBright Started module}: {${moduleToStart.color} ${moduleName}}`,
-		minecraft: [
-			{
-				text: "Started module ",
-				color: "aqua",
-			},
-			{
-				text: moduleName,
-				color: mc[moduleToStart.color],
-			},
+	return strOut(
+		[
+			["Started module ", "cyan"],
+			[moduleName, moduleToStart.color],
 		],
-		discord: {
-			color: parseInt(hex[moduleToStart.color], 16),
-			title: `Started module: ${moduleName}`,
-			timestamp: Date.now(),
-		},
-	};
+		moduleToStart.color
+	);
 };
 startModule.help = helpHelper({
 	commandString: "~startModule",

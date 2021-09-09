@@ -1,20 +1,19 @@
 import chalk from "chalk";
 import { mc, hex } from "../colors";
 
-import type { ColorKey, Command, Output } from "../types";
+import type { Command, Output, ColorfulString } from "../types";
+
+import * as colorize from "./colorize";
 
 type HelpHelperOptions = {
 	commandString: string;
 	summary: string;
-	exampleArgs?: ([text: string, color?: ColorKey] | string)[][];
+	exampleArgs?: ColorfulString[][];
 };
 export const helpHelper = ({ summary, commandString, exampleArgs }: HelpHelperOptions): Command["help"] => {
 	exampleArgs ??= [];
 	exampleArgs = exampleArgs.map((example) => example.map((arg) => (typeof arg === "string" ? [arg] : arg)));
 	const hasExamples = exampleArgs.length !== 0;
-	const exampleString = exampleArgs
-		.map((example) => chalk`{yellow ${commandString}} ${example.map(([text, color]) => chalk`{${color || "blueBright"} ${text}}`).join(" ")}`)
-		.join("\n");
 
 	const s = exampleArgs.length > 1 ? "s" : "";
 
@@ -26,7 +25,9 @@ export const helpHelper = ({ summary, commandString, exampleArgs }: HelpHelperOp
 		},
 	];
 	if (hasExamples) {
-		console += `\nExample${s}:\n${exampleString}`;
+		console += `\nExample${s}:\n${exampleArgs
+			.map((example) => chalk`{yellow ${commandString}} ${example.map(colorize.console("blueBright")).join(" ")}`)
+			.join("\n")}`;
 		minecraft.push(
 			{
 				text: `Example${s}:\n`,
@@ -37,7 +38,7 @@ export const helpHelper = ({ summary, commandString, exampleArgs }: HelpHelperOp
 					text: commandString,
 					color: mc.yellow,
 				},
-				...example.map(([text, color]) => ({ text: text as string, color: mc[(color || "blueBright") as ColorKey] })),
+				...example.map(colorize.minecraft("blueBright")),
 			])
 		);
 	}
@@ -46,18 +47,22 @@ export const helpHelper = ({ summary, commandString, exampleArgs }: HelpHelperOp
 		console,
 		minecraft,
 		discord: {
-			title: commandString.slice(1),
-			description: summary,
-			color: parseInt(hex.redBright, 16),
-			timestamp: Date.now(),
-			fields: hasExamples
-				? [
-						{
-							name: `Example${s}`,
-							value: exampleArgs.map((example) => `**${commandString}** ${example.map((arg) => arg[0]).join(" ")}`).join(`\n`),
-						},
-				  ]
-				: undefined,
+			embeds: [
+				{
+					title: commandString.slice(1),
+					description: summary,
+					color: parseInt(hex.redBright, 16),
+					timestamp: Date.now(),
+					fields: hasExamples
+						? [
+								{
+									name: `Example${s}`,
+									value: exampleArgs.map((example) => `**${commandString}** ${example.map(([text]) => text).join(" ")}`).join(`\n`),
+								},
+						  ]
+						: undefined,
+				},
+			],
 		},
 	};
 };

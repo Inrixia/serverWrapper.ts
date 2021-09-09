@@ -1,7 +1,4 @@
-import chalk from "chalk";
-
-import { mc, hex } from "@spookelton/wrapperHelpers/colors";
-import { helpHelper } from "@spookelton/wrapperHelpers/modul";
+import { helpHelper, strOut } from "@spookelton/wrapperHelpers/modul";
 
 // Import Types
 import type { Command } from "@spookelton/wrapperHelpers/types";
@@ -27,34 +24,11 @@ export const cwSet: Command = async (message) => {
 
 	if (expiresAt) moduleSettings[provider][id].allowedCommands[command].expiresAt = expiresAt;
 
-	return {
-		console: chalk`Whitelisted command {cyanBright ${command}} for {blueBright ${name}}`,
-		minecraft: [
-			{
-				text: "Whitelisted command ",
-			},
-			{
-				text: command,
-				color: mc.cyanBright,
-			},
-			{
-				text: " for ",
-			},
-			{
-				text: name,
-				color: mc.blueBright,
-			},
-		],
-		discord: {
-			color: parseInt(hex.whiteBright, 16),
-			title: `Whitelisted command ${command} for ${name}`,
-			timestamp: Date.now(),
-		},
-	};
+	return strOut(["Whitelisted command ", [command, "cyanBright"], " for ", [name, "cyanBright"], "."]);
 };
 cwSet.help = helpHelper({
 	commandString: "~cwSet",
-	summary: "Whitelists given command for a Role or User",
+	summary: "Whitelists given command for a Role or User.",
 	exampleArgs: [
 		["~listmodules", ["@DiscordUser", "redBright"], ["1 hour", "cyan"]],
 		["!forge tps", ["@DiscordRole", "redBright"]],
