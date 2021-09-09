@@ -8,7 +8,7 @@ on:
 
 jobs:
  GitHub:
-  name: "dev Pre-Release - GitHub"
+  name: "dev AutoBuild"
   runs-on: "ubuntu-latest"
 
   steps:
@@ -17,6 +17,8 @@ jobs:
      uses: actions/setup-node@v2
      with:
       node-version: "16"
+      cache: "npm"
+      cache-dependency-path: package-lock.json
    - name: "Install dependencies"
      run: |
       npm install
