@@ -1,5 +1,5 @@
 {
-	"name": "@spookelton/serverwrapper",
+	"name": "@spookelton/serverWrapper",
 	"version": "4.0.0",
 	"description": "Spookelton serverWrapper",
 	"exports": {

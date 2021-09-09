@@ -1,5 +1,5 @@
 {
-	"name": "@spookelton/wrapperhelpers",
+	"name": "@spookelton/wrapperHelpers",
 	"version": "1.0.0",
 	"description": "Shared types used for serverWrapper & modules",
 	"main": "./dist",
