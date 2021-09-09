@@ -9,5 +9,20 @@ export const defaultWrapperSettings: WrapperSettings = {
 		"@spookelton/command": {
 			enabled: true,
 		},
+		"@spookelton/math": {
+			enabled: true,
+		},
+		"@spookelton/discord": {
+			enabled: true,
+		},
+		"@spookelton/auth": {
+			enabled: true,
+		},
+		"@spookelton/stats": {
+			enabled: false,
+		},
+		"@spookelton/mineapi": {
+			enabled: true,
+		},
 	},
 };

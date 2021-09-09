@@ -7,7 +7,7 @@ import db from "@inrixia/db";
 import { chunkArray } from "@inrixia/helpers/object";
 
 import { buildModuleInfo } from "@spookelton/wrapperHelpers/modul";
-import buildMessage from "@spookelton/wrapperHelpers/buildMessage";
+import { buildMessage } from "@spookelton/wrapperHelpers/discord";
 
 // Import Types
 import type { WrapperModule } from "@spookelton/wrapperHelpers/types";

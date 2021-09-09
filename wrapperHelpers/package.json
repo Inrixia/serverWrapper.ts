@@ -2,6 +2,7 @@
 	"name": "@spookelton/wrapperhelpers",
 	"version": "1.0.0",
 	"description": "Shared types used for serverWrapper & modules",
+	"main": "./dist",
 	"exports": {
 		"./*": "./dist/*.js"
 	},

@@ -8,9 +8,6 @@
 			"path": "./wrapperHelpers"
 		},
 		{
-			"path": "./modules/backup"
-		},
-		{
 			"path": "./modules/discord"
 		},
 		{
@@ -24,9 +21,6 @@
 		},
 		{
 			"path": "./modules/stats"
-		},
-		{
-			"path": "./modules/util"
 		}
 	]
 }

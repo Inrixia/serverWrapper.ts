@@ -6,7 +6,9 @@
 		"modules/*"
 	],
 	"scripts": {
-		"start": "tsc -b && node ./serverWrapper/dist/index.js",
+		"tsc": "tsc -b",
+		"start": "npm run tsc && node ./serverWrapper/dist/index.js",
+		"build": "npm run tsc && node ./wrapperHelpers/dist/work.js && pkg ./serverWrapper/dist/index.js --out-path=./build -t latest-linux,latest-mac,latest-win",
 		"watch": "tsc -b --watch"
 	},
 	"dependencies": {
