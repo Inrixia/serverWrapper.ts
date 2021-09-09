@@ -11,13 +11,13 @@
 	},
 	"dependencies": {
 		"@inrixia/db": "^1.8.0",
-		"@inrixia/helpers": "^1.22.2",
-		"@inrixia/threads": "^3.4.3",
+		"@inrixia/helpers": "^1.22.3",
+		"@inrixia/threads": "^3.4.4",
 		"chalk": "^4.1.2",
 		"discord.js": "^13.1.0"
 	},
 	"devDependencies": {
-		"@types/node": "^16.7.13",
+		"@types/node": "^16.9.0",
 		"@typescript-eslint/eslint-plugin": "^4.31.0",
 		"@typescript-eslint/parser": "^4.31.0",
 		"eslint": "^7.32.0",

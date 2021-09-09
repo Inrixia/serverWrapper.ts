@@ -17,16 +17,10 @@
 			"path": "./modules/command"
 		},
 		{
-			"path": "./modules/islands"
-		},
-		{
 			"path": "./modules/math"
 		},
 		{
 			"path": "./modules/mineapi"
-		},
-		{
-			"path": "./modules/nbt"
 		},
 		{
 			"path": "./modules/stats"

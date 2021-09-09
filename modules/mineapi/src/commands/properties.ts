@@ -2,11 +2,11 @@
 import { Command } from "@spookelton/wrapperHelpers/types";
 
 import { getProperties } from "../";
-import { helpHelper, flatOutput } from "@spookelton/wrapperHelpers/modul";
+import { helpHelper, flatOut } from "@spookelton/wrapperHelpers/modul";
 
 export const properties: Command = async (message) => {
 	const properties = await getProperties();
-	return flatOutput(properties);
+	return flatOut(properties);
 };
 properties.help = helpHelper({
 	commandString: "~properties",

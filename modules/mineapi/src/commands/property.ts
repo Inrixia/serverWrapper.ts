@@ -2,13 +2,13 @@
 import { Command } from "@spookelton/wrapperHelpers/types";
 
 import { getProperties } from "../";
-import { helpHelper, flatOutput } from "@spookelton/wrapperHelpers/modul";
+import { helpHelper, flatOut } from "@spookelton/wrapperHelpers/modul";
 
 export const property: Command = async (message) => {
 	const propertyName = message.args[0];
 	if (propertyName === undefined) throw new Error("No property specified");
 	const properties = await getProperties();
-	return flatOutput(properties?.[propertyName]);
+	return flatOut(properties?.[propertyName]);
 };
 property.help = helpHelper({
 	commandString: "~property",

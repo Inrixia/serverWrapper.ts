@@ -1,41 +1,53 @@
 import got from "got";
 
-class Player {
+import { patchErr } from "@spookelton/wrapperHelpers/modul";
+
+export default class Player {
 	private username?: string;
-	private _uuid?: string;
+	private uuid?: string;
 
 	constructor(options: { username?: string; uuid?: string }) {
 		if (options.username === undefined && options.uuid === undefined) throw new Error("UUID or Username must be provided when creating a player");
 		this.username = options.username;
-		this._uuid = options.uuid ? Player.makeDirtyUUID(options.uuid) : undefined;
+		this.uuid = options.uuid ? Player.makeDirtyUUID(options.uuid) : undefined;
 	}
 
 	/**
-	 * uuid not seperated by dashes
+	 * @returns Dirty player uuid (uuid seperated by dashes)
 	 */
-	set uuid(uuid: string) {
-		this._uuid = Player.makeDirtyUUID(uuid);
-	}
 	getUUID = async (): Promise<string> => {
-		if (this._uuid) return this._uuid;
+		if (this.uuid) return this.uuid;
 		if (this.username === undefined) throw new Error("Username must be set before getting UUID");
-		const result: { id: string; name: string }[] = await got
-			.post("https://api.mojang.com/users/profiles/minecraft", {
-				json: [this.username],
-				resolveBodyOnly: true,
-			})
-			.then(JSON.parse);
+		let result: { id: string; name: string }[];
+		try {
+			result = await got
+				.post("https://api.mojang.com/profiles/minecraft", {
+					json: [this.username],
+					resolveBodyOnly: true,
+				})
+				.then(JSON.parse);
+		} catch (err) {
+			throw patchErr(err, `Unable to fetch UUID for ${this.username}`);
+		}
 		if (result.length === 0) throw new Error("No UUID found for username");
 		const [{ id, name }] = result;
-		this.uuid = id;
+		this.uuid = Player.makeDirtyUUID(id);
 		this.username = name;
-		return this._uuid!;
+		return this.uuid!;
 	};
 
+	/**
+	 * @returns Player username
+	 */
 	getUsername = async (): Promise<string> => {
 		if (this.username) return this.username;
-		if (this._uuid === undefined) throw new Error("UUID must be set before getting username");
-		const { name } = await got(`https://api.mojang.com/user/profile/${Player.makeCleanUUID(this._uuid)}`, { resolveBodyOnly: true }).then(JSON.parse);
+		if (this.uuid === undefined) throw new Error("UUID must be set before getting username");
+		let name: string;
+		try {
+			name = (await got(`https://api.mojang.com/user/profile/${Player.makeCleanUUID(this.uuid)}`, { resolveBodyOnly: true }).then(JSON.parse)).name;
+		} catch (err) {
+			throw patchErr(err, `Unable to fetch Username for ${this.uuid}`);
+		}
 		if (name === undefined) throw new Error("No username found for UUID");
 		this.username = name;
 		return this.username!;
