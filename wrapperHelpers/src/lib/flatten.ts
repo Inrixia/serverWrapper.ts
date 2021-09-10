@@ -23,7 +23,7 @@ export const flattenObject = (ob: Record<string, any>) => {
 	return toReturn;
 };
 
-export const flatOut = (ob: any, title?: string): Output => {
+export const flatOut = (ob: any, options?: { title?: string; filename?: string }): Output => {
 	if (ob === undefined)
 		return {
 			console: "undefined",
@@ -31,7 +31,7 @@ export const flatOut = (ob: any, title?: string): Output => {
 			discord: {
 				embeds: [
 					{
-						title,
+						title: options?.title,
 						color: parseInt(hex.cyanBright, 16),
 						description: "```\nundefined```",
 						timestamp: Date.now(),
@@ -46,7 +46,7 @@ export const flatOut = (ob: any, title?: string): Output => {
 			discord: {
 				embeds: [
 					{
-						title,
+						title: options?.title,
 						color: parseInt(hex.cyanBright, 16),
 						description: `\`\`\`\n${ob}\`\`\``,
 						timestamp: Date.now(),
@@ -58,7 +58,7 @@ export const flatOut = (ob: any, title?: string): Output => {
 	let description: string | undefined = "```json\n" + JSON.stringify(flatObject, null, 2) + "```";
 	let files;
 	if (description.length > 4096) {
-		files = [{ name: title, attachment: Buffer.from(JSON.stringify(ob, null, 2)) }];
+		files = [{ name: options?.filename || "o.json", attachment: Buffer.from(JSON.stringify(ob, null, 2)) }];
 		description = undefined;
 	}
 	return {
@@ -80,7 +80,7 @@ export const flatOut = (ob: any, title?: string): Output => {
 			files,
 			embeds: [
 				{
-					title,
+					title: options?.title,
 					color: parseInt(hex.cyanBright, 16),
 					description,
 					timestamp: Date.now(),

@@ -10,7 +10,7 @@ export const playerdata: Command = async (message) => {
 	const username = message.args[0];
 	if (username === undefined) throw new Error("No username provided");
 	const parsed = await readNBT(`${await getWorldFolder()}/playerdata/${await Players.getUUID(username)}.dat`);
-	return flatOut(parsed, `${username}.playerdata.json`);
+	return flatOut(parsed, { filename: `${username}.playerdata.json` });
 };
 playerdata.help = helpHelper({
 	commandString: "~playerdata",

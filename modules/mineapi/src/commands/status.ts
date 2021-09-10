@@ -8,7 +8,7 @@ export const status: Command = async (message) => {
 	const pingInfo = await getStatus();
 	// @ts-expect-error Delete this regardless
 	delete pingInfo.rawResponse;
-	return flatOut(pingInfo);
+	return flatOut(pingInfo, { filename: "status.json" });
 };
 status.help = helpHelper({
 	commandString: "~status",

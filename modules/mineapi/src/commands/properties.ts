@@ -6,7 +6,7 @@ import { helpHelper, flatOut } from "@spookelton/wrapperHelpers/modul";
 
 export const properties: Command = async (message) => {
 	const properties = await getProperties();
-	return flatOut(properties);
+	return flatOut(properties, { filename: "server.properties.json" });
 };
 properties.help = helpHelper({
 	commandString: "~properties",
