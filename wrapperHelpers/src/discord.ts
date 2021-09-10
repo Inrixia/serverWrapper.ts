@@ -5,7 +5,8 @@ export const buildMessage = (message: Message, inManagementChannel: boolean) => 
 	guildId: message.guildId,
 	deleted: message.deleted,
 	id: message.id,
-	content: message.cleanContent,
+	cleanContent: message.cleanContent,
+	content: message.content,
 	isNSFW: message.channel.isText() && message.channel.type === "GUILD_TEXT" ? message.channel.nsfw : false,
 	author: {
 		id: message.author.id,
