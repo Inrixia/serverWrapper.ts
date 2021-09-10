@@ -124,14 +124,6 @@ const chikachiPath = "./config/Chikachi/discordintegration.json";
 	}
 })();
 
-const typedarrayToBuffer = (arr: Uint8Array) =>
-	ArrayBuffer.isView(arr)
-		? // To avoid a copy, use the typed array's underlying ArrayBuffer to back
-		  // new Buffer, respecting the "view", i.e. byteOffset and byteLength
-		  Buffer.from(arr.buffer, arr.byteOffset, arr.byteLength)
-		: // Pass through all other types to `Buffer.from`
-		  Buffer.from(arr);
-
 export const sendToChannel = async (channelId: string, message: string | MessageOptions): Promise<Message> => {
 	const channel = await discord.channels.fetch(channelId);
 
