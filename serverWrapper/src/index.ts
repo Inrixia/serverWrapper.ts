@@ -111,7 +111,7 @@ process.on("uncaughtException", async (...args) => {
 		process.exit();
 	}
 	const command: string = wrapperSettings.command[0];
-	const args: string[] = wrapperSettings.command.slice(1);
+	const args: string[] = [`-D${wrapperSettings.serverName}`, ...wrapperSettings.command.slice(1)];
 	server = spawn(command, args, { detached: false, cwd: wrapperSettings.commandWorkingDirectory });
 
 	// Server error handling

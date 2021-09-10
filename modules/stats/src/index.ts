@@ -58,7 +58,9 @@ thread.require<CoreExports>("@spookelton/serverWrapper").then(async (wrapperThre
 
 		const tts = serverStarted ? "" : `  |  Time to start: ${~~(stats.timeToStart / 1000)}s`;
 		setTitleBar(
-			`${serverName}${tts}  |  PID: ${stats.pid}  |  MEM: ${stats.memoryUsage.toFixed(2)}MB  |  CPU: ${stats.cpuUsage}%  |  Uptime: ${~~(stats.uptime / 1000)}s`
+			`${serverName}${tts}  |  PID: ${stats.pid}  |  MEM: ${stats.memoryUsage.toFixed(2)}MB  |  CPU: ${stats.cpuUsage.toFixed(2)}%  |  Uptime: ${~~(
+				stats.uptime / 1000
+			)}s`
 		);
 	}, 1000);
 });
