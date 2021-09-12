@@ -26,7 +26,7 @@ export const discordHandler = async (message: DiscordMessage) => {
 		console.log(chalk`{grey [}${chalk.hex(message.author.color || "")(`@${message.author.username}`)}{grey ]}: ${message.content}`);
 		if (message.content[0] === "!") {
 			if (message.mentions.bot) await discordThread.addTempManagementChannel(message.channelId);
-			return logg({ minecraft: `${message.content.slice(1).slice(message.content.indexOf(" "))}\n` }, { minecraft: true });
+			return logg({ minecraft: `${message.content.slice(1)}\n` }, { minecraft: true });
 		} else commandHandler(message.content, { discord: message });
 	}
 };
