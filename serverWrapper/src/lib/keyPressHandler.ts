@@ -22,13 +22,13 @@ export const consoleHandler = (onLine: (char: string) => void) => {
 	let consoleIndex = 0;
 
 	process.stdin.on("keypress", (char, key) => {
-		if (key.ctrl && key.name === "c") {
+		if (key.ctrl && ["c", "u"].includes(key.name)) {
 			if (consoleInput.length !== 0) {
 				consoleInput = [];
 				consoleIndex = 0;
 				process.stdout.clearLine(0);
 				process.stdout.cursorTo(consoleIndex);
-			} else exitHandler().then(process.exit);
+			} else if (key.name === "c") exitHandler().then(process.exit);
 			return;
 		}
 		switch (key.name) {
