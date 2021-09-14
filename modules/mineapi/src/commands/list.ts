@@ -1,17 +1,16 @@
 // Import Types
-import { Command, CoreExports } from "@spookelton/wrapperHelpers/types";
-import type { ThreadModule } from "@inrixia/threads";
+import { Command } from "@spookelton/wrapperHelpers/types";
 
+import { getCore, thread } from ".."
 import { helpHelper, strOut } from "@spookelton/wrapperHelpers/modul";
 
 export const list: Command = async (message) => {
-	const thread = (module.parent!.parent!.parent as ThreadModule).thread;
-	const wrapperThread = await thread.require<CoreExports>("@spookelton/serverWrapper");
-
 	// Execute the list command
+	const wrapperThread = await getCore();
 	await wrapperThread.serverStdin("list\n");
 
 	// Get the server's response to the command
+	// TODO: Set a timeout for this.
 	const result = await new Promise<RegExpMatchArray>((resolve, reject) => {
 		// TODO: Make sure this format works for relevant minecraft versions.
 		const regex = new RegExp(String.raw
