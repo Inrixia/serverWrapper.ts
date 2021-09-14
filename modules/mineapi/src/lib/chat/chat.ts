@@ -12,7 +12,7 @@
 
 import { events } from "./eventTranslations";
 import { Players } from "../Players";
-import { getThread } from "../../";
+import { getThread, moduleSettings } from "../..";
 
 // Import types
 import type { EventTranslation } from "./eventTranslations";
@@ -44,8 +44,10 @@ const handleEvent = async (match: RegExpMatchArray, event: EventTranslation) => 
 	}
 	const discord = await getThread<typeof DiscordModule>("@spookelton/discord");
 	if (discord !== undefined) {
-		if (event.send.text) discord.sendToChatChannels(text);
-		if (event.send.embed) discord.sendToChatChannels({ embeds: [embed] });
+		for (const channelId of moduleSettings.chat.channels) {
+			if (event.send.text) discord.sendToChannel(channelId, text).catch(console.error);
+			if (event.send.embed) discord.sendToChannel(channelId, { embeds: [embed] }).catch(console.error);
+		}
 	}
 };
 export const serverStdout = (string: string) => {

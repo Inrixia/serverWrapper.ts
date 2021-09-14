@@ -15,6 +15,7 @@ export type AuthModule = typeof auth;
 
 // Thread stuff
 const thread = (module.parent as ThreadModule).thread;
+export const { getCore, getThread } = prepGetThread(thread);
 thread.on("consoleStdin", consoleHandler);
 thread.on("serverStdout", minecraftHandler);
 
@@ -50,8 +51,6 @@ export const loadModuleCommands = async (moduleInfo: ModuleInfo) => {
 export const unloadModuleCommands = async (module: string) => {
 	for (const command in commands) if (commands[command].module === module) delete commands[command];
 };
-
-export const { getThread, getCore } = prepGetThread(thread);
 
 (async () => {
 	// Load core wrapper commands

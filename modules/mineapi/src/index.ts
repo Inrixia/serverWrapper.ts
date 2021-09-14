@@ -2,18 +2,40 @@ export * from "./commands";
 import * as commands from "./commands";
 
 // Import core packages
+import db from "@inrixia/db";
 import props from "properties";
 import mcServerUtils from "minecraft-server-util";
 import { promisify } from "util";
-import { serverStdout } from "./lib/events/events";
+import { serverStdout } from "./lib/chat/chat";
 
 const properties = promisify(props.parse);
 
 // Threading
 import { ThreadModule } from "@inrixia/threads";
 export const thread = (module.parent as ThreadModule<{ serverPid: () => Promise<number> }>).thread;
+export const { getCore, getThread } = prepGetThread(thread);
 
-// thread.on("serverStdout", serverStdout);
+type ModuleSettings = {
+	chat: {
+		enabled: boolean;
+		channels: string[];
+	};
+};
+
+export const moduleSettings = db<ModuleSettings>("./_db/mineapi.json", {
+	forceCreate: true,
+	updateOnExternalChanges: true,
+	pretty: true,
+	template: {
+		chat: {
+			enabled: false,
+			channels: [],
+		},
+	},
+});
+
+// Only listen to serverStdout if chat is enabled
+moduleSettings.chat.enabled && thread.on("serverStdout", serverStdout);
 
 import { buildModuleInfo, prepGetThread } from "@spookelton/wrapperHelpers/modul";
 // Export moduleInfo
@@ -22,8 +44,6 @@ export const moduleInfo = buildModuleInfo({
 	color: "cyan",
 	description: "All things minecraft.",
 });
-
-export const { getCore, getThread } = prepGetThread(thread);
 
 type JSON = Record<string, any>;
 

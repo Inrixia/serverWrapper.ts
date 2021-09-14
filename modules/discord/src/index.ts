@@ -23,7 +23,6 @@ type ModuleSettings = {
 	messageFlushRate: number;
 	discordToken: string;
 	managementChannels: string[];
-	chatChannels: string[];
 };
 
 export const moduleSettings = db<ModuleSettings>("./_db/discord.json", {
@@ -34,7 +33,6 @@ export const moduleSettings = db<ModuleSettings>("./_db/discord.json", {
 		messageFlushRate: 100,
 		discordToken: "",
 		managementChannels: [],
-		chatChannels: [],
 	},
 });
 
@@ -44,24 +42,6 @@ const flatMessages: Record<string, number> = {};
 const getManagementChannels = async () => {
 	const channels = await Promise.all(moduleSettings.managementChannels.map((channelId) => discord.channels.fetch(channelId)));
 	return channels.filter((channel) => channel !== null && channel.isText()) as TextBasedChannels[];
-};
-const getChatChannels = async () => {
-	const channels = await Promise.all(moduleSettings.chatChannels.map((channelId) => discord.channels.fetch(channelId)));
-	return channels.filter((channel) => channel !== null && channel.isText()) as TextBasedChannels[];
-};
-const webhooks: Webhook[] = [];
-const getChatWebhooks = async () => {
-	if (webhooks.length === 0) {
-		for (const channel of await getChatChannels()) {
-			if (channel.type === "GUILD_TEXT") {
-				const channelHooks = await channel.fetchWebhooks();
-				const chatHook = channelHooks.get("WrapperChat");
-				if (chatHook === undefined) webhooks.push(await channel.createWebhook("WrapperChat", { reason: "Allow minecraft chat using the serverWrapper" }));
-				else webhooks.push(chatHook);
-			}
-		}
-	}
-	return webhooks;
 };
 let clientAvatarColor: number | undefined;
 
@@ -155,14 +135,6 @@ export const sendToChannel = async (channelId: string, message: string | Message
 	}
 	if (channel?.isText()) return channel.send(message);
 	throw new Error("Channel is not a text channel");
-};
-
-export const sendToChatChannels = async (message: string | MessageOptions) => Promise.all((await getChatChannels()).map((channel) => channel.send(message)));
-export const sendToChatWebhooks = async (message: string | WebhookMessageOptions) => {
-	if (typeof message !== "string" && message.username !== undefined) {
-		message.username = `${discord.user?.username} - ${message.username}`;
-	}
-	return Promise.all((await getChatWebhooks()).map((channel) => channel.send(message)));
 };
 
 export const addTempManagementChannel = async (tempChannelId: string, timeout = 500): Promise<void> => {
