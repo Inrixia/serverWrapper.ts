@@ -1,7 +1,7 @@
 import fs from "fs";
 import chalk from "chalk";
 import ColorThief from "colorthief";
-import { Client, FileOptions, Intents, MessageAttachment } from "discord.js";
+import { Client, FileOptions, Intents, Webhook, WebhookMessageOptions } from "discord.js";
 
 import db from "@inrixia/db";
 import { chunkArray } from "@inrixia/helpers/object";
@@ -11,7 +11,7 @@ import { buildMessage } from "@spookelton/wrapperHelpers/discord";
 
 // Import Types
 import type { WrapperModule } from "@spookelton/wrapperHelpers/types";
-import type { TextBasedChannels, MessagePayload, MessageOptions, Message } from "discord.js";
+import type { TextBasedChannels, MessageOptions, Message } from "discord.js";
 
 // Export moduleInfo
 export const moduleInfo = buildModuleInfo({
@@ -23,6 +23,7 @@ type ModuleSettings = {
 	messageFlushRate: number;
 	discordToken: string;
 	managementChannels: string[];
+	chatChannels: string[];
 };
 
 export const moduleSettings = db<ModuleSettings>("./_db/discord.json", {
@@ -33,15 +34,34 @@ export const moduleSettings = db<ModuleSettings>("./_db/discord.json", {
 		messageFlushRate: 100,
 		discordToken: "",
 		managementChannels: [],
+		chatChannels: [],
 	},
 });
 
 const discord = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] });
 
 const flatMessages: Record<string, number> = {};
-const managementChannels = async () => {
+const getManagementChannels = async () => {
 	const channels = await Promise.all(moduleSettings.managementChannels.map((channelId) => discord.channels.fetch(channelId)));
 	return channels.filter((channel) => channel !== null && channel.isText()) as TextBasedChannels[];
+};
+const getChatChannels = async () => {
+	const channels = await Promise.all(moduleSettings.chatChannels.map((channelId) => discord.channels.fetch(channelId)));
+	return channels.filter((channel) => channel !== null && channel.isText()) as TextBasedChannels[];
+};
+const webhooks: Webhook[] = [];
+const getChatWebhooks = async () => {
+	if (webhooks.length === 0) {
+		for (const channel of await getChatChannels()) {
+			if (channel.type === "GUILD_TEXT") {
+				const channelHooks = await channel.fetchWebhooks();
+				const chatHook = channelHooks.get("WrapperChat");
+				if (chatHook === undefined) webhooks.push(await channel.createWebhook("WrapperChat", { reason: "Allow minecraft chat using the serverWrapper" }));
+				else webhooks.push(chatHook);
+			}
+		}
+	}
+	return webhooks;
 };
 let clientAvatarColor: number | undefined;
 
@@ -59,6 +79,7 @@ const chikachiPath = "./config/Chikachi/discordintegration.json";
 (async () => {
 	if (moduleSettings.discordToken === "" && fs.existsSync(chikachiPath)) moduleSettings.discordToken = fs.readFileSync(chikachiPath, "utf8").slice(31, 90);
 	if (moduleSettings.discordToken === "") {
+		// TODO: Exit thread dont just quitely disable
 		console.log(chalk`[{red @spookelton/discord}]: No Token Found! Exiting...`);
 		return;
 	}
@@ -69,7 +90,6 @@ const chikachiPath = "./config/Chikachi/discordintegration.json";
 	// On receive message from discord server
 	discord.on("messageCreate", async (message) => {
 		if (message.author.id === discord.user!.id) return;
-		if (message.author.bot) return;
 		thread.emit("discordMessage", buildMessage(message, moduleSettings.managementChannels.includes(message.channelId)));
 	});
 
@@ -109,7 +129,7 @@ const chikachiPath = "./config/Chikachi/discordintegration.json";
 				delete flatMessages[string];
 			}
 			if (discordData !== "") {
-				for (const channel of await managementChannels()) {
+				for (const channel of await getManagementChannels()) {
 					for (const chunk of chunkArray(discordData, 2000)) {
 						channel.send(chunk).catch(console.error);
 					}
@@ -119,7 +139,7 @@ const chikachiPath = "./config/Chikachi/discordintegration.json";
 		}, moduleSettings.messageFlushRate);
 
 		thread.on("consoleStdin", async (string: string) => {
-			for (const channel of await managementChannels()) channel.send(`[Console]: ${string}\n`).catch(console.error);
+			for (const channel of await getManagementChannels()) channel.send(`[Console]: ${string}\n`).catch(console.error);
 		});
 	}
 })();
@@ -135,6 +155,14 @@ export const sendToChannel = async (channelId: string, message: string | Message
 	}
 	if (channel?.isText()) return channel.send(message);
 	throw new Error("Channel is not a text channel");
+};
+
+export const sendToChatChannels = async (message: string | MessageOptions) => Promise.all((await getChatChannels()).map((channel) => channel.send(message)));
+export const sendToChatWebhooks = async (message: string | WebhookMessageOptions) => {
+	if (typeof message !== "string" && message.username !== undefined) {
+		message.username = `${discord.user?.username} - ${message.username}`;
+	}
+	return Promise.all((await getChatWebhooks()).map((channel) => channel.send(message)));
 };
 
 export const addTempManagementChannel = async (tempChannelId: string, timeout = 500): Promise<void> => {

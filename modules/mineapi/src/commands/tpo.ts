@@ -5,7 +5,7 @@ import { createWriteStream } from "fs";
 import { writeUncompressed } from "prismarine-nbt";
 
 import { readNBT } from "../lib/nbt";
-import Players from "../lib/Players";
+import { Players } from "../lib/Players";
 import { helpHelper, strOut } from "@spookelton/wrapperHelpers/modul";
 import { getWorldFolder } from "..";
 

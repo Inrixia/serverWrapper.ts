@@ -1,4 +1,5 @@
-import type { Command, ModuleInfo } from "./types";
+import type { ThreadExports, ThreadModule } from "@inrixia/threads";
+import type { Command, CoreExports, ModuleInfo } from "./types";
 
 export * from "./lib";
 
@@ -23,4 +24,17 @@ export const patchErr = (err: unknown, message: string) => {
 		return err;
 	}
 	return new Error(message);
+};
+
+export const prepGetThread = (thread: ThreadModule["thread"]) => {
+	return {
+		getCore: () => thread.require<CoreExports>("@spookelton/serverWrapper"),
+		getThread: async <T extends ThreadExports = {}>(threadName: string) => {
+			try {
+				return await thread.require<T>(threadName);
+			} catch (err) {
+				if (err instanceof Error && !err.message.includes(`${threadName} has not been spawned`)) throw err;
+			}
+		},
+	};
 };

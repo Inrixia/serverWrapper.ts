@@ -5,17 +5,17 @@ import * as commands from "./commands";
 import props from "properties";
 import mcServerUtils from "minecraft-server-util";
 import { promisify } from "util";
+import { serverStdout } from "./lib/events/events";
 
 const properties = promisify(props.parse);
 
 // Threading
 import { ThreadModule } from "@inrixia/threads";
-const thread = (module.parent as ThreadModule).thread;
+export const thread = (module.parent as ThreadModule<{ serverPid: () => Promise<number> }>).thread;
 
-// Import types
-import type { CoreExports, Output } from "@spookelton/wrapperHelpers/types";
+// thread.on("serverStdout", serverStdout);
 
-import { buildModuleInfo } from "@spookelton/wrapperHelpers/modul";
+import { buildModuleInfo, prepGetThread } from "@spookelton/wrapperHelpers/modul";
 // Export moduleInfo
 export const moduleInfo = buildModuleInfo({
 	commands,
@@ -23,10 +23,12 @@ export const moduleInfo = buildModuleInfo({
 	description: "All things minecraft.",
 });
 
+export const { getCore, getThread } = prepGetThread(thread);
+
 type JSON = Record<string, any>;
 
 export const getProperties = async (): Promise<JSON | undefined> => {
-	const wrapperThread = await thread.require<CoreExports>("@spookelton/serverWrapper");
+	const wrapperThread = await getCore();
 	const { commandWorkingDirectory } = await wrapperThread.settings();
 	return properties(`${commandWorkingDirectory + "/" || "./"}server.properties`, { path: true });
 };
@@ -38,7 +40,7 @@ export const getStatus = async () => {
 let commandWorkingDirectory: string | undefined;
 export const getCommandWorkingDirectory = async () => {
 	if (commandWorkingDirectory !== undefined) return commandWorkingDirectory;
-	const wrapperThread = await thread.require<CoreExports>("@spookelton/serverWrapper");
+	const wrapperThread = await getCore();
 	return (commandWorkingDirectory = (await wrapperThread.settings()).commandWorkingDirectory);
 };
 
