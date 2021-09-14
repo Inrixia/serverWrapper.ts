@@ -2,7 +2,7 @@ import got from "got";
 
 import { patchErr } from "@spookelton/wrapperHelpers/modul";
 
-export default class Player {
+export class Player {
 	private username?: string;
 	private uuid?: string;
 

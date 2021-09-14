@@ -1,23 +1,24 @@
 import chalk from "chalk";
 
 import { mc, hex } from "@spookelton/wrapperHelpers/colors";
-import { commands, logg, lErr, getDiscordThread, getAuthThread } from "..";
+import { commands, logg, lErr, getThread } from "..";
 
 // Import Types
 import type { LogTo } from "@spookelton/wrapperHelpers/types";
 import type { DiscordMessage } from "@spookelton/wrapperHelpers/types";
+import type { DiscordModule, AuthModule } from "..";
 
 export const minecraftHandler = (string: string) => {};
 
 export const consoleHandler = (string: string) => commandHandler(string, { console: true });
 
 export const discordHandler = async (message: DiscordMessage) => {
-	const discordThread = await getDiscordThread();
+	const discordThread = await getThread<DiscordModule>("@spookelton/discord");
 	if (discordThread === undefined) return;
 	if (message.inManagementChannel || message.mentions.bot) {
 		// console.log(JSON.stringify(message, null, "  "));
 		if (message.mentions.bot) {
-			const authThread = await getAuthThread();
+			const authThread = await getThread<AuthModule>("@spookelton/auth");
 			if (authThread === undefined) return;
 			message.content = message.content.slice(message.content.indexOf(" ") + 1, message.content.length);
 			const canRunCommand = await authThread.discordUserAllowedCommand(message.content, message.author).catch((err: Error) => lErr(err, { discord: message }));

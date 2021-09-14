@@ -1,7 +1,7 @@
 // Import Types
 import { Command } from "@spookelton/wrapperHelpers/types";
 
-import Players from "../lib/Players";
+import { Players } from "../lib/Players";
 import { helpHelper, flatOut } from "@spookelton/wrapperHelpers/modul";
 
 export const username: Command = async (message) => {

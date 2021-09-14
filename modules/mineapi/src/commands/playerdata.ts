@@ -2,7 +2,7 @@
 import { Command } from "@spookelton/wrapperHelpers/types";
 
 import { cleanNBT, readNBT } from "../lib/nbt";
-import Players from "../lib/Players";
+import { Players } from "../lib/Players";
 import { helpHelper, flatOut } from "@spookelton/wrapperHelpers/modul";
 import { getWorldFolder } from "..";
 

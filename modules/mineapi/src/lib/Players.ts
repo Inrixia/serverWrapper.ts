@@ -1,6 +1,6 @@
-import Player from "./Player";
+import { Player } from "./Player";
 
-export default class Players {
+export class Players {
 	private static usernames: Record<string, Player> = {};
 	private static uuids: Record<string, Player> = {};
 	public static getPlayer(username: string): Player {

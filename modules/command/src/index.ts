@@ -7,15 +7,18 @@ import { consoleHandler, discordHandler, minecraftHandler } from "./lib/commandH
 // Import Types
 import type { Command, ModuleInfo, CoreExports } from "@spookelton/wrapperHelpers/types";
 import type { ThreadModule } from "@inrixia/threads";
-import type * as DiscordModule from "@spookelton/discord";
-import type * as AuthModule from "@spookelton/auth";
+import type * as discord from "@spookelton/discord";
+import type * as auth from "@spookelton/auth";
+
+export type DiscordModule = typeof discord;
+export type AuthModule = typeof auth;
 
 // Thread stuff
 const thread = (module.parent as ThreadModule).thread;
 thread.on("consoleStdin", consoleHandler);
 thread.on("serverStdout", minecraftHandler);
 
-import { buildModuleInfo } from "@spookelton/wrapperHelpers/modul";
+import { buildModuleInfo, prepGetThread } from "@spookelton/wrapperHelpers/modul";
 // Export moduleInfo
 export const moduleInfo = buildModuleInfo({
 	commands: _commands,
@@ -48,28 +51,14 @@ export const unloadModuleCommands = async (module: string) => {
 	for (const command in commands) if (commands[command].module === module) delete commands[command];
 };
 
-export const getWrapperThread = () => thread.require<CoreExports>("@spookelton/serverWrapper");
-export const getDiscordThread = async () => {
-	try {
-		return await thread.require<typeof DiscordModule>("@spookelton/discord");
-	} catch (err) {
-		if (err instanceof Error && !err.message.includes("@spookelton/discord has not been spawned")) throw err;
-	}
-};
-export const getAuthThread = async () => {
-	try {
-		return await thread.require<typeof AuthModule>("@spookelton/auth");
-	} catch (err) {
-		if (err instanceof Error && !err.message.includes("@spookelton/auth has not been spawned")) throw err;
-	}
-};
+export const { getThread, getCore } = prepGetThread(thread);
 
 (async () => {
 	// Load core wrapper commands
-	const wrapperThread = await getWrapperThread();
+	const wrapperThread = await getCore();
 	// Fetch other loaded modules and load their commands
 	await Promise.all((await wrapperThread.getRunningModules()).map(loadModuleCommands));
 
-	const discordThread = await getDiscordThread();
+	const discordThread = await getThread<DiscordModule>("@spookelton/discord");
 	if (discordThread !== undefined) discordThread.on("discordMessage", discordHandler);
 })();
