@@ -27,7 +27,7 @@ function parseOutput(input: RegExpMatchArray[]): TpsResponse {
 
 	const output = {
 		dimensions: input.map(x => ({
-			dimId: x[1].replace(/Dim  ?/, ""),
+			dimId: x[1].replace(/Dim  ?/, ""),  // Remove extra "Dim" at the start
 			dimName: x[2] === "null" ? null : x[2],
 			tickTime: parseFloat(x[3]),
 			tps: parseFloat(x[4]),

@@ -18,22 +18,7 @@ export const list: Command = async (message) => {
 	// Includes perhaps showing more detailed userinfo, icon, etc.
 	// TODO: Do I have to do something to handle console/ingame output? Ideally there should be no output there, or
 	// just the raw command output? Or maybe we can use the formatted output as well.
-	return {
-		console: outputMessage,
-		minecraft: outputMessage,
-		discord: {
-			embeds: [
-				{
-					title: outputMessage,
-					timestamp: Date.now(),
-					author: {
-						name: "",
-						icon_url: "https://cdn.discordapp.com/avatars/300050030923087872/b85c91512bf80b884a75548e71b9a817.webp"
-					},
-				},
-			],
-		}
-	};
+	return strOut(outputMessage)
 };
 list.help = helpHelper({
 	commandString: "~list",
