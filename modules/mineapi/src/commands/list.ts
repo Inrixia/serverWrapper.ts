@@ -9,15 +9,13 @@ export const list: Command = async (message) => {
 
 	const { maxPlayers, onlinePlayers, samplePlayers } = serverStatus;
 	const onlineMessage = samplePlayers?.length
-						  ? `:\n${samplePlayers.map(x => x.name).join(", ")}`
+						  ? `:\n${samplePlayers.map(player => player.name).join(", ")}`
 						  : ".\nIt is quite lonely.";
 
 	const outputMessage = `There are ${onlinePlayers}/${maxPlayers} players online` + onlineMessage;
 
 	// TODO: Make better formatting.
-	// Includes perhaps showing more detailed userinfo, icon, etc.
-	// TODO: Do I have to do something to handle console/ingame output? Ideally there should be no output there, or
-	// just the raw command output? Or maybe we can use the formatted output as well.
+	// Show more detailed userinfo (e.g. user head, icon).
 	return strOut(outputMessage)
 };
 list.help = helpHelper({

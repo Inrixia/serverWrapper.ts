@@ -7,6 +7,7 @@ export * from "./property";
 export * from "./status";
 export * from "./tpo";
 export * from "./tps";
+export * from "./tpss";
 export * from "./username";
 export * from "./uuid";
 export * from "./whereis";
