@@ -95,5 +95,5 @@ export function formatDimension(dim: dimInfo): string {
 		name = dimensionName;
 	}
 
-	return `**${name}**:\n TPS: \`${dim.tps}\`, Tick Time: \`${dim.tickTime}\` ms`;
+	return `**${name}**:\n TPS: \`${dim.tps}\` • Tick Time: \`${dim.tickTime}\` ms`;
 }

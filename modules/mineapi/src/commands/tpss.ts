@@ -18,7 +18,7 @@ export const tpss: Command = async (message) => {
                 title: "Server TPS:",
                 description:
                     result.dimensions.map(formatDimension).join("\n") +
-                    `\n\n**Overall**:\n TPS: \`${result.overall.tps}\`, Tick Time: \`${result.overall.tickTime}\` ms`,
+                    `\n\n**Overall**:\n TPS: \`${result.overall.tps}\` • Tick Time: \`${result.overall.tickTime}\` ms`,
                 color: tpsToColor(result.overall.tps),
                 timestamp: Date.now(),
             }]
