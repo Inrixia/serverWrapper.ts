@@ -1,7 +1,6 @@
 import { thread, getCore } from "..";
 
 import { hex } from "@spookelton/wrapperHelpers/colors"
-import { ColorKey } from "@spookelton/wrapperHelpers/types"
 
 
 type dimInfo = {
@@ -68,13 +67,10 @@ function parseOutput(input: RegExpMatchArray[]): TpsResponse {
 	};
 }
 
-export function tpsToColor(tps: number): number {
-	let colorName: ColorKey;
-	if (tps < 10) colorName = "red";
-	else if (tps < 18) colorName = "yellow";
-	else colorName = "green";
-
-	return parseInt(hex[colorName], 16);
+export function tpsToColor(tps: number): string {
+	if (tps < 10) return hex.red;
+	if (tps < 18) return hex.yellow;
+	return hex.green;
 }
 
 function capitalize(input: string): string {
