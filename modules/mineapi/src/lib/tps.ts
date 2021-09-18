@@ -78,7 +78,7 @@ function capitalize(input: string): string {
 }
 
 export function formatDimension(dim: dimInfo): string {
-    // TODO: I really need to look at this more so it's less bad
+    // TODO: Fix code style, make sure this format works for all versions of minecraft.
 	let [modName, dimensionName] = dim.dimId.split(':', 2);
 	let name;
 

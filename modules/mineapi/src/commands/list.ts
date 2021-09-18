@@ -1,15 +1,16 @@
 // Import Types
 import { Command } from "@spookelton/wrapperHelpers/types";
 
-
 import { getCore, getStatus } from ".."
 import { helpHelper, strOut } from "@spookelton/wrapperHelpers/modul";
 import { hex } from "@spookelton/wrapperHelpers/colors";
+
 
 export const list: Command = async (message) => {
 	const core = await getCore();
 	if (!await core.serverStarted()) return strOut("Server is still starting! Please wait...", "red");
 
+	// TODO: Make sure samplePlayers includes ALL players
 	const serverStatus = await getStatus();
 	const { maxPlayers, onlinePlayers, samplePlayers } = serverStatus;
 
