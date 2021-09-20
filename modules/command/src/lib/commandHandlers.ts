@@ -37,10 +37,12 @@ export const commandHandler = async (string: string, logTo?: LogTo): Promise<voi
 	if (string[0] !== "~" && string[0] !== "?") return; // If the first character isn't a command, ignore it
 
 	// Generate array of args grouping by spaces and quotes
+	// TODO: Write explanation on why and how this works
 	const [commandName, ...args] = string
 		.slice(1)
-		.split(' "')
-		.flatMap((arg) => (arg.includes('"') ? arg.replace('"', "") : arg.split(" ")));
+		.split(string.includes('"') ? '"' : " ")
+		.map((a) => a.split(" "))
+		.flatMap((a => a.indexOf("") != -1 ? a.filter(v => v != "") : a.join(" ")))
 
 	const command = commands[commandName];
 	if (command === undefined) {
