@@ -3,6 +3,7 @@ import * as _commands from "./commands";
 
 // Import command handlers
 import { consoleHandler, discordHandler, minecraftHandler } from "./lib/commandHandlers";
+import { buildModuleInfo, prepGetThread } from "@spookelton/wrapperHelpers/modul";
 
 // Import Types
 import type { Command, ModuleInfo, CoreExports } from "@spookelton/wrapperHelpers/types";
@@ -19,7 +20,6 @@ export const { getCore, getThread } = prepGetThread(thread);
 thread.on("consoleStdin", consoleHandler);
 thread.on("serverStdout", minecraftHandler);
 
-import { buildModuleInfo, prepGetThread } from "@spookelton/wrapperHelpers/modul";
 // Export moduleInfo
 export const moduleInfo = buildModuleInfo({
 	commands: _commands,

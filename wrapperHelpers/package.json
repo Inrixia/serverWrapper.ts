@@ -13,11 +13,6 @@
 			]
 		}
 	},
-	"scripts": {
-		"tsc": "tsc && copy /Y package.json dist",
-		"send": "npm run tsc && cd ./dist && npm publish",
-		"test": "echo \"Error: no test specified\" && exit 1"
-	},
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/Spookelton/wrapperTypes.git"

@@ -6,7 +6,6 @@
 		"modules/*"
 	],
 	"scripts": {
-		"postinstall": "./node_modules/typescript/bin/tsc -b -f",
 		"tsc": "tsc -b",
 		"start": "npm run tsc && node ./serverWrapper/dist/index.js",
 		"watch": "tsc -b --watch"
