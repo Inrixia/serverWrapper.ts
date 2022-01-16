@@ -11,9 +11,6 @@
 			]
 		}
 	},
-	"dependencies": {
-		"colorthief": "^2.3.2"
-	},
 	"references": [
 		{
 			"path": "../../wrapperHelpers"
