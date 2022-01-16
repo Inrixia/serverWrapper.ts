@@ -1,6 +1,5 @@
 import fs from "fs";
 import chalk from "chalk";
-import ColorThief from "colorthief";
 import { Client, FileOptions, Intents, Webhook, WebhookMessageOptions } from "discord.js";
 
 import db from "@inrixia/db";
@@ -43,7 +42,6 @@ const getManagementChannels = async () => {
 	const channels = await Promise.all(moduleSettings.managementChannels.map((channelId) => discord.channels.fetch(channelId)));
 	return channels.filter((channel) => channel !== null && channel.isText()) as TextBasedChannels[];
 };
-let clientAvatarColor: number | undefined;
 
 // Thread stuff
 const thread = (module.parent as WrapperModule).thread;
@@ -72,21 +70,6 @@ const chikachiPath = "./config/Chikachi/discordintegration.json";
 		if (message.author.id === discord.user!.id) return;
 		thread.emit("discordMessage", buildMessage(message, moduleSettings.managementChannels.includes(message.channelId)));
 	});
-
-	if (discord.user !== null) {
-		const avatarUrl = discord.user.avatarURL({ format: "png" });
-		if (avatarUrl !== null) {
-			try {
-				const cArr = await ColorThief.getColor(avatarUrl);
-				clientAvatarColor = parseInt(rgbToHex(cArr[0]) + rgbToHex(cArr[1]) + rgbToHex(cArr[2]), 16);
-			} catch (err) {
-				if (err instanceof Error) {
-					err.message = `Failed to parse discordBot avatar color!\n${err.message}`;
-				}
-				throw err;
-			}
-		}
-	}
 
 	// Handle Management Channels
 	if (moduleSettings.managementChannels.length !== 0) {
