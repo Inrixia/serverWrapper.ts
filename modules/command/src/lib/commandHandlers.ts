@@ -33,18 +33,11 @@ export const discordHandler = async (message: DiscordMessage) => {
 };
 
 export const commandHandler = async (string: string, logTo?: LogTo): Promise<void> => {
-	string = string.replace(/\s\s+/g, " ").replace("\r", ""); // Compact multiple spaces/tabs down to one
+	string = string.trim().replace(/\s\s+/g, " ").replace("\r", ""); // Compact multiple spaces/tabs down to one
 	if (string[0] !== "~" && string[0] !== "?") return; // If the first character isn't a command, ignore it
 
-	// Generate array of args grouping by spaces and quotes
-	// TODO: Write explanation on why and how this works
-	const [commandName, ...args] = string
-		.slice(1)
-		.split(string.includes('"') ? '"' : " ")
-		.map((a) => a.split(" "))
-		.flatMap((a => a.indexOf("") != -1 ? a.filter(v => v != "") : a.join(" ")))
-
-	const command = commands[commandName];
+	const args = string.slice(1, string.length).split(/\s(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+	const command = commands[args[0]];
 	if (command === undefined) {
 		await logg(
 			{
