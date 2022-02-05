@@ -36,7 +36,7 @@ export const commandHandler = async (string: string, logTo?: LogTo): Promise<voi
 	string = string.trim().replace(/\s\s+/g, " ").replace("\r", ""); // Compact multiple spaces/tabs down to one
 	if (string[0] !== "~" && string[0] !== "?") return; // If the first character isn't a command, ignore it
 
-	const args = string.slice(1, string.length).split(/\s(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+	const args = string.split(/\s(?=(?:(?:[^"]*"){2})*[^"]*$)/);
 	const command = commands[args[0]];
 	if (command === undefined) {
 		await logg(
