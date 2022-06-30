@@ -10,7 +10,7 @@ import { buildMessage } from "@spookelton/wrapperHelpers/discord";
 
 // Import Types
 import type { WrapperModule } from "@spookelton/wrapperHelpers/types";
-import type { TextBasedChannels, MessageOptions, Message } from "discord.js";
+import type { TextBasedChannel, MessageOptions, Message } from "discord.js";
 
 // Export moduleInfo
 export const moduleInfo = buildModuleInfo({
@@ -40,7 +40,7 @@ const discord = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD
 const flatMessages: Record<string, number> = {};
 const getManagementChannels = async () => {
 	const channels = await Promise.all(moduleSettings.managementChannels.map((channelId) => discord.channels.fetch(channelId)));
-	return channels.filter((channel) => channel !== null && channel.isText()) as TextBasedChannels[];
+	return channels.filter((channel) => channel !== null && channel.isText()) as TextBasedChannel[];
 };
 
 // Thread stuff

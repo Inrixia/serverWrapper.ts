@@ -11,8 +11,8 @@
 		}
 	},
 	"dependencies": {
-		"got": "^11.8.2",
-		"minecraft-server-util": "^3.6.0",
+		"got": "^11.8.5",
+		"minecraft-server-util": "^3.7.2",
 		"prismarine-nbt": "^1.6.0",
 		"properties": "^1.2.1"
 	}

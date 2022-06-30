@@ -14,7 +14,7 @@
 		}
 	},
 	"dependencies": {
-		"terminate": "^2.2.2"
+		"terminate": "^2.5.0"
 	},
 	"scripts": {
 		"start": "tsc && node ./dist/index.js",
