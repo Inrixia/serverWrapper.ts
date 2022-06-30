@@ -11,8 +11,8 @@ import type { DiscordModule, AuthModule } from "..";
 export const minecraftHandler = async (string: string) => {
 	const authThread = await getThread<AuthModule>("@spookelton/auth");
 	if (authThread === undefined) return;
-	const username = string.match(/<(.*?)>/)?.[1].trim() ?? '';
-	const messageContent = string.split('>')[1].trim();
+	// Get username and message out of "[01:06:15] [Server thread/INFO]: <greysilly7> asd"
+	const [username, messageContent] = string.match(/\[(.*?)\] \[Server thread\/INFO\]: \<(.*?)\> (.*)/)!;
 	const canRunCommand = await authThread.minecraftUserAllowedCommand(messageContent, username);
 	if (!canRunCommand) return;
 	console.log(chalk`{grey [}${chalk.hex("")(`${username}`)}{grey ]}: ${messageContent}`);

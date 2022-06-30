@@ -45,7 +45,7 @@ export const cwParams = async (message: Message) => {
 				if (mentions === undefined) throw new Error("Please specify a user or role.");
 				if (mentions.users.length !== 0) {
 					const user = mentions.users[mentions.bot ? 1 : 0];
-					id = user.id;
+					id = user.id.slice(3, -1);
 					name = user.username;
 				}
 				if (mentions.roles.length !== 0) {
