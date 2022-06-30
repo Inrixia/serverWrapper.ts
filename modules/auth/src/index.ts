@@ -11,6 +11,13 @@ import type { DiscordMessage } from "@spookelton/wrapperHelpers/types";
 import type * as mineAPI from "@spookelton/mineapi";
 import type { ThreadModule } from "@inrixia/threads";
 
+// Thread stuff
+export type MineAPIModule = typeof mineAPI;
+
+const thread = (module.parent as ThreadModule).thread;
+export const { getCore, getThread } = prepGetThread(thread);
+
+
 // Export moduleInfo
 export const moduleInfo = buildModuleInfo({
 	commands,
@@ -67,7 +74,9 @@ export const discordUserAllowedCommand = async (commandString: string, author: D
 };
 
 export const minecraftUserAllowedCommand = async (commandString: string, username: string) => {
-	if (canUseCommand(moduleSettings.minecraft[username]?.allowedCommands, commandString)) return true;
+	const mineAPIThread = await getThread<MineAPIModule>("@spookelton/mineapi");
+	if (mineAPIThread === undefined) throw hiddenError("Unable to access the mineapi module.");
+	if (canUseCommand(moduleSettings.minecraft[await mineAPIThread.usernameToUUID(username)]?.allowedCommands, commandString)) return true;
 	throw hiddenError("User not allowed to run this command.");
 };
 
@@ -76,10 +85,3 @@ const hiddenError = (message: string) => {
 	err.stack = undefined;
 	return err;
 };
-
-// Thread stuff
-
-export type MineAPIModule = typeof mineAPI;
-
-const thread = (module.parent as ThreadModule).thread;
-export const { getCore, getThread } = prepGetThread(thread);
