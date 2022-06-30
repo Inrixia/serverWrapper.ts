@@ -24,12 +24,12 @@ const unitLookups: Record<string, number> = {
 
 export const cwParams = async (message: Message) => {
 	const provider: "minecraft" | "discord" = message.logTo?.discord !== undefined ? "discord" : "minecraft";
-	const command = message.args[0];
+	const command = message.args[1];
 	if (command === undefined) throw new Error("Please specify a command.");
 
 	let id: string;
 	let name: string;
-	id = name = message.args[1];
+	id = name = message.args[0];
 	switch (provider) {
 		case "minecraft":
 			{
