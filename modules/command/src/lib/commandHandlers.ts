@@ -8,7 +8,16 @@ import type { LogTo } from "@spookelton/wrapperHelpers/types";
 import type { DiscordMessage } from "@spookelton/wrapperHelpers/types";
 import type { DiscordModule, AuthModule } from "..";
 
-export const minecraftHandler = (string: string) => {};
+export const minecraftHandler = async (string: string) => {
+	const authThread = await getThread<AuthModule>("@spookelton/auth");
+	if (authThread === undefined) return;
+	const username = string.match(/<(.*?)>/)?.[1] ?? '';
+	const messageContent = string.split('>')[1];
+	const canRunCommand = await authThread.minecraftUserAllowedCommand(string, username);
+	if (!canRunCommand) return;
+	console.log(chalk`{grey [}${chalk.hex("")(`@${username}`)}{grey ]}: ${messageContent}`);
+	commandHandler(messageContent, {console: true, minecraft: true});
+};
 
 export const consoleHandler = (string: string) => commandHandler(string, { console: true });
 

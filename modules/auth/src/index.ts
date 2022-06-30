@@ -64,6 +64,11 @@ export const discordUserAllowedCommand = async (commandString: string, author: D
 	throw hiddenError("User not allowed to run this command.");
 };
 
+export const minecraftUserAllowedCommand = async (commandString: string, username: string) => {
+	if (canUseCommand(moduleSettings.minecraft[username]?.allowedCommands, commandString)) return true;
+	throw hiddenError("User not allowed to run this command.");
+};
+
 const hiddenError = (message: string) => {
 	const err = new Error(message);
 	err.stack = undefined;
