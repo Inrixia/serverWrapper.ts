@@ -12,14 +12,10 @@ export const minecraftHandler = async (string: string) => {
 	const authThread = await getThread<AuthModule>("@spookelton/auth");
 	if (authThread === undefined) return;
 	// Get username and message out of "[01:06:15] [Server thread/INFO]: <greysilly7> asd"
-
-	// Get word in middle on "<>" in string
-	const username = string.split("<")[1].split(">")[0];
-	const message = string.split(">")[1].trim();
+	const [, username, message] = string.match(/\[(.*?)\] \[Server thread\/INFO\]: \<(.*?)\> (.*)/) || [];
 	if (username === null || message === null) return;
 	const canRunCommand = await authThread.minecraftUserAllowedCommand(message, username);
 	if (!canRunCommand) return;
-	console.log(chalk`{grey [}${chalk.hex("")(`${username}`)}{grey ]}: ${message}`);
 	commandHandler(message, {console: true, minecraft: true});
 };
 
