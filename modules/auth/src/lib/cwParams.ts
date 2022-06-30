@@ -46,12 +46,12 @@ export const cwParams = async (message: Message) => {
 				if (mentions.users.length !== 0) {
 					const user = mentions.users[mentions.bot ? 1 : 0];
 					// Remove <@> from id
-					id = user.id.slice(3, -1);
+					id = user.id.replaceAll(/[$<@&>]/g, "");
 					name = user.username;
 				}
 				if (mentions.roles.length !== 0) {
 					const role = mentions.roles[mentions.bot ? 1 : 0];
-					id = role.id.slice(3, -1);
+					id = role.id.replaceAll(/[$<@&>]/g, "");
 					name = role.name;
 				}
 			};
