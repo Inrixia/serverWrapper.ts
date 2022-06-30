@@ -13,12 +13,14 @@ export const minecraftHandler = async (string: string) => {
 	if (authThread === undefined) return;
 	// Get username and message out of "[01:06:15] [Server thread/INFO]: <greysilly7> asd"
 
-	const [, username, messageContent] = string.match(/\[(.*?)\] \[Server thread\/INFO\]: \<(.*?)\> (.*)/)!;
-	if (username === null || messageContent === null) return;
-	const canRunCommand = await authThread.minecraftUserAllowedCommand(messageContent, username);
+	// Get word in middle on "<>" in string
+	const username = string.split("<")[1].split(">")[0];
+	const message = string.split(">")[1].trim();
+	if (username === null || message === null) return;
+	const canRunCommand = await authThread.minecraftUserAllowedCommand(message, username);
 	if (!canRunCommand) return;
-	console.log(chalk`{grey [}${chalk.hex("")(`${username}`)}{grey ]}: ${messageContent}`);
-	commandHandler(messageContent, {console: true, minecraft: true});
+	console.log(chalk`{grey [}${chalk.hex("")(`${username}`)}{grey ]}: ${message}`);
+	commandHandler(message, {console: true, minecraft: true});
 };
 
 export const consoleHandler = (string: string) => commandHandler(string, { console: true });
