@@ -50,7 +50,7 @@ export const cwParams = async (message: Message) => {
 				}
 				if (mentions.roles.length !== 0) {
 					const role = mentions.roles[mentions.bot ? 1 : 0];
-					id = role.id;
+					id = role.id.slice(3, -1);
 					name = role.name;
 				}
 			};
