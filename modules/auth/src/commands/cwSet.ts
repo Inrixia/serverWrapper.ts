@@ -7,7 +7,7 @@ import { moduleSettings } from "..";
 import { cwParams } from "../lib/cwParams";
 
 export const cwSet: Command = async (message) => {
-	const { provider, command, id, name, expiresAt } = cwParams(message);
+	const { provider, command, id, name, expiresAt } = await cwParams(message);
 
 	moduleSettings[provider][id] ??= {
 		name,

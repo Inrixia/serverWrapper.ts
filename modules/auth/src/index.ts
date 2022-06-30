@@ -3,11 +3,13 @@ export * from "./commands";
 
 import db from "@inrixia/db";
 
-import { buildModuleInfo } from "@spookelton/wrapperHelpers/modul";
+import { buildModuleInfo, prepGetThread } from "@spookelton/wrapperHelpers/modul";
 
 // Import Types
 import type { AllowedCommand, AllowedCommands, ModuleSettings } from "./types";
 import type { DiscordMessage } from "@spookelton/wrapperHelpers/types";
+import type * as mineAPI from "@spookelton/mineapi";
+import type { ThreadModule } from "@inrixia/threads";
 
 // Export moduleInfo
 export const moduleInfo = buildModuleInfo({
@@ -74,3 +76,10 @@ const hiddenError = (message: string) => {
 	err.stack = undefined;
 	return err;
 };
+
+// Thread stuff
+
+export type MineAPIModule = typeof mineAPI;
+
+const thread = (module.parent as ThreadModule).thread;
+export const { getCore, getThread } = prepGetThread(thread);

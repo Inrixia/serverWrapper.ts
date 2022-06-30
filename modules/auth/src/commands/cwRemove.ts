@@ -6,7 +6,7 @@ import { cwParams } from "../lib/cwParams";
 import { helpHelper, strOut } from "@spookelton/wrapperHelpers/modul";
 
 export const cwRemove: Command = async (message) => {
-	const { provider, command, id, name } = cwParams(message);
+	const { provider, command, id, name } = await cwParams(message);
 
 	if (moduleSettings[provider][id]?.allowedCommands?.[command] === undefined) throw new Error(`Command ${command} is not whitelisted for ${name}`);
 

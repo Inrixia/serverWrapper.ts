@@ -1,4 +1,5 @@
 import { Message } from "@spookelton/wrapperHelpers/types";
+import { getThread, MineAPIModule } from "..";
 
 const unitLookups: Record<string, number> = {
 	second: 1000,
@@ -21,28 +22,39 @@ const unitLookups: Record<string, number> = {
 	years: 365 * 24 * 60 * 60 * 1000,
 };
 
-export const cwParams = (message: Message) => {
-	let provider: "minecraft" | "discord" = "minecraft";
+export const cwParams = async (message: Message) => {
+	const provider: "minecraft" | "discord" = message.logTo?.discord !== undefined ? "discord" : "minecraft";
 	const command = message.args[0];
 	if (command === undefined) throw new Error("Please specify a command.");
 
 	let id: string;
 	let name: string;
 	id = name = message.args[1];
-	if (message.logTo?.discord !== undefined) {
-		// TODO: There is a case using role mentionable commands to break this, should be fixed sometime
-		provider = "discord";
-		const mentions = message.logTo?.discord.mentions;
-		if (mentions.users.length !== 0) {
-			const user = mentions.users[mentions.bot ? 1 : 0];
-			id = user.id;
-			name = user.username;
-		}
-		if (mentions.roles.length !== 0) {
-			const role = mentions.roles[mentions.bot ? 1 : 0];
-			id = role.id;
-			name = role.name;
-		}
+	switch (provider) {
+		case "minecraft":
+			{
+				const mineAPIThread = await getThread<MineAPIModule>("@spookelton/mineapi");
+				if (mineAPIThread === undefined) throw new Error("Unable to access the mineapi module.");
+				id = await mineAPIThread.usernameToUUID(name);
+			};
+			break;
+		case "discord":
+			{
+				// TODO: There is a case using role mentionable commands to break this, should be fixed sometime
+				const mentions = message.logTo?.discord?.mentions;
+				if (mentions === undefined) throw new Error("Please specify a user or role.");
+				if (mentions.users.length !== 0) {
+					const user = mentions.users[mentions.bot ? 1 : 0];
+					id = user.id;
+					name = user.username;
+				}
+				if (mentions.roles.length !== 0) {
+					const role = mentions.roles[mentions.bot ? 1 : 0];
+					id = role.id;
+					name = role.name;
+				}
+			};
+			break;
 	}
 	if (name === undefined || id === undefined) throw new Error("Please specify a User or Role.");
 
