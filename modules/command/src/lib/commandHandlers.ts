@@ -14,7 +14,7 @@ export const minecraftHandler = async (string: string) => {
 	// Get username and message out of "[01:06:15] [Server thread/INFO]: <greysilly7> asd"
 	const [, username, message] = string.match(/\[(.*?)\] \[Server thread\/INFO\]: \<(.*?)\> (.*)/) || [];
 	if (username === null || message === null) return;
-	const canRunCommand = await authThread.minecraftUserAllowedCommand(message, username);
+	const canRunCommand = await authThread.minecraftUserAllowedCommand(message, username).catch((err: Error) => lErr(err, { minecraft: string }));;
 	if (!canRunCommand) return;
 	commandHandler(message, {console: true, minecraft: true});
 };
