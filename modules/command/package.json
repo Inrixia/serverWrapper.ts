@@ -11,6 +11,6 @@
 		}
 	},
 	"dependencies": {
-		"mathjs": "^9.4.4"
+		"mathjs": "^9.5.2"
 	}
 }

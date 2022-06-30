@@ -9,6 +9,7 @@ import props from "properties";
 import mcServerUtils from "minecraft-server-util";
 import { promisify } from "util";
 import { serverStdout } from "./lib/chat/chat";
+import { Players } from "./lib/Players";
 
 const properties = promisify(props.parse);
 
@@ -79,3 +80,4 @@ export const getStatus = async () => {
 	const port = (await getProperties())?.["server-port"] as number;
 	return mcServerUtils.status("localhost", { port, enableSRV: false });
 };
+export const usernameToUUID = async (username: string) => await Players.getUUID(username);
