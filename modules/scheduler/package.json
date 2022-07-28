@@ -1,0 +1,13 @@
+{
+	"name": "@spookelton/scheduler",
+	"exports": {
+		".": "./dist/index.js"
+	},
+	"typesVersions": {
+		"*": {
+			"*": [
+				"dist/*"
+			]
+		}
+	}
+}
