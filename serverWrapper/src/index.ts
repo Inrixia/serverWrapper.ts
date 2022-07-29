@@ -135,6 +135,7 @@ const startServer = async () => {
 	// Server shutdown handling
 	server.on("exit", async (code) => {
 		serverStarted = false;
+		server = undefined;
 		console.log(chalk`Server {redBright closed} with exit code: {cyanBright ${code}}`);
 		if (wrapperSettings.restartOnExit === true) {
 			console.log(chalk`{redBright Restarting modules...}`);

@@ -49,7 +49,8 @@ thread.require<CoreExports>("@spookelton/serverWrapper").then(async (wrapperThre
 	const { serverName, lastStartTime } = await wrapperThread.settings();
 
 	setInterval(async () => {
-		const usage = await pidusage(stats.pid);
+		const usage = await pidusage(stats.pid).catch(() => undefined);
+		if (usage === undefined) return;
 		stats.uptime = Date.now() - startTime;
 		if (!serverStarted) stats.timeToStart = lastStartTime - stats.uptime;
 
