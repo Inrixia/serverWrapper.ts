@@ -57,7 +57,6 @@ export const moduleSettings = db<ModuleSettings>("./_db/schedules.json", {
 				],
 				trigger: "timeElapsed",
 				seconds: 240 * 60,
-				repeat: true,
 				preemptSchedules: [
 					{
 						enabled: true,

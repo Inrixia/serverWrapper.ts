@@ -134,14 +134,16 @@ const startServer = async () => {
 
 	// Server shutdown handling
 	server.on("exit", async (code) => {
+		serverStarted = false;
 		console.log(chalk`Server {redBright closed} with exit code: {cyanBright ${code}}`);
 		if (wrapperSettings.restartOnExit === true) {
+			console.log(chalk`{redBright Restarting modules...}`);
+			for (const module of Object.values(WrapperModule.loadedModules)) await module.restart();
 			console.log(chalk`Restarting server...`);
-			startServer();
+			WrapperModule.loadModules(wrapperSettings.modules).then(startServer);
 		} else {
 			console.log(chalk`{redBright Killing modules...}`);
 			for (const module of Object.values(WrapperModule.loadedModules)) await module.kill(true);
-
 			console.log(chalk`Wrapper shutdown {greenBright finished}... Exiting`);
 			if (wrapperSettings.restartOnExit === -1) wrapperSettings.restartOnExit = true;
 			process.exit();
