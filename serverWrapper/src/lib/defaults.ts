@@ -52,5 +52,8 @@ export const defaultWrapperSettings: WrapperSettings = {
 		"@spookelton/mineapi": {
 			enabled: true,
 		},
+		"@spookelton/scheduler": {
+			enabled: true,
+		},
 	},
 };
