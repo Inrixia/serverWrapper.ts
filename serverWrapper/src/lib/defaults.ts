@@ -2,6 +2,7 @@ import type { WrapperSettings } from "@spookelton/wrapperHelpers/types";
 
 export const defaultWrapperSettings: WrapperSettings = {
 	serverName: "",
+	restartOnExit: true,
 	lastStartTime: 0,
 	commandWorkingDirectory: "./",
 	command: [

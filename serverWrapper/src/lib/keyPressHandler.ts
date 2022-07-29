@@ -2,96 +2,99 @@ import readline from "readline";
 
 import { commandCompletions } from "./commandCompletions";
 import { exitHandler } from "..";
+import { brotliDecompress } from "zlib";
 
-export const consoleHandler = (onLine: (char: string) => void) => {
-	// Setup console handling
-	readline
-		.createInterface({
-			input: process.stdin,
-			output: process.stdout,
-			terminal: true,
-			historySize: 10000,
-			prompt: "",
-		})
-		.on("SIGINT", () => null);
-	process.stdin.setRawMode(true);
+// Setup console handling
+readline
+	.createInterface({
+		input: process.stdin,
+		output: process.stdout,
+		terminal: true,
+		historySize: 10000,
+		prompt: "",
+	})
+	.on("SIGINT", () => null);
+process.stdin.setRawMode(true);
 
-	let consoleInput: string[] = [];
-	const consoleHistory: string[][] = [];
-	let consoleHistoryIndex = 0;
-	let consoleIndex = 0;
+let consoleInput: string[] = [];
+const consoleHistory: string[][] = [];
+let consoleHistoryIndex = 0;
+let consoleIndex = 0;
 
-	process.stdin.on("keypress", (char, key) => {
-		if (key.ctrl && ["c", "u"].includes(key.name)) {
-			if (consoleInput.length !== 0) {
-				consoleInput = [];
-				consoleIndex = 0;
-				process.stdout.clearLine(0);
-				process.stdout.cursorTo(consoleIndex);
-			} else if (key.name === "c") exitHandler().then(process.exit);
-			return;
-		}
-		switch (key.name) {
-			case "return":
-				onLine(consoleInput.join(""));
-				consoleHistory.push(consoleInput);
-				consoleHistoryIndex = consoleHistory.length;
-				consoleInput = [];
-				consoleIndex = 0;
-				break;
-			case "backspace":
-				consoleInput.splice(consoleIndex - 1, 1);
-				consoleIndex--;
-				break;
-			case "delete":
-				consoleInput.splice(consoleIndex, 1);
-				break;
-			case "left":
-				if (consoleIndex !== 0) consoleIndex--;
-				break;
-			case "right":
-				if (consoleIndex < consoleInput.length) consoleIndex++;
-				break;
-			case "up":
-				if (consoleHistoryIndex !== 0) consoleHistoryIndex--;
-				if (consoleHistory[consoleHistoryIndex] !== undefined) {
-					consoleInput = consoleHistory[consoleHistoryIndex];
-					consoleIndex = consoleHistory[consoleHistoryIndex].length;
-				}
-				break;
-			case "down":
-				if (consoleHistoryIndex !== consoleHistory.length - 1) consoleHistoryIndex++;
-				if (consoleHistory[consoleHistoryIndex] !== undefined) {
-					consoleInput = consoleHistory[consoleHistoryIndex];
-					consoleIndex = consoleHistory[consoleHistoryIndex].length;
-				}
-				break;
-			case "end":
-				consoleIndex = consoleInput.length;
-				break;
-			case "home":
-				consoleIndex = 0;
-				break;
-			case "tab": {
-				const hits = commandCompletions.filter((command) => command.toLowerCase().startsWith(consoleInput.join("").toLowerCase()));
-				if (hits.length === 1) {
-					consoleInput = hits[0].split("");
-					consoleIndex = consoleInput.length;
-				} else {
-					process.stdout.cursorTo(0);
-					process.stdout.clearLine(0);
-					console.log(hits.join(", "));
-				}
-				break;
+let _onLine: (char: string) => void = (c) => {};
+
+process.stdin.on("keypress", (char, key) => {
+	if (key.ctrl && ["c", "u"].includes(key.name)) {
+		if (consoleInput.length !== 0) {
+			consoleInput = [];
+			consoleIndex = 0;
+			process.stdout.clearLine(0);
+			process.stdout.cursorTo(consoleIndex);
+		} else if (key.name === "c") exitHandler().then(process.exit);
+		return;
+	}
+	switch (key.name) {
+		case "return":
+			_onLine(consoleInput.join(""));
+			consoleHistory.push(consoleInput);
+			consoleHistoryIndex = consoleHistory.length;
+			consoleInput = [];
+			consoleIndex = 0;
+			break;
+		case "backspace":
+			consoleInput.splice(consoleIndex - 1, 1);
+			consoleIndex--;
+			break;
+		case "delete":
+			consoleInput.splice(consoleIndex, 1);
+			break;
+		case "left":
+			if (consoleIndex !== 0) consoleIndex--;
+			break;
+		case "right":
+			if (consoleIndex < consoleInput.length) consoleIndex++;
+			break;
+		case "up":
+			if (consoleHistoryIndex !== 0) consoleHistoryIndex--;
+			if (consoleHistory[consoleHistoryIndex] !== undefined) {
+				consoleInput = consoleHistory[consoleHistoryIndex];
+				consoleIndex = consoleHistory[consoleHistoryIndex].length;
 			}
-			default:
-				consoleInput.splice(consoleIndex, 0, char);
-				consoleIndex++;
-				break;
+			break;
+		case "down":
+			if (consoleHistoryIndex !== consoleHistory.length - 1) consoleHistoryIndex++;
+			if (consoleHistory[consoleHistoryIndex] !== undefined) {
+				consoleInput = consoleHistory[consoleHistoryIndex];
+				consoleIndex = consoleHistory[consoleHistoryIndex].length;
+			}
+			break;
+		case "end":
+			consoleIndex = consoleInput.length;
+			break;
+		case "home":
+			consoleIndex = 0;
+			break;
+		case "tab": {
+			const hits = commandCompletions.filter((command) => command.toLowerCase().startsWith(consoleInput.join("").toLowerCase()));
+			if (hits.length === 1) {
+				consoleInput = hits[0].split("");
+				consoleIndex = consoleInput.length;
+			} else {
+				process.stdout.cursorTo(0);
+				process.stdout.clearLine(0);
+				console.log(hits.join(", "));
+			}
+			break;
 		}
-		process.stdout.cursorTo(0);
-		process.stdout.clearLine(0);
-		process.stdout.write(consoleInput.join(""));
-		process.stdout.cursorTo(consoleIndex);
-	});
-};
+		default:
+			consoleInput.splice(consoleIndex, 0, char);
+			consoleIndex++;
+			break;
+	}
+	process.stdout.cursorTo(0);
+	process.stdout.clearLine(0);
+	process.stdout.write(consoleInput.join(""));
+	process.stdout.cursorTo(consoleIndex);
+});
+
+export const consoleHandler = (onLine: (char: string) => void) => (_onLine = onLine);

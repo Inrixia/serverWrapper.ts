@@ -49,6 +49,7 @@ export type ModuleInfo = {
 
 export type WrapperSettings = {
 	serverName: string;
+	restartOnExit: boolean | -1;
 	lastStartTime: number;
 	commandWorkingDirectory?: string;
 	command: string[];

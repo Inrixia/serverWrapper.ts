@@ -93,14 +93,8 @@ process.on("uncaughtException", async (...args) => {
 	process.exit();
 });
 
-/*
-/ START
-*/
-(async () => {
-	await WrapperModule.loadModules(wrapperSettings.modules);
-
+const startServer = async () => {
 	const serverStartTime = Date.now();
-
 	console.log(
 		chalk`{cyanBright Starting server...} ${wrapperSettings.lastStartTime ? chalk`Last start took: {cyanBright ${wrapperSettings.lastStartTime}}ms` : ""}\n`
 	);
@@ -140,11 +134,18 @@ process.on("uncaughtException", async (...args) => {
 
 	// Server shutdown handling
 	server.on("exit", async (code) => {
-		console.log(chalk`Server {redBright closed} with exit code: {cyanBright ${code}}\n{redBright Killing modules...}`);
-		for (const module of Object.values(WrapperModule.loadedModules)) await module.kill(true);
+		console.log(chalk`Server {redBright closed} with exit code: {cyanBright ${code}}`);
+		if (wrapperSettings.restartOnExit === true) {
+			console.log(chalk`Restarting server...`);
+			startServer();
+		} else {
+			console.log(chalk`{redBright Killing modules...}`);
+			for (const module of Object.values(WrapperModule.loadedModules)) await module.kill(true);
 
-		console.log(chalk`Wrapper shutdown {greenBright finished}... Exiting`);
-		process.exit();
+			console.log(chalk`Wrapper shutdown {greenBright finished}... Exiting`);
+			if (wrapperSettings.restartOnExit === -1) wrapperSettings.restartOnExit = true;
+			process.exit();
+		}
 	});
 
 	/*
@@ -155,4 +156,9 @@ process.on("uncaughtException", async (...args) => {
 		for (const module of Object.values(WrapperModule.runningModules())) module.thread!.emit("consoleStdin", string);
 		if (string[0] !== "~" && string[0] !== "?" && server !== undefined) server.stdin.write(string + "\n");
 	});
-})();
+};
+
+/*
+/ START
+*/
+WrapperModule.loadModules(wrapperSettings.modules).then(startServer);
