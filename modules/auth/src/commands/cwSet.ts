@@ -30,8 +30,8 @@ cwSet.help = helpHelper({
 	commandString: "~cwSet",
 	summary: "Whitelists given command for a Role or User.",
 	exampleArgs: [
-		["~listmodules", ["@DiscordUser", "redBright"], ["1 hour", "cyan"]],
-		["!forge tps", ["@DiscordRole", "redBright"]],
-		["!*", ["Minecraft_user1873425", "redBright"], "5.2 minutes"],
+		[["@DiscordUser", "redBright"], "~listmodules", ["1 hour", "cyan"]],
+		[["@DiscordRole", "redBright"], "!forge tps"],
+		[["Minecraft_user1873425", "redBright"], "!*", "5.2 minutes"],
 	],
 });
