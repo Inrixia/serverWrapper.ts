@@ -52,7 +52,7 @@ export const helpHelper = ({ summary, commandString, exampleArgs }: HelpHelperOp
 					title: commandString.slice(1),
 					description: summary,
 					color: parseInt(hex.redBright, 16),
-					timestamp: Date.now(),
+					timestamp: new Date().toISOString(),
 					fields: hasExamples
 						? [
 								{

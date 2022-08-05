@@ -26,7 +26,7 @@ export const list: Command = async (message) => {
 		discord: {embeds: [{
 			title: titleMessage,
 			description: onlineMessage,
-			timestamp: Date.now(),
+			timestamp: new Date().toISOString(),
 			color: parseInt(hex.green, 16),
 		}]}
 	};

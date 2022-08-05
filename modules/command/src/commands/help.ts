@@ -8,6 +8,7 @@ import type { Command, MinecraftOutputArray, ModuleInfo, DiscordMessageOptions }
 // Import commands
 import { commands } from "../";
 import { helpHelper } from "@spookelton/wrapperHelpers/modul";
+import { APIEmbed } from "discord.js";
 
 export const help: Command = async (message) => {
 	const givenCommandName = message.args[0];
@@ -21,7 +22,7 @@ export const help: Command = async (message) => {
 					title: "serverWrapper Command Info",
 					description: "Currently enabled commands.",
 					color: parseInt(hex.orange, 16),
-					timestamp: Date.now(),
+					timestamp: new Date().toISOString(),
 					fields: [],
 				},
 			],
@@ -63,7 +64,7 @@ export const help: Command = async (message) => {
 				},
 			]
 		);
-		helpSummary.discord.embeds![0].fields!.push({
+		(helpSummary.discord.embeds as APIEmbed[])![0].fields!.push({
 			name: `${module} • ${moduleSummary[module].moduleInfo.description}`,
 			value: moduleSummary[module].discord,
 			inline: false,

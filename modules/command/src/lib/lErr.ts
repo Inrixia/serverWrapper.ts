@@ -29,7 +29,7 @@ export const lErr = async (err: Error, logTo?: LogTo, message?: string) => {
 						color: parseInt("800000", 16),
 						title: message ? `${message}\n${err.message}` : err.message,
 						description: err.stack,
-						timestamp: Date.now(),
+						timestamp: new Date().toISOString(),
 					},
 				],
 			},

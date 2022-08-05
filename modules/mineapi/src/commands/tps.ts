@@ -18,7 +18,7 @@ export const tps: Command = async (message) => {
 				title: "Overall Server TPS:",
 				description: `**TPS**: \`${result.overall.tps}\`\n**Tick Time**: \`${result.overall.tickTime}\` ms`,
 				color: parseInt(tpsToColor(result.overall.tps), 16),
-				timestamp: Date.now(),
+				timestamp: new Date().toISOString(),
 			}]
 		}
 	};
