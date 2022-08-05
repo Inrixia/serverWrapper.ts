@@ -18,8 +18,8 @@ cwRemove.help = helpHelper({
 	commandString: "~cwRemove",
 	summary: "Removes given whitelisted commands from a role or user.",
 	exampleArgs: [
-		["~killModule", ["@DiscordUser", "redBright"]],
-		["!tps", ["@DiscordRole", "redBright"]],
-		["~*", ["Minecraft_user1873425", "redBright"]],
+		[["@DiscordUser", "redBright"], "~killModule"],
+		[["@DiscordRole", "redBright"], "!tps"],
+		[["Minecraft_user1873425", "redBright"], "~*"],
 	],
 });
