@@ -13,7 +13,7 @@ export const strOut = (string: ColorfulString[] | string, discordColor?: ColorKe
 					{
 						color: discordColor ? parseInt(hex[discordColor], 16) : undefined,
 						title: string,
-						timestamp: Date.now(),
+						timestamp: new Date().toISOString(),
 					},
 				],
 			},
@@ -27,7 +27,7 @@ export const strOut = (string: ColorfulString[] | string, discordColor?: ColorKe
 				{
 					color: discordColor ? parseInt(hex[discordColor], 16) : undefined,
 					title: string.map((val) => (typeof val === "string" ? val : val[0])).join(" "),
-					timestamp: Date.now(),
+					timestamp: new Date().toISOString(),
 				},
 			],
 		},

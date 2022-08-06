@@ -1,4 +1,4 @@
-import type { MessageEmbedOptions, MessageOptions } from "discord.js";
+import type { APIEmbed, JSONEncodable, MessageOptions } from "discord.js";
 import type { ValueOf } from "@inrixia/helpers/ts";
 import type { ThreadModule } from "@inrixia/threads";
 
@@ -32,7 +32,7 @@ export type Output = {
 	discord?: string | MessageOptions;
 };
 export type DiscordMessageOptions = MessageOptions;
-export type DiscordEmbed = MessageEmbedOptions;
+export type DiscordEmbed = APIEmbed | JSONEncodable<APIEmbed>;
 
 export type Command = {
 	(message: Message): Promise<Output | Output[]>;

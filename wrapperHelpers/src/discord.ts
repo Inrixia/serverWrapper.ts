@@ -1,13 +1,12 @@
-import type { Message } from "discord.js";
+import { ChannelType, Message } from "discord.js";
 export const buildMessage = (message: Message, inManagementChannel: boolean) => ({
 	inManagementChannel,
 	channelId: message.channelId,
 	guildId: message.guildId,
-	deleted: message.deleted,
 	id: message.id,
 	cleanContent: message.cleanContent,
 	content: message.content,
-	isNSFW: message.channel.isText() && message.channel.type === "GUILD_TEXT" ? message.channel.nsfw : false,
+	isNSFW: message.channel.isTextBased() && message.channel.type === ChannelType.GuildText ? message.channel.nsfw : false,
 	author: {
 		id: message.author.id,
 		bot: message.author.bot,
@@ -18,7 +17,7 @@ export const buildMessage = (message: Message, inManagementChannel: boolean) => 
 	createdTimestamp: message.createdTimestamp,
 	editedTimestamp: message.editedTimestamp,
 	mentions: {
-		bot: message.mentions.has(message.client.user!.id) || message.mentions.roles.some((role) => message.guild?.me?.roles?.cache.has(role.id) || false),
+		bot: message.mentions.has(message.client.user!.id) || message.mentions.roles.some((role) => message.guild?.members.me?.roles?.cache.has(role.id) || false),
 		everyone: message.mentions.everyone,
 		users: message.mentions.users.map((user) => ({
 			avatar: user.avatar,

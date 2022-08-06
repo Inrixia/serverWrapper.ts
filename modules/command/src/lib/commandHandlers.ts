@@ -7,6 +7,7 @@ import { commands, logg, lErr, getThread } from "..";
 import type { LogTo } from "@spookelton/wrapperHelpers/types";
 import type { DiscordMessage } from "@spookelton/wrapperHelpers/types";
 import type { DiscordModule, AuthModule } from "..";
+import { APIEmbed } from "discord.js";
 
 export const minecraftHandler = async (string: string) => {
 	const authThread = await getThread<AuthModule>("@spookelton/auth");
@@ -77,7 +78,7 @@ export const commandHandler = async (string: string, logTo?: LogTo): Promise<voi
 						{
 							color: parseInt(hex["red"], 16),
 							title: `The command "${string}" could not be matched to a known command...`,
-							timestamp: Date.now(),
+							timestamp: new Date().toISOString(),
 						},
 					],
 				},
@@ -97,10 +98,12 @@ export const commandHandler = async (string: string, logTo?: LogTo): Promise<voi
 	for (const output of commandOutput) {
 		if (output.discord !== undefined && typeof output.discord !== "string") {
 			const exeTime = `Executed in ${Date.now() - exeStart}ms`;
-			for (const embed of output.discord?.embeds || []) {
+			for (const embed of (output.discord?.embeds || []) as APIEmbed[]) {
 				if (embed.footer?.text !== undefined) embed.footer.text = `${embed.footer.text} • ${exeTime}`;
 				else {
-					embed.footer ??= {};
+					embed.footer ??= {
+						text: ''
+					};
 					embed.footer.text ??= exeTime;
 				}
 			}

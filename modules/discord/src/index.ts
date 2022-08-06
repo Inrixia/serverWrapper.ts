@@ -1,6 +1,6 @@
 import fs from "fs";
 import chalk from "chalk";
-import { Client, FileOptions, Intents, Webhook, WebhookMessageOptions } from "discord.js";
+import { AttachmentPayload, Client, GatewayIntentBits } from "discord.js";
 
 import db from "@inrixia/db";
 import { chunkArray } from "@inrixia/helpers/object";
@@ -35,12 +35,12 @@ export const moduleSettings = db<ModuleSettings>("./_db/discord.json", {
 	},
 });
 
-const discord = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] });
+const discord = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages] });
 
 const flatMessages: Record<string, number> = {};
 const getManagementChannels = async () => {
 	const channels = await Promise.all(moduleSettings.managementChannels.map((channelId) => discord.channels.fetch(channelId)));
-	return <TextBasedChannel[]>channels.filter((channel) => channel !== null && channel.isText());
+	return <TextBasedChannel[]>channels.filter((channel) => channel !== null && channel.isTextBased());
 };
 
 // Thread stuff
@@ -111,12 +111,12 @@ export const sendToChannel = async (channelId: string, message: string | Message
 	const channel = await discord.channels.fetch(channelId);
 
 	if (typeof message !== "string" && message.files !== undefined) {
-		message.files = (message.files as FileOptions[]).map((file) => {
+		message.files = (message.files as AttachmentPayload[]).map((file) => {
 			if (typeof file.attachment !== "string") return { ...file, attachment: Buffer.from(file.attachment as any) };
 			return file;
 		});
 	}
-	if (channel?.isText()) return channel.send(message);
+	if (channel?.isTextBased()) return channel.send(message);
 	throw new Error("Channel is not a text channel");
 };
 
@@ -124,7 +124,7 @@ export const addTempManagementChannel = async (tempChannelId: string, timeout = 
 	if (moduleSettings.managementChannels.includes(tempChannelId)) return;
 	const channel = await discord.channels.fetch(tempChannelId);
 	if (channel === null) throw new Error(`Management channel ${tempChannelId} is null!`);
-	if (!channel.isText()) throw new Error(`Management channel ${tempChannelId} is not a text channel!`);
+	if (!channel.isTextBased()) throw new Error(`Management channel ${tempChannelId} is not a text channel!`);
 	moduleSettings.managementChannels.push(tempChannelId);
 	setTimeout(() => (moduleSettings.managementChannels = moduleSettings.managementChannels.filter((channelId) => channelId !== tempChannelId)), timeout);
 };

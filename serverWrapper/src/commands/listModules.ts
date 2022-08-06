@@ -70,7 +70,7 @@ export const listModules: Command = async () => {
 			color: parseInt(hex[moduleColor], 16),
 			title: moduleName,
 			description: module.description,
-			timestamp: Date.now(),
+			timestamp: new Date().toISOString(),
 			footer: {
 				text: `${module.running ? "Running" : "Stopped"} • ${module.enabled ? "Enabled" : "Disabled"}`,
 			},
