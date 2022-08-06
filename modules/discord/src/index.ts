@@ -71,40 +71,37 @@ const chikachiPath = "./config/Chikachi/discordintegration.json";
 		thread.emit("discordMessage", buildMessage(message, moduleSettings.managementChannels.includes(message.channelId)));
 	});
 
-	// Handle Management Channels
-	if (moduleSettings.managementChannels.length !== 0) {
-		// Wait for server to start before redirecting console
-		thread.once("serverStarted", ({ startTime }: { startTime: number }) => (flatMessages[`Server started in ${startTime}ms\n`] = 1));
-		// Log "Server Starting..." on startup
-		thread.once("serverStdoutPreStart", () => (flatMessages["Server Starting...\n"] = 1));
+	// Wait for server to start before redirecting console
+	thread.once("serverStarted", ({ startTime }: { startTime: number }) => (flatMessages[`Server started in ${startTime}ms\n`] = 1));
+	// Log "Server Starting..." on startup
+	thread.once("serverStdoutPreStart", () => (flatMessages["Server Starting...\n"] = 1));
 
-		// Once server has started redirect console to management channels
-		thread.on("serverStdout", (string: string) => {
-			if (string.includes("DiscordIntegration")) return;
-			flatMessages[string] ??= 0;
-			flatMessages[string]++;
-		});
-		setInterval(async () => {
-			let discordData = "";
-			for (const string in flatMessages) {
-				if (flatMessages[string] !== 1) discordData += `**${flatMessages[string]}x** ${string}`;
-				else discordData += string;
-				delete flatMessages[string];
-			}
-			if (discordData !== "") {
-				for (const channel of await getManagementChannels()) {
-					for (const chunk of chunkArray(discordData, 2000)) {
-						channel.send(chunk).catch(console.error);
-					}
+	// Once server has started redirect console to management channels
+	thread.on("serverStdout", (string: string) => {
+		if (string.includes("DiscordIntegration")) return;
+		flatMessages[string] ??= 0;
+		flatMessages[string]++;
+	});
+	setInterval(async () => {
+		let discordData = "";
+		for (const string in flatMessages) {
+			if (flatMessages[string] !== 1) discordData += `**${flatMessages[string]}x** ${string}`;
+			else discordData += string;
+			delete flatMessages[string];
+		}
+		if (discordData !== "") {
+			for (const channel of await getManagementChannels()) {
+				for (const chunk of chunkArray(discordData, 2000)) {
+					channel.send(chunk).catch(console.error);
 				}
-				discordData = "";
 			}
-		}, moduleSettings.messageFlushRate);
+			discordData = "";
+		}
+	}, moduleSettings.messageFlushRate);
 
-		thread.on("consoleStdin", async (string: string) => {
-			for (const channel of await getManagementChannels()) channel.send(`[Console]: ${string}\n`).catch(console.error);
-		});
-	}
+	thread.on("consoleStdout", async (string: string) => {
+		for (const channel of await getManagementChannels()) channel.send(`[Console]: ${string}\n`).catch(console.error);
+	});
 })();
 
 export const sendToChannel = async (channelId: string, message: string | MessageOptions): Promise<Message> => {
