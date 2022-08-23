@@ -1,6 +1,7 @@
 export * from "./disableModule";
 export * from "./enableModule";
 export * from "./exit";
+export * from "./kill";
 export * from "./killModule";
 export * from "./listModules";
 export * from "./loadModules";
