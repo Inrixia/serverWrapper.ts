@@ -11,6 +11,9 @@ import { promisify } from "util";
 import { serverStdout } from "./lib/chat/chat";
 import { Players } from "./lib/Players";
 
+import type * as DiscordModule from "@spookelton/discord";
+
+
 const properties = promisify(props.parse);
 
 // Threading
@@ -19,10 +22,6 @@ export const { getCore, getThread } = prepGetThread(thread);
 
 type ModuleSettings = {
 	ip: string;
-	chat: {
-		enabled: boolean;
-		channels: string[];
-	};
 	info: {
 		enabled: boolean;
 		infoChannels: string[];
@@ -35,10 +34,6 @@ export const moduleSettings = db<ModuleSettings>("./_db/mineapi.json", {
 	pretty: true,
 	template: {
 		ip: "",
-		chat: {
-			enabled: false,
-			channels: [],
-		},
 		info: {
 			enabled: false,
 			infoChannels: [],
@@ -47,7 +42,11 @@ export const moduleSettings = db<ModuleSettings>("./_db/mineapi.json", {
 });
 
 // Only listen to serverStdout if chat is enabled
-moduleSettings.chat.enabled && thread.on("serverStdout", serverStdout);
+(async () => {
+	const discord = await getThread<typeof DiscordModule>("@spookelton/discord");
+	discord?.isChatModuleEnabed && thread.on("serverStdout", serverStdout);
+})();
+
 
 // Export moduleInfo
 export const moduleInfo = buildModuleInfo({

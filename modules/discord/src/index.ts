@@ -1,6 +1,6 @@
 import fs from "fs";
 import chalk from "chalk";
-import { AttachmentPayload, Client, GatewayIntentBits } from "discord.js";
+import { APIEmbed, AttachmentPayload, Client, Embed, GatewayIntentBits, MessagePayload, WebhookCreateMessageOptions } from "discord.js";
 
 import db from "@inrixia/db";
 import { chunkArray } from "@inrixia/helpers/object";
@@ -9,7 +9,7 @@ import { buildModuleInfo } from "@spookelton/wrapperHelpers/modul";
 import { buildMessage } from "@spookelton/wrapperHelpers/discord";
 
 // Import Types
-import type { WrapperModule } from "@spookelton/wrapperHelpers/types";
+import type { DiscordEmbed, WrapperModule } from "@spookelton/wrapperHelpers/types";
 import type { TextBasedChannel, BaseMessageOptions, Message } from "discord.js";
 
 // Export moduleInfo
@@ -22,6 +22,12 @@ type ModuleSettings = {
 	messageFlushRate: number;
 	discordToken: string;
 	managementChannels: string[];
+	chat: {
+		enabled: boolean;
+		channels: string[];
+		webhookId: string;
+		webhookToken: string;
+	};
 };
 
 export const moduleSettings = db<ModuleSettings>("./_db/discord.json", {
@@ -32,7 +38,14 @@ export const moduleSettings = db<ModuleSettings>("./_db/discord.json", {
 		messageFlushRate: 100,
 		discordToken: "",
 		managementChannels: [],
+		chat: {
+			enabled: false,
+			channels: [],
+			webhookId: "",
+			webhookToken: "",
+		},
 	},
+
 });
 
 const discord = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages] });
@@ -104,6 +117,24 @@ const chikachiPath = "./config/Chikachi/discordintegration.json";
 	});
 })();
 
+export const sendChatMessage = async (username?: string, message?: string, embed?: DiscordEmbed) => {
+	const webhook = await discord.fetchWebhook(moduleSettings.chat.webhookId, moduleSettings.chat.webhookToken);
+	if (username !== undefined && message !== undefined) {
+		webhook.send({
+			username: `[${discord.user?.username}] ${username} `,
+			avatarURL: `https://crafthead.net/avatar/${username}.png`,
+			content: message.replace(`**<**${username}**>**`, ""),
+		});
+	}
+	if (embed !== undefined) {
+		return webhook.send({
+			username: discord.user?.username,
+			avatarURL: discord.user?.avatarURL() ?? undefined,
+			embeds: [embed],
+		});
+	}
+};
+
 export const sendToChannel = async (channelId: string, message: string | BaseMessageOptions): Promise<Message> => {
 	const channel = await discord.channels.fetch(channelId);
 
@@ -125,3 +156,5 @@ export const addTempManagementChannel = async (tempChannelId: string, timeout = 
 	moduleSettings.managementChannels.push(tempChannelId);
 	setTimeout(() => (moduleSettings.managementChannels = moduleSettings.managementChannels.filter((channelId) => channelId !== tempChannelId)), timeout);
 };
+
+export const isChatModuleEnabed = moduleSettings.chat.enabled;

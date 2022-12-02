@@ -44,10 +44,13 @@ const handleEvent = async (match: RegExpMatchArray, event: EventTranslation) => 
 	}
 	const discord = await getThread<typeof DiscordModule>("@spookelton/discord");
 	if (discord !== undefined) {
-		for (const channelId of moduleSettings.chat.channels) {
-			if (event.send.text) discord.sendToChannel(channelId, text).catch(console.error);
-			if (event.send.embed) discord.sendToChannel(channelId, { embeds: [embed] }).catch(console.error);
+		// Get username from inbetween <> in text and remove the <>
+		if (event.send.text) {
+			const username = text.match(/<(.+?)>/)?.[1].replaceAll("*", "");
+			discord.sendChatMessage(username, text);
 		}
+		if (event.send.embed) discord.sendChatMessage(undefined, undefined, embed ).catch(console.error);
+
 	}
 };
 export const serverStdout = (string: string) => {
