@@ -122,7 +122,7 @@ export const sendChatMessage = async (username?: string, message?: string, embed
 	if (username !== undefined && message !== undefined) {
 		webhook.send({
 			username: `[${discord.user?.username}] ${username} `,
-			avatarURL: `https://crafthead.net/avatar/${username}.png`,
+			avatarURL: `https://crafthead.net/cube/${username}.png`,
 			content: message.replace(`**<**${username}**>**`, ""),
 		});
 	}
