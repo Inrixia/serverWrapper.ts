@@ -1,4 +1,4 @@
-import db from "@inrixia/db";
+import db, { DBContent } from "@inrixia/db";
 
 // Import Types
 import type { ThreadModule } from "@inrixia/threads";
@@ -21,18 +21,18 @@ type ConsoleTask = {
 	string: string;
 };
 type Task = ConsoleTask;
-interface IntervalEvent extends BaseEvent {
+interface IntervalEvent extends BaseEvent, DBContent {
 	trigger: "timeElapsed";
 	seconds: number;
 	repeat?: boolean;
 	preemptSchedules?: PreemptScheduledEvent[];
 }
-interface StartedEvent extends BaseEvent {
+interface StartedEvent extends BaseEvent, DBContent {
 	trigger: "serverStarted";
 }
 
 type ScheduledEvent = IntervalEvent | StartedEvent;
-interface PreemptScheduledEvent extends BaseEvent {
+interface PreemptScheduledEvent extends BaseEvent, DBContent {
 	secondsBefore: number;
 	repeatInterval?: number;
 }

@@ -10,7 +10,7 @@ import { buildMessage } from "@spookelton/wrapperHelpers/discord";
 
 // Import Types
 import type { WrapperModule } from "@spookelton/wrapperHelpers/types";
-import type { TextBasedChannel, MessageOptions, Message } from "discord.js";
+import type { TextBasedChannel, BaseMessageOptions, Message } from "discord.js";
 
 // Export moduleInfo
 export const moduleInfo = buildModuleInfo({
@@ -104,7 +104,7 @@ const chikachiPath = "./config/Chikachi/discordintegration.json";
 	});
 })();
 
-export const sendToChannel = async (channelId: string, message: string | MessageOptions): Promise<Message> => {
+export const sendToChannel = async (channelId: string, message: string | BaseMessageOptions): Promise<Message> => {
 	const channel = await discord.channels.fetch(channelId);
 
 	if (typeof message !== "string" && message.files !== undefined) {
