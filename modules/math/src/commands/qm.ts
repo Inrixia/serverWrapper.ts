@@ -1,5 +1,5 @@
 // Import core packages
-const { evaluate } = require("mathjs");
+import { evaluate } from "mathjs";
 
 import { strOut, helpHelper } from "@spookelton/wrapperHelpers/modul";
 
