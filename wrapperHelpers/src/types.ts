@@ -1,4 +1,4 @@
-import type { APIEmbed, JSONEncodable, MessageOptions } from "discord.js";
+import type { APIEmbed, JSONEncodable, BaseMessageOptions } from "discord.js";
 import type { ValueOf } from "@inrixia/helpers/ts";
 import type { ThreadModule } from "@inrixia/threads";
 
@@ -29,9 +29,9 @@ export type MinecraftOutputArray = Array<{
 export type Output = {
 	console?: string;
 	minecraft?: string | MinecraftOutputArray;
-	discord?: string | MessageOptions;
+	discord?: string | BaseMessageOptions;
 };
-export type DiscordMessageOptions = MessageOptions;
+export type DiscordMessageOptions = BaseMessageOptions;
 export type DiscordEmbed = APIEmbed | JSONEncodable<APIEmbed>;
 
 export type Command = {

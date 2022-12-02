@@ -1,4 +1,4 @@
-import db from "@inrixia/db";
+import db, { DBContent } from "@inrixia/db";
 
 // Import Types
 import type { ThreadModule } from "@inrixia/threads";
@@ -11,7 +11,7 @@ export const moduleInfo = buildModuleInfo({
 	description: "Schedules things to happen",
 });
 
-type BaseEvent = {
+interface BaseEvent extends DBContent {
 	enabled: boolean;
 	tasks: Task[];
 };
