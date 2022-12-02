@@ -11,7 +11,7 @@ export const moduleInfo = buildModuleInfo({
 	description: "Schedules things to happen",
 });
 
-type BaseEvent = {
+interface BaseEvent extends DBContent {
 	enabled: boolean;
 	tasks: Task[];
 };
@@ -21,18 +21,18 @@ type ConsoleTask = {
 	string: string;
 };
 type Task = ConsoleTask;
-interface IntervalEvent extends BaseEvent, DBContent {
+interface IntervalEvent extends BaseEvent {
 	trigger: "timeElapsed";
 	seconds: number;
 	repeat?: boolean;
 	preemptSchedules?: PreemptScheduledEvent[];
 }
-interface StartedEvent extends BaseEvent, DBContent {
+interface StartedEvent extends BaseEvent {
 	trigger: "serverStarted";
 }
 
 type ScheduledEvent = IntervalEvent | StartedEvent;
-interface PreemptScheduledEvent extends BaseEvent, DBContent {
+interface PreemptScheduledEvent extends BaseEvent {
 	secondsBefore: number;
 	repeatInterval?: number;
 }
