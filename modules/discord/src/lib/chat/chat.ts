@@ -11,12 +11,10 @@
 // 		});
 
 import { events } from "./eventTranslations";
-import { Players } from "../Players";
-import { getThread, moduleSettings } from "../..";
 
 // Import types
 import type { EventTranslation } from "./eventTranslations";
-import type * as DiscordModule from "@spookelton/discord";
+import { sendChatMessage } from "../..";
 
 const fillEmbed = async (embed: EventTranslation["embed"], match: string, fill: string) => {
 	type Key = keyof typeof embed;
@@ -42,17 +40,15 @@ const handleEvent = async (match: RegExpMatchArray, event: EventTranslation) => 
 			await fillEmbed(embed, replacers[i], match[i + 1]);
 		}
 	}
-	const discord = await getThread<typeof DiscordModule>("@spookelton/discord");
-	if (discord !== undefined) {
-		// Get username from inbetween <> in text and remove the <>
-		if (event.send.text) {
-			const username = text.match(/<(.+?)>/)?.[1].replaceAll("*", "");
-			discord.sendChatMessage(username, text);
-		}
-		if (event.send.embed) discord.sendChatMessage(undefined, undefined, embed ).catch(console.error);
-
+	// Get username from inbetween <> in text and remove the <>
+	if (event.send.text) {
+		const username = text.match(/<(.+?)>/)?.[1].replaceAll("*", "");
+		sendChatMessage(username, text);
 	}
+	if (event.send.embed) sendChatMessage(undefined, undefined, embed).catch(console.error);
+
 };
+
 export const serverStdout = (string: string) => {
 	for (const event of events) {
 		const match = string.replace(/\n|\r/g, "").match(event.matchRegex);

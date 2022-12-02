@@ -11,6 +11,7 @@ import { buildMessage } from "@spookelton/wrapperHelpers/discord";
 // Import Types
 import type { DiscordEmbed, WrapperModule } from "@spookelton/wrapperHelpers/types";
 import type { TextBasedChannel, BaseMessageOptions, Message } from "discord.js";
+import { serverStdout } from "./lib/chat/chat";
 
 // Export moduleInfo
 export const moduleInfo = buildModuleInfo({
@@ -115,6 +116,8 @@ const chikachiPath = "./config/Chikachi/discordintegration.json";
 	thread.on("consoleStdout", async (string: string) => {
 		for (const channel of await getManagementChannels()) channel.send(`[Console]: ${string}\n`).catch(console.error);
 	});
+
+	moduleSettings.chat.enabled && thread.on("serverStdout", serverStdout);
 })();
 
 export const sendChatMessage = async (username?: string, message?: string, embed?: DiscordEmbed) => {
@@ -156,5 +159,3 @@ export const addTempManagementChannel = async (tempChannelId: string, timeout = 
 	moduleSettings.managementChannels.push(tempChannelId);
 	setTimeout(() => (moduleSettings.managementChannels = moduleSettings.managementChannels.filter((channelId) => channelId !== tempChannelId)), timeout);
 };
-
-export const isChatModuleEnabed = moduleSettings.chat.enabled;

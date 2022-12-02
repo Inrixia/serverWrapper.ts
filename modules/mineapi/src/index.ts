@@ -8,11 +8,7 @@ import db from "@inrixia/db";
 import props from "properties";
 import mcServerUtils from "minecraft-server-util";
 import { promisify } from "util";
-import { serverStdout } from "./lib/chat/chat";
 import { Players } from "./lib/Players";
-
-import type * as DiscordModule from "@spookelton/discord";
-
 
 const properties = promisify(props.parse);
 
@@ -40,13 +36,6 @@ export const moduleSettings = db<ModuleSettings>("./_db/mineapi.json", {
 		},
 	},
 });
-
-// Only listen to serverStdout if chat is enabled
-(async () => {
-	const discord = await getThread<typeof DiscordModule>("@spookelton/discord");
-	discord?.isChatModuleEnabed && thread.on("serverStdout", serverStdout);
-})();
-
 
 // Export moduleInfo
 export const moduleInfo = buildModuleInfo({
