@@ -8,8 +8,12 @@ import db from "@inrixia/db";
 import props from "properties";
 import mcServerUtils from "minecraft-server-util";
 import { promisify } from "util";
-import { serverStdout } from "./lib/chat/chat";
+
 import { Players } from "./lib/Players";
+import { onServerStdout } from "./lib/chat/chat";
+
+
+import type * as DiscordModule from "@spookelton/discord";
 
 const properties = promisify(props.parse);
 
@@ -19,10 +23,6 @@ export const { getCore, getThread } = prepGetThread(thread);
 
 type ModuleSettings = {
 	ip: string;
-	chat: {
-		enabled: boolean;
-		channels: string[];
-	};
 	info: {
 		enabled: boolean;
 		infoChannels: string[];
@@ -35,10 +35,6 @@ export const moduleSettings = db<ModuleSettings>("./_db/mineapi.json", {
 	pretty: true,
 	template: {
 		ip: "",
-		chat: {
-			enabled: false,
-			channels: [],
-		},
 		info: {
 			enabled: false,
 			infoChannels: [],
@@ -46,8 +42,12 @@ export const moduleSettings = db<ModuleSettings>("./_db/mineapi.json", {
 	},
 });
 
-// Only listen to serverStdout if chat is enabled
-moduleSettings.chat.enabled && thread.on("serverStdout", serverStdout);
+// Init
+(async () => {
+	const discord = await getThread<typeof DiscordModule>("@spookelton/discord");
+	if (discord === undefined) throw new Error("Discord module is not running!");
+	thread.on("serverStdout", onServerStdout(discord));
+})()
 
 // Export moduleInfo
 export const moduleInfo = buildModuleInfo({
