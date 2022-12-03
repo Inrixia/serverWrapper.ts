@@ -1,6 +1,6 @@
 import fs from "fs";
 import chalk from "chalk";
-import { APIEmbed, AttachmentPayload, Client, Embed, GatewayIntentBits, MessagePayload, WebhookCreateMessageOptions } from "discord.js";
+import { AttachmentPayload, Client, GatewayIntentBits } from "discord.js";
 
 import db from "@inrixia/db";
 import { chunkArray } from "@inrixia/helpers/object";
@@ -11,7 +11,6 @@ import { buildMessage } from "@spookelton/wrapperHelpers/discord";
 // Import Types
 import type { DiscordEmbed, WrapperModule } from "@spookelton/wrapperHelpers/types";
 import type { TextBasedChannel, BaseMessageOptions, Message } from "discord.js";
-import { serverStdout } from "./lib/chat/chat";
 
 // Export moduleInfo
 export const moduleInfo = buildModuleInfo({
@@ -24,8 +23,6 @@ type ModuleSettings = {
 	discordToken: string;
 	managementChannels: string[];
 	chat: {
-		enabled: boolean;
-		channels: string[];
 		webhookId: string;
 		webhookToken: string;
 	};
@@ -36,12 +33,10 @@ export const moduleSettings = db<ModuleSettings>("./_db/discord.json", {
 	updateOnExternalChanges: true,
 	pretty: true,
 	template: {
-		messageFlushRate: 100,
+		messageFlushRate: 1000,
 		discordToken: "",
 		managementChannels: [],
 		chat: {
-			enabled: false,
-			channels: [],
 			webhookId: "",
 			webhookToken: "",
 		},
@@ -92,7 +87,6 @@ const chikachiPath = "./config/Chikachi/discordintegration.json";
 
 	// Once server has started redirect console to management channels
 	thread.on("serverStdout", (string: string) => {
-		if (string.includes("DiscordIntegration")) return;
 		flatMessages[string] ??= 0;
 		flatMessages[string]++;
 	});
@@ -116,26 +110,24 @@ const chikachiPath = "./config/Chikachi/discordintegration.json";
 	thread.on("consoleStdout", async (string: string) => {
 		for (const channel of await getManagementChannels()) channel.send(`[Console]: ${string}\n`).catch(console.error);
 	});
-
-	moduleSettings.chat.enabled && thread.on("serverStdout", serverStdout);
 })();
 
-export const sendChatMessage = async (username?: string, message?: string, embed?: DiscordEmbed) => {
+export const sendWebhookMessage = async (username: string, message: string) => {
 	const webhook = await discord.fetchWebhook(moduleSettings.chat.webhookId, moduleSettings.chat.webhookToken);
-	if (username !== undefined && message !== undefined) {
-		webhook.send({
-			username: `[${discord.user?.username}] ${username} `,
-			avatarURL: `https://crafthead.net/cube/${username}.png`,
-			content: message.replace(`**<**${username}**>**`, ""),
-		});
-	}
-	if (embed !== undefined) {
-		return webhook.send({
-			username: discord.user?.username,
-			avatarURL: discord.user?.avatarURL() ?? undefined,
-			embeds: [embed],
-		});
-	}
+	webhook.send({
+		username: `[${discord.user?.username}] ${username} `,
+		avatarURL: `https://crafthead.net/cube/${username}.png`,
+		content: message.replace(`**<**${username}**>**`, ""),
+	});
+};
+
+export const sendWebhookEmbed = async (embed: DiscordEmbed) => {
+	const webhook = await discord.fetchWebhook(moduleSettings.chat.webhookId, moduleSettings.chat.webhookToken);
+	return webhook.send({
+		username: discord.user?.username,
+		avatarURL: discord.user?.avatarURL() ?? undefined,
+		embeds: [embed],
+	});
 };
 
 export const sendToChannel = async (channelId: string, message: string | BaseMessageOptions): Promise<Message> => {
