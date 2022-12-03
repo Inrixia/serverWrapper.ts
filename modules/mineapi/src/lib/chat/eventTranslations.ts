@@ -1,4 +1,4 @@
-enum EventName {
+export enum EventName {
 	PlayerMessage,
 	PlayerJoined,
 	PlayerLeft,
@@ -47,18 +47,15 @@ enum EventName {
 	CrashTickingWorldEntity
 }
 
-enum SendEvent {
-	None,
-	All,
+export enum SendEvent {
 	Embed,
 	Text
 }
 
-const eventDefinitons = [
-	{
-		name: EventName.PlayerMessage,
+const eventDefinitons = {
+	[EventName.PlayerMessage]: {
 		match: "<%username%> %message%",
-		text: "**<**%username%**>** %message%",
+		text: "%message%",
 		embed: {
 			description: "%message%",
 			author: {
@@ -68,8 +65,7 @@ const eventDefinitons = [
 		},
 		send: SendEvent.Text,
 	},
-	{
-		name: EventName.PlayerJoined,
+	[EventName.PlayerJoined]: {
 		match: "%username% joined the game",
 		text: "**<%username%>** joined the server!",
 		embed: {
@@ -81,8 +77,7 @@ const eventDefinitons = [
 		},
 		send: SendEvent.Embed,
 	},
-	{
-		name: EventName.PlayerLeft,
+	[EventName.PlayerLeft]: {
 		match: "%username% left the game",
 		text: "**<%username%>** left the server!",
 		embed: {
@@ -94,8 +89,7 @@ const eventDefinitons = [
 		},
 		send: SendEvent.Embed,
 	},
-	{
-		name: EventName.PlayerAdvancement,
+	[EventName.PlayerAdvancement]: {
 		match: "%username% has made the advancement %advancement%",
 		text: "**<%username%>** gained the achievement **%advancement%**!",
 		embed: {
@@ -109,8 +103,7 @@ const eventDefinitons = [
 		},
 		send: SendEvent.Embed,
 	},
-	{
-		name: EventName.PlayerGoal,
+	[EventName.PlayerGoal]: {
 		match: "%username% has reached the goal %goal%",
 		text: "**<%username%>** reached the goal **%goal%**!",
 		embed: {
@@ -124,8 +117,7 @@ const eventDefinitons = [
 		},
 		send: SendEvent.Embed,
 	},
-	{
-		name: EventName.PlayerChallenge,
+	[EventName.PlayerChallenge]: {
 		match: "%username% has completed the challenge %challenge%",
 		text: "**<%username%>** has completed the challenge **%challenge%**!",
 		embed: {
@@ -139,8 +131,7 @@ const eventDefinitons = [
 		},
 		send: SendEvent.Embed,
 	},
-	{
-		name: EventName.KilledInFire,
+	[EventName.KilledInFire]: {
 		match: "%entity% went up in flames",
 		text: "**<%entity%>** went up in flames",
 		embed: {
@@ -151,8 +142,7 @@ const eventDefinitons = [
 		},
 		send: SendEvent.Embed,
 	},
-	{
-		name: EventName.DiedOnFire,
+	[EventName.DiedOnFire]: {
 		match: "%entity% burned to death",
 		text: "**<%entity%>** burned to death",
 		embed: {
@@ -163,8 +153,7 @@ const eventDefinitons = [
 		},
 		send: SendEvent.Embed,
 	},
-	{
-		name: EventName.DiedInLava,
+	[EventName.DiedInLava]: {
 		match: "%entity% tried to swim in lava",
 		text: "**<%entity%>** tried to swim in lava",
 		embed: {
@@ -175,8 +164,7 @@ const eventDefinitons = [
 		},
 		send: SendEvent.Embed,
 	},
-	{
-		name: EventName.DiedInWall,
+	[EventName.DiedInWall]: {
 		match: "%entity% suffocated in a wall",
 		text: "**<%entity%>** suffocated in a wall",
 		embed: {
@@ -187,8 +175,7 @@ const eventDefinitons = [
 		},
 		send: SendEvent.Embed,
 	},
-	{
-		name: EventName.Drowned,
+	[EventName.Drowned]: {
 		match: "%entity% drowned",
 		text: "**<%entity%>** drowned",
 		embed: {
@@ -199,8 +186,7 @@ const eventDefinitons = [
 		},
 		send: SendEvent.Embed,
 	},
-	{
-		name: EventName.DrownedEscaping,
+	[EventName.DrownedEscaping]: {
 		match: "%entityA% drowned whilst trying to escape %entityB%",
 		text: "**<%entityA%>** drowned whilst trying to escape **<%entityB%>**",
 		embed: {
@@ -211,8 +197,7 @@ const eventDefinitons = [
 		},
 		send: SendEvent.Embed,
 	},
-	{
-		name: EventName.Starved,
+	[EventName.Starved]: {
 		match: "%entity% starved to death",
 		text: "**<%entity%>** starved to death",
 		embed: {
@@ -223,8 +208,7 @@ const eventDefinitons = [
 		},
 		send: SendEvent.Embed,
 	},
-	{
-		name: EventName.Pricked,
+	[EventName.Pricked]: {
 		match: "%entity% was pricked to death",
 		text: "**<%entity%>** was pricked to death",
 		embed: {
@@ -235,8 +219,7 @@ const eventDefinitons = [
 		},
 		send: SendEvent.Embed,
 	},
-	{
-		name: EventName.HuggedACactus,
+	[EventName.HuggedACactus]: {
 		match: "%entity% hugged a cactus",
 		text: "**<%entity%>** hugged a cactus",
 		embed: {
@@ -247,8 +230,7 @@ const eventDefinitons = [
 		},
 		send: SendEvent.Embed,
 	},
-	{
-		name: EventName.WalkedIntoCactus,
+	[EventName.WalkedIntoCactus]: {
 		match: "%entityA% walked into a cactus while trying to escape %entityB%",
 		text: "**<%entity%>** walked into a cactus while trying to escape **<%entityB%>**",
 		embed: {
@@ -259,8 +241,7 @@ const eventDefinitons = [
 		},
 		send: SendEvent.Embed,
 	},
-	{
-		name: EventName.HitTheGroundTooHard,
+	[EventName.HitTheGroundTooHard]: {
 		match: "%entity% hit the ground too hard",
 		text: "**<%entity%>** hit the ground too hard",
 		embed: {
@@ -271,8 +252,7 @@ const eventDefinitons = [
 		},
 		send: SendEvent.Embed,
 	},
-	{
-		name: EventName.DiedOutOfWorld,
+	[EventName.DiedOutOfWorld]: {
 		match: "%entity% fell out of the world",
 		text: "**<%entity%>** fell out of the world",
 		embed: {
@@ -283,8 +263,7 @@ const eventDefinitons = [
 		},
 		send: SendEvent.Embed,
 	},
-	{
-		name: EventName.Died,
+	[EventName.Died]: {
 		match: "%entity% died",
 		text: "**<%entity%>** died",
 		embed: {
@@ -295,8 +274,7 @@ const eventDefinitons = [
 		},
 		send: SendEvent.Embed,
 	},
-	{
-		name: EventName.Exploded,
+	[EventName.Exploded]: {
 		match: "%entity% blew up",
 		text: "**<%entity%>** blew up",
 		embed: {
@@ -307,8 +285,7 @@ const eventDefinitons = [
 		},
 		send: SendEvent.Embed,
 	},
-	{
-		name: EventName.ExplodedBy,
+	[EventName.ExplodedBy]: {
 		match: "%entityA% was blown up by %entityB%",
 		text: "**<%entityA%>** was blown up by **<%entityB%>**",
 		embed: {
@@ -319,8 +296,7 @@ const eventDefinitons = [
 		},
 		send: SendEvent.Embed,
 	},
-	{
-		name: EventName.KilledByMagic,
+	[EventName.KilledByMagic]: {
 		match: "%entity% was killed by magic",
 		text: "**<%entity%>** was killed by magic",
 		embed: {
@@ -331,8 +307,7 @@ const eventDefinitons = [
 		},
 		send: SendEvent.Embed,
 	},
-	{
-		name: EventName.SlainBy,
+	[EventName.SlainBy]: {
 		match: "%entityA% was slain by %entityB%",
 		text: "**<%entityA%>** was slain by **%entityB%**",
 		embed: {
@@ -343,8 +318,7 @@ const eventDefinitons = [
 		},
 		send: SendEvent.Embed,
 	},
-	{
-		name: EventName.ShotBy,
+	[EventName.ShotBy]: {
 		match: "%entityA% was shot by %entityB%",
 		text: "**<%entityA%>** was shot by **%entityB%**",
 		embed: {
@@ -355,8 +329,7 @@ const eventDefinitons = [
 		},
 		send: SendEvent.Embed,
 	},
-	{
-		name: EventName.ShotByUsing,
+	[EventName.ShotByUsing]: {
 		match: "%entityA% was shot by %entityB% using %bowName%",
 		text: "**<%entityA%>** was shot by **%entityB% using %bowName%**",
 		embed: {
@@ -367,8 +340,7 @@ const eventDefinitons = [
 		},
 		send: SendEvent.Embed,
 	},
-	{
-		name: EventName.FireballedBy,
+	[EventName.FireballedBy]: {
 		match: "%entityA% was fireballed by %entityB%",
 		text: "**<%entityA%>** was fireballed by **%entityB%**",
 		embed: {
@@ -379,8 +351,7 @@ const eventDefinitons = [
 		},
 		send: SendEvent.Embed,
 	},
-	{
-		name: EventName.PummeledBy,
+	[EventName.PummeledBy]: {
 		match: "%entityA% was pummeled by %entityB%",
 		text: "**<%entityA%>** was pummeled by **%entityB%**",
 		embed: {
@@ -391,8 +362,7 @@ const eventDefinitons = [
 		},
 		send: SendEvent.Embed,
 	},
-	{
-		name: EventName.KilledBy,
+	[EventName.KilledBy]: {
 		match: "%entityA% was killed by %entityB%",
 		text: "**<%entityA%>** was killed by **%entityB%**",
 		embed: {
@@ -403,8 +373,7 @@ const eventDefinitons = [
 		},
 		send: SendEvent.Embed,
 	},
-	{
-		name: EventName.ElytraCrashed,
+	[EventName.ElytraCrashed]: {
 		match: "%entity% experienced kinetic energy",
 		text: "**<%entity%>** experienced kinetic energy",
 		embed: {
@@ -415,8 +384,7 @@ const eventDefinitons = [
 		},
 		send: SendEvent.Embed,
 	},
-	{
-		name: EventName.FellFromHighPlace,
+	[EventName.FellFromHighPlace]: {
 		match: "%entity% fell from a high place",
 		text: "**<%entity%>** fell from a high place",
 		embed: {
@@ -427,8 +395,7 @@ const eventDefinitons = [
 		},
 		send: SendEvent.Embed,
 	},
-	{
-		name: EventName.FellFromLadder,
+	[EventName.FellFromLadder]: {
 		match: "%entity% fell off a ladder",
 		text: "**<%entity%>** fell off a ladder",
 		embed: {
@@ -439,8 +406,7 @@ const eventDefinitons = [
 		},
 		send: SendEvent.Embed,
 	},
-	{
-		name: EventName.FellFromVines,
+	[EventName.FellFromVines]: {
 		match: "%entity% fell off some vines",
 		text: "**<%entity%>** fell off some vines",
 		embed: {
@@ -451,8 +417,7 @@ const eventDefinitons = [
 		},
 		send: SendEvent.Embed,
 	},
-	{
-		name: EventName.FellOutOfWater,
+	[EventName.FellOutOfWater]: {
 		match: "%entity% fell out of the water",
 		text: "**<%entity%>** out of the water",
 		embed: {
@@ -463,8 +428,7 @@ const eventDefinitons = [
 		},
 		send: SendEvent.Embed,
 	},
-	{
-		name: EventName.FellIntoFire,
+	[EventName.FellIntoFire]: {
 		match: "%entity% fell into a patch of fire",
 		text: "**<%entity%>** fell into a patch of fire",
 		embed: {
@@ -475,8 +439,8 @@ const eventDefinitons = [
 		},
 		send: SendEvent.Embed,
 	},
-	{
-		name: EventName.FellIntoCacti,
+	[EventName.FellIntoCacti]: {
+
 		match: "%entity% fell into a patch of cacti",
 		text: "**<%entity%>** fell into a patch of cacti",
 		embed: {
@@ -487,8 +451,7 @@ const eventDefinitons = [
 		},
 		send: SendEvent.Embed,
 	},
-	{
-		name: EventName.DoomedToFall,
+	[EventName.DoomedToFall]: {
 		match: "%entityA% was doomed to fall by %entityB%",
 		text: "**<%entityA%>** was doomed to fall by %entityB%",
 		embed: {
@@ -499,8 +462,7 @@ const eventDefinitons = [
 		},
 		send: SendEvent.Embed,
 	},
-	{
-		name: EventName.ShootOffVines,
+	[EventName.ShootOffVines]: {
 		match: "%entityA% was shot off some vines by %entityB%",
 		text: "**<%entityA%>** was shot off some vines by %entityB%",
 		embed: {
@@ -511,8 +473,7 @@ const eventDefinitons = [
 		},
 		send: SendEvent.Embed,
 	},
-	{
-		name: EventName.BlownFromHigh,
+	[EventName.BlownFromHigh]: {
 		match: "%entityA% was blown from a high place by %entityB%",
 		text: "**<%entityA%>** was blown from a high place by %entityB%",
 		embed: {
@@ -523,8 +484,7 @@ const eventDefinitons = [
 		},
 		send: SendEvent.Embed,
 	},
-	{
-		name: EventName.SquashedByAnvil,
+	[EventName.SquashedByAnvil]: {
 		match: "%entityA% was squashed by a falling anvil",
 		text: "**<%entityA%>** was squashed by a falling anvil",
 		embed: {
@@ -535,8 +495,7 @@ const eventDefinitons = [
 		},
 		send: SendEvent.Embed,
 	},
-	{
-		name: EventName.SquashedByBlock,
+	[EventName.SquashedByBlock]: {
 		match: "%entityA% was squashed by a falling block",
 		text: "**<%entityA%>** was squashed by a falling block",
 		embed: {
@@ -547,8 +506,7 @@ const eventDefinitons = [
 		},
 		send: SendEvent.Embed,
 	},
-	{
-		name: EventName.ElytraKilled,
+	[EventName.ElytraKilled]: {
 		match: "%entity% removed an elytra while flying",
 		text: "**<%entity%>** removed an elytra while flying",
 		embed: {
@@ -559,8 +517,7 @@ const eventDefinitons = [
 		},
 		send: SendEvent.Embed,
 	},
-	{
-		name: EventName.Started,
+	[EventName.Started]: {
 		match: "serverStarted",
 		text: "**Server Started**",
 		embed: {
@@ -568,8 +525,7 @@ const eventDefinitons = [
 		},
 		send: SendEvent.Embed,
 	},
-	{
-		name: EventName.Stopping,
+	[EventName.Stopping]: {
 		match: "Stopping the server",
 		text: "**Server stopping...**",
 		embed: {
@@ -577,8 +533,7 @@ const eventDefinitons = [
 		},
 		send: SendEvent.Embed,
 	},
-	{
-		name: EventName.CrashHang,
+	[EventName.CrashHang]: {
 		match: "A single server tick took %seconds% seconds",
 		text: "@Mods Server crashed, a single server tick took %seconds% seconds, should be 0.05 seconds",
 		embed: {
@@ -586,8 +541,7 @@ const eventDefinitons = [
 		},
 		send: SendEvent.Embed,
 	},
-	{
-		name: EventName.CrashTicking,
+	[EventName.CrashTicking]: {
 		match: "Encountered an unexpected exception net.minecraft.util.ReportedException: Ticking",
 		text: "<@&344286675691896832> **Server crashed, reason: Ticking entity",
 		embed: {
@@ -595,8 +549,7 @@ const eventDefinitons = [
 		},
 		send: SendEvent.Embed,
 	},
-	{
-		name: EventName.CrashTickingWorldEntity,
+	[EventName.CrashTickingWorldEntity]: {
 		match: "Encountered an unexpected exception net.minecraft.util.ReportedException: Exception ticking world entities",
 		text: "<@&344286675691896832> **Server crashed, reason: Ticking world entities",
 		embed: {
@@ -604,62 +557,71 @@ const eventDefinitons = [
 		},
 		send: SendEvent.Embed,
 	},
-] as const;
+} as const;
 
 import { ValueOf, ValueOfA } from "@inrixia/helpers/ts";
 import { DiscordEmbed } from "@spookelton/wrapperHelpers/types";
 
-// const fillEmbed = async (embed: EventTranslation["embed"], match: string, fill: string) => {
-// 	for (const key in embed) {
-// 		if (typeof embed[key] === "string") {
-// 			embed[key] = embed[key].replace(match, fill);
-// 			if (embed[key] === `${fill}_image`) {
-// 				embed[key] = `https://crafthead.net/cube/${fill}.png`;
-// 			}
-// 			return;
-// 		}
-// 		await fillEmbed(embed[key], match, fill);
-// 	}
-// };
+type EventDefinitions = typeof eventDefinitons;
+type EventsWithMatchers = {
+	[K in keyof EventDefinitions]: EventDefinitions[K] & { replacers: RegExpMatchArray | null, regex: RegExp, name: K }
+}
 
-type RawEvent = ValueOfA<typeof eventDefinitons>;
-type EventWithMatchers = RawEvent & { matchReplacers: RegExpMatchArray | null, matchRegex: RegExp }
-
-const addMatchers = (events: typeof eventDefinitons): EventWithMatchers[] => {
-	const eventsWithMatchers: EventWithMatchers[] = [];
-	for (const event of events) {
-		eventsWithMatchers.push({
-			...event,
-			matchReplacers: event.match.match(/\%(.*?)\%/g),
-			matchRegex: new RegExp(`.* ${event.match.replace(/\%(.*?)\%/g, "(.*?)")}$`)
-		})
+const addMatchers = (events: typeof eventDefinitons): EventsWithMatchers => {
+	const eventsWithMatchers = <EventsWithMatchers>events;
+	for (const name in eventsWithMatchers) {
+		const event = eventsWithMatchers[<keyof EventsWithMatchers><unknown>name]
+		event.replacers = event.match.match(/\%(.*?)\%/g)
+		event.regex = new RegExp(`.* ${event.match.replace(/\%(.*?)\%/g, "(.*?)")}$`)
+		event.name = parseInt(name);
 	}
 	return eventsWithMatchers
 }
 
 export const eventsWithMatchers = addMatchers(eventDefinitons);
 
-type Event<Def extends RawEvent = RawEvent> = Def & {
-	parameters: Parameters<Def["text"]>
+type Parameters<S extends string> = S extends `${infer Start}%${infer Value}%${infer End}` ? { [k in Value]: string } & Parameters<Start> & Parameters<End> : {}
+type EventsWithParameters = {
+	[K in keyof EventsWithMatchers]: EventsWithMatchers[K] & { parameters: Parameters<EventsWithMatchers[K]["match"]> }
 };
 
-const buildParameters = <E extends RawEvent>(event: E): Event<E> => {
-	return {
-		...event,
-		parameters: <Parameters<E["text"]>>[]
-	};
-}
-// Ugh let me get on my desktop you lil old man
-const parseEvent = (string: string): Event => {
-	for (const event of events) {
-		const match = string.replace(/\n|\r/g, "").match(event.matchRegex);
-		if (match !== null) {
-			
-			break;
+const events = Object.values(eventsWithMatchers)
+
+
+type Event = ValueOf<EventsWithParameters>;
+
+const fillEmbed = async (embed: Record<string, any>, match: string, fill: string) => {
+	for (const key in embed) {
+		if (typeof embed[key] === "string") {
+			if (embed[key] === `${match}_image`) embed[key] = `https://crafthead.net/cube/${fill}.png`;
+			else embed[key] = embed[key].replace(match, fill);
+		} else fillEmbed(embed[key], match, fill);
+	}
+};
+
+
+export const parseEvent = (string: string): Event | undefined => {
+	for (const eventDef of events) {
+		const match = string.replace(/\n|\r/g, "").match(eventDef.regex);
+		if (match === null) continue;
+
+		const event = <Event>{ ...eventDef, parameters: {} };
+
+		const { replacers } = event;
+
+		if (replacers === null) return event;
+
+		event.parameters = {};
+		for (let i = 0; i < replacers.length; i++) {
+			// @ts-ignore I cbf dealing with all the casts needed to make this happy
+			event.parameters[replacers[i].replaceAll("%", "")] = match[i + 1];
+			if (event.send === SendEvent.Text) {
+				(<string>event.text) = event.text.replace(replacers[i], match[i + 1]);
+				continue;
+			}
+			fillEmbed(event.embed, replacers[i], match[i + 1]);
 		}
+		return event;
 	}
 }
 
-type Parameters<S extends string> = S extends `${infer Start}%${infer Value}%${infer End}` ? [Value, ...Parameters<Start>, ...Parameters<End>] : []
-
-type D = Parameters<"**<%username%>** gained the achievement **%advancement%**!">

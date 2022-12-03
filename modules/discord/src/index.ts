@@ -112,13 +112,19 @@ const chikachiPath = "./config/Chikachi/discordintegration.json";
 	});
 })();
 
-export const sendWebhookMessage = async (username: string, message: string) => {
+export const sendWebhookMessage = async (content: string, username?: string) => {
+	console.log(content, username);
 	const webhook = await discord.fetchWebhook(moduleSettings.chat.webhookId, moduleSettings.chat.webhookToken);
-	webhook.send({
-		username: `[${discord.user?.username}] ${username} `,
+	if (username !== undefined) await webhook.send({
+		username: `[${discord.user?.username}] ${username}`,
 		avatarURL: `https://crafthead.net/cube/${username}.png`,
-		content: message.replace(`**<**${username}**>**`, ""),
-	});
+		content,
+	})
+	else await webhook.send({
+		username: discord.user?.username,
+		avatarURL: discord.user?.avatarURL() ?? undefined,
+		content,
+	})
 };
 
 export const sendWebhookEmbed = async (embed: DiscordEmbed) => {
