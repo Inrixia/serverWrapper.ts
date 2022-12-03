@@ -6,3 +6,5 @@ tsconfig.tsbuildinfo
 dist/
 
 testServer/
+
+.vscode/settings.json

@@ -44,12 +44,12 @@ export enum EventName {
 	Stopping,
 	CrashHang,
 	CrashTicking,
-	CrashTickingWorldEntity
+	CrashTickingWorldEntity,
 }
 
 export enum SendEvent {
 	Embed,
-	Text
+	Text,
 }
 
 const eventDefinitons = {
@@ -96,9 +96,7 @@ const eventDefinitons = {
 			description: "Made the advancement **%advancement%**",
 			author: {
 				name: "%username%",
-			},
-			thumbnail: {
-				url: "%username%_image",
+				icon_url: "%username%_image",
 			},
 		},
 		send: SendEvent.Embed,
@@ -110,9 +108,7 @@ const eventDefinitons = {
 			description: "Reached the goal **%goal%**",
 			author: {
 				name: "%username%",
-			},
-			thumbnail: {
-				url: "%username%_image",
+				icon_url: "%username%_image",
 			},
 		},
 		send: SendEvent.Embed,
@@ -124,9 +120,7 @@ const eventDefinitons = {
 			description: "Completed the challenge **%challenge%**",
 			author: {
 				name: "%username%",
-			},
-			thumbnail: {
-				url: "%username%_image",
+				icon_url: "%username%_image",
 			},
 		},
 		send: SendEvent.Embed,
@@ -440,7 +434,6 @@ const eventDefinitons = {
 		send: SendEvent.Embed,
 	},
 	[EventName.FellIntoCacti]: {
-
 		match: "%entity% fell into a patch of cacti",
 		text: "**<%entity%>** fell into a patch of cacti",
 		embed: {
@@ -559,34 +552,34 @@ const eventDefinitons = {
 	},
 } as const;
 
-import { ValueOf, ValueOfA } from "@inrixia/helpers/ts";
-import { DiscordEmbed } from "@spookelton/wrapperHelpers/types";
+import { ValueOf } from "@inrixia/helpers/ts";
 
 type EventDefinitions = typeof eventDefinitons;
 type EventsWithMatchers = {
-	[K in keyof EventDefinitions]: EventDefinitions[K] & { replacers: RegExpMatchArray | null, regex: RegExp, name: K }
-}
+	[K in keyof EventDefinitions]: EventDefinitions[K] & { replacers: RegExpMatchArray | null; regex: RegExp; name: K };
+};
 
 const addMatchers = (events: typeof eventDefinitons): EventsWithMatchers => {
 	const eventsWithMatchers = <EventsWithMatchers>events;
 	for (const name in eventsWithMatchers) {
-		const event = eventsWithMatchers[<keyof EventsWithMatchers><unknown>name]
-		event.replacers = event.match.match(/\%(.*?)\%/g)
-		event.regex = new RegExp(`.* ${event.match.replace(/\%(.*?)\%/g, "(.*?)")}$`)
+		const event = eventsWithMatchers[<keyof EventsWithMatchers>(<unknown>name)];
+		event.replacers = event.match.match(/\%(.*?)\%/g);
+		event.regex = new RegExp(`.*DedicatedServer.* ${event.match.replace(/\%(.*?)\%/g, "(.*?)")}$`);
 		event.name = parseInt(name);
 	}
-	return eventsWithMatchers
-}
+	return eventsWithMatchers;
+};
 
 export const eventsWithMatchers = addMatchers(eventDefinitons);
 
-type Parameters<S extends string> = S extends `${infer Start}%${infer Value}%${infer End}` ? { [k in Value]: string } & Parameters<Start> & Parameters<End> : {}
+type Parameters<S extends string> = S extends `${infer Start}%${infer Value}%${infer End}`
+	? { [k in Value]: string } & Parameters<Start> & Parameters<End>
+	: {};
 type EventsWithParameters = {
-	[K in keyof EventsWithMatchers]: EventsWithMatchers[K] & { parameters: Parameters<EventsWithMatchers[K]["match"]> }
+	[K in keyof EventsWithMatchers]: EventsWithMatchers[K] & { parameters: Parameters<EventsWithMatchers[K]["match"]> };
 };
 
-const events = Object.values(eventsWithMatchers)
-
+const events = Object.values(eventsWithMatchers);
 
 type Event = ValueOf<EventsWithParameters>;
 
@@ -599,19 +592,18 @@ const fillEmbed = async (embed: Record<string, any>, match: string, fill: string
 	}
 };
 
-
 export const parseEvent = (string: string): Event | undefined => {
 	for (const eventDef of events) {
 		const match = string.replace(/\n|\r/g, "").match(eventDef.regex);
 		if (match === null) continue;
 
-		const event = <Event>{ ...eventDef, parameters: {} };
+		const event: Event = structuredClone(eventDef);
+		event.parameters = {};
 
 		const { replacers } = event;
 
 		if (replacers === null) return event;
 
-		event.parameters = {};
 		for (let i = 0; i < replacers.length; i++) {
 			// @ts-ignore I cbf dealing with all the casts needed to make this happy
 			event.parameters[replacers[i].replaceAll("%", "")] = match[i + 1];
@@ -623,5 +615,4 @@ export const parseEvent = (string: string): Event | undefined => {
 		}
 		return event;
 	}
-}
-
+};
