@@ -5,6 +5,7 @@ export * from "./kill";
 export * from "./killModule";
 export * from "./listModules";
 export * from "./loadModules";
+export * from "./recompile";
 export * from "./restartModule";
 export * from "./restartModules";
 export * from "./startModule";
