@@ -1,4 +1,3 @@
-import fs from "fs";
 import chalk from "chalk";
 import { AttachmentPayload, Client, GatewayIntentBits } from "discord.js";
 
@@ -41,7 +40,6 @@ export const moduleSettings = db<ModuleSettings>("./_db/discord.json", {
 			webhookToken: "",
 		},
 	},
-
 });
 
 const discord = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages] });
@@ -61,10 +59,7 @@ const rgbToHex = (rgb: number): string => {
 	return hex;
 };
 
-const chikachiPath = "./config/Chikachi/discordintegration.json";
-
 (async () => {
-	if (moduleSettings.discordToken === "" && fs.existsSync(chikachiPath)) moduleSettings.discordToken = fs.readFileSync(chikachiPath, "utf8").slice(31, 90);
 	if (moduleSettings.discordToken === "") {
 		// TODO: Exit thread dont just quitely disable
 		console.log(chalk`[{red @spookelton/discord}]: No Token Found! Exiting...`);
@@ -115,16 +110,18 @@ const chikachiPath = "./config/Chikachi/discordintegration.json";
 export const sendWebhookMessage = async (content: string, username?: string) => {
 	console.log(content, username);
 	const webhook = await discord.fetchWebhook(moduleSettings.chat.webhookId, moduleSettings.chat.webhookToken);
-	if (username !== undefined) await webhook.send({
-		username: `[${discord.user?.username}] ${username}`,
-		avatarURL: `https://crafthead.net/cube/${username}.png`,
-		content,
-	})
-	else await webhook.send({
-		username: discord.user?.username,
-		avatarURL: discord.user?.avatarURL() ?? undefined,
-		content,
-	})
+	if (username !== undefined)
+		await webhook.send({
+			username: `[${discord.user?.username}] ${username}`,
+			avatarURL: `https://crafthead.net/cube/${username}.png`,
+			content,
+		});
+	else
+		await webhook.send({
+			username: discord.user?.username,
+			avatarURL: discord.user?.avatarURL() ?? undefined,
+			content,
+		});
 };
 
 export const sendWebhookEmbed = async (embed: DiscordEmbed) => {
