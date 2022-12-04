@@ -69,9 +69,8 @@ const eventDefinitons = {
 		match: "%username% joined the game",
 		text: "**<%username%>** joined the server!",
 		embed: {
-			description: "**%username%** joined the game!",
 			author: {
-				name: "",
+				name: "%username% Joined the game!",
 				icon_url: "%username%_image",
 			},
 		},
@@ -81,9 +80,8 @@ const eventDefinitons = {
 		match: "%username% left the game",
 		text: "**<%username%>** left the server!",
 		embed: {
-			description: "**%username%** left the game!",
 			author: {
-				name: "",
+				name: "%username% Left the game!",
 				icon_url: "%username%_image",
 			},
 		},
@@ -564,7 +562,7 @@ const addMatchers = (events: typeof eventDefinitons): EventsWithMatchers => {
 	for (const name in eventsWithMatchers) {
 		const event = eventsWithMatchers[<keyof EventsWithMatchers>(<unknown>name)];
 		event.replacers = event.match.match(/\%(.*?)\%/g);
-		event.regex = new RegExp(`.*DedicatedServer.* ${event.match.replace(/\%(.*?)\%/g, "(.*?)")}$`);
+		event.regex = new RegExp(`.*Server thread/INFO.* ${event.match.replace(/\%(.*?)\%/g, "(.*?)")}$`);
 		event.name = parseInt(name);
 	}
 	return eventsWithMatchers;
