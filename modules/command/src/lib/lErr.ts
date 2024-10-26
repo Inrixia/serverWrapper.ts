@@ -15,13 +15,9 @@ export const lErr = async (err: Error, logTo?: LogTo, message?: string) => {
 					color: "red",
 				},
 				{
-					text: `${err.message}`,
+					text: `${err.stack.split("\n")[0]}`,
 					color: "white",
-				},
-				{
-					text: `${err.stack}`,
-					color: "white",
-				},
+				}
 			],
 			discord: {
 				embeds: [

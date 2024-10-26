@@ -13,11 +13,13 @@ export const minecraftHandler = async (string: string) => {
 	const authThread = await getThread<AuthModule>("@spookelton/auth");
 	if (authThread === undefined) return;
 	// Get username and message out of "[01:06:15] [Server thread/INFO]: <greysilly7> asd"
-	const [, , username, message] = string.match(/\[(.*?)\] \[Server thread\/INFO\]: \<(.*?)\> (.*)/) || [];
-	if (username === null || message === null) return;
-	const canRunCommand = await authThread.minecraftUserAllowedCommand(message, username).catch((err: Error) => lErr(err, { minecraft: username }));
+	const [, , username, message] = string.match(/\[(.*?)\] \[Server thread\/INFO\](?: \[minecraft\/MinecraftServer])?: \<(.*?)\> (.*)/) || [];
+	if (!username || !message) return;
+	const commandName = message.split(string.includes('"') ? '"' : " ")[0];
+	if (commands[commandName.slice(1)] === undefined) return;
+	const canRunCommand = await authThread.minecraftUserAllowedCommand(commandName, username).catch((err: Error) => lErr(err, { minecraft: username }));
 	if (!canRunCommand) return;
-	commandHandler(message, {console: true, minecraft: true});
+	commandHandler(message, { console: true, minecraft: username });
 };
 
 export const consoleHandler = (string: string) => commandHandler(string, { console: true });
@@ -92,7 +94,7 @@ export const commandHandler = async (string: string, logTo?: LogTo): Promise<voi
 		return;
 	}
 	const exeStart = Date.now();
-	let commandOutput = await command({ string, args, logTo }).catch((err) => lErr(err, logTo, `Executing command failed "${string}"`));
+	let commandOutput = await command({ string, args, logTo }).catch((err) => lErr(err, logTo, `Failed excuting ${string}`));
 	if (commandOutput === undefined) return;
 	if (!Array.isArray(commandOutput)) commandOutput = [commandOutput];
 	for (const output of commandOutput) {

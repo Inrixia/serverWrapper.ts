@@ -64,6 +64,7 @@ const canUseCommand = (allowedCommands: AllowedCommands, commandString: string) 
 };
 
 export const discordUserAllowedCommand = async (commandString: string, author: DiscordMessage["author"]) => {
+	if (canUseCommand(moduleSettings.discord["*"]?.allowedCommands, commandString)) return true;
 	if (canUseCommand(moduleSettings.discord[author.id]?.allowedCommands, commandString)) return true;
 	if (author.roles !== undefined) {
 		for (const roleId of author.roles) {
@@ -74,6 +75,7 @@ export const discordUserAllowedCommand = async (commandString: string, author: D
 };
 
 export const minecraftUserAllowedCommand = async (commandString: string, username: string) => {
+	if (canUseCommand(moduleSettings.minecraft["*"]?.allowedCommands, commandString)) return true;
 	const mineAPIThread = await getThread<MineAPIModule>("@spookelton/mineapi");
 	if (mineAPIThread === undefined) throw hiddenError("Unable to access the mineapi module.");
 	if (canUseCommand(moduleSettings.minecraft[await mineAPIThread.usernameToUUID(username)]?.allowedCommands, commandString)) return true;
